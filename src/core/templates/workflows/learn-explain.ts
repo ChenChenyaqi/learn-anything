@@ -97,7 +97,7 @@ Synthesize these signals to judge whether the user is beginner, intermediate, or
 
 ### Step 4: Record Learning Session
 
-⚠️ CRITICAL — Do this in the SAME turn as your explanation, BEFORE presenting sub-topics. Do NOT skip this step.
+⚠️ CRITICAL — Write the session file FIRST, then output its content to the conversation. This ensures zero drift between what the user sees and what gets saved. Do this BEFORE presenting sub-topics (Step 5).
 
 **A) Determine the filename:**
 
@@ -112,9 +112,11 @@ Examples:
 
 Match the language the user is learning in — don't force-translate.
 
-**B) Save the FULL explanation — use the Write tool:**
+**B) Compose then WRITE the session file FIRST — use the Write tool:**
 
-The session file must contain the COMPLETE explanation you just delivered — not just bullet points. The user should be able to re-read this file and get the full learning experience without looking at the chat.
+Compose your COMPLETE explanation (positioning, analogy, core mechanism, code example with walkthrough, misconceptions, Socratic check, and quick summary). The user should be able to re-read this file and get the full learning experience without looking at the chat.
+
+Write this content to the session file FIRST, before outputting anything to the conversation.
 
 \`\`\`markdown
 # [Concept Name] — Learning Session
@@ -128,31 +130,31 @@ The session file must contain the COMPLETE explanation you just delivered — no
 
 ## Positioning
 
-[Copy the one-sentence positioning you gave — where this concept sits in the knowledge map]
+[Write the one-sentence positioning — where this concept sits in the knowledge map]
 
 ## Analogy
 
-[Copy the real-world metaphor/analogy you used]
+[Write the real-world metaphor/analogy you composed]
 
 ## Core Mechanism
 
-[Copy the full "what and why" explanation in clear language, with all details]
+[Write the full "what and why" explanation in clear language, with all details]
 
 ## Code Example
 
 \`\`\`[language]
-[Copy the complete code example you showed, with all comments]
+[Write the complete code example, with all comments]
 \`\`\`
 
 [Include your walkthrough of the code — what each part does]
 
 ## Common Misconceptions
 
-[Copy the misconceptions you discussed]
+[Write the misconceptions you identified]
 
 ## Socratic Check
 
-[Copy the thinking questions you posed to the user]
+[Write the thinking questions you composed]
 
 ---
 
@@ -167,9 +169,13 @@ The session file must contain the COMPLETE explanation you just delivered — no
 (Will be updated after the user chooses a sub-topic direction)
 \`\`\`
 
-**C) Update state.yaml — use the Edit tool:**
+**C) Output the file content to the conversation:**
 
-Edit \`./.learn/topics/<topic-name>/state.yaml\`:
+After writing the session file, present the EXACT content of the file you just wrote as your conversation response. Do NOT rephrase or regenerate — copy the file content verbatim into your message. Only after echoing the file content, proceed to Step 5 (identify sub-topics).
+
+**D) Update state.yaml — use the Edit tool:**
+
+In the same turn, also use the Edit tool to update \`./.learn/topics/<topic-name>/state.yaml\`:
 - If concept status is \`unexplored\`, update to \`in_progress\`
 - Update \`last_session\` to current date
 - If the user showed good understanding, increase \`confidence\` by 0.05 to 0.1
@@ -236,9 +242,9 @@ const COMMAND_CONTENT = `Use the learn-anything-explain skill to handle the user
 Follow the workflow defined in the skill:
 1. Load context: match topic → read knowledge map → read learning state
 2. Assess user level (beginner/intermediate/advanced) and adjust teaching strategy
-3. Follow the explanation structure: positioning → analogy → core mechanism → code example → common misconceptions → Socratic check
-4. CRITICAL — in the same turn as your explanation, use the Write tool to save the FULL explanation to ./.learn/topics/<topic>/sessions/<concept-name>-YYYY-MM-DD.md (match the user's language), use the Edit tool to update state.yaml
-5. Identify sub-topics as recursive entry points (only AFTER saving the session)`;
+3. Compose the full explanation: positioning → analogy → core mechanism → code example → common misconceptions → Socratic check
+4. CRITICAL — Write the session file FIRST (./.learn/topics/<topic>/sessions/<concept-name>-YYYY-MM-DD.md, matching the user's language), then echo the file content verbatim to the conversation. Also update state.yaml with Edit.
+5. Identify sub-topics as recursive entry points (only AFTER saving the session and echoing to conversation)`;
 
 export function getLearnExplainSkillTemplate(): SkillTemplate {
   return {

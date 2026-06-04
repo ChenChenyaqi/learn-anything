@@ -314,9 +314,11 @@ The user submits their code or answer in the chat. Review it using the framework
    - Set status to needs_practice
    - Note specific areas to focus on
 
-**In the same turn as your feedback**, save the session record. ⚠️ Do NOT wait for the user's next message — feedback text and file writes must happen together.
+⚠️ CRITICAL — Write the session file FIRST, then echo its content to the conversation. This ensures zero drift between what the user sees and what gets saved.
 
-- Use the Write tool to create \`./.learn/topics/<topic-name>/sessions/<concept-name>-practice-YYYY-MM-DD.md\` — match the user's language (see Step 5 for naming rules and format)
+1. **Write the session file** — Use the Write tool to create \`./.learn/topics/<topic-name>/sessions/<concept-name>-practice-YYYY-MM-DD.md\` with the full feedback content (see Step 5 for naming rules and format). Include everything: your acknowledgment, Socratic follow-up questions, edge case discussion, code quality tips, and final assessment.
+
+2. **Output the file content to the conversation** — After writing, present the exact content of the file you just wrote as your conversation response. Do NOT rephrase or regenerate it — copy the file content verbatim into your message.
 
 ### Step 5: Practice Session Record Format
 
@@ -382,8 +384,8 @@ Follow the workflow defined in the skill:
 2. Assess difficulty level based on state.yaml (beginner/intermediate/challenge)
 3. Project Mode: use Bash to create exercise dir → use Write to create README.md + starter file → tell user to open in IDE
    Chat Mode: generate exercise in chat (background → requirements → code template → hint)
-4. Project Mode: use Read to review user's code file → optionally use Bash to run it → provide structured feedback, and in the same turn use Write to save session record + Edit to update state.yaml
-   Chat Mode: review code submitted in chat → provide structured feedback, and in the same turn use Write to save session record + Edit to update state.yaml`;
+4. Project Mode: use Read to review user's code file → optionally use Bash to run it → compose feedback → Write session file FIRST → echo file content verbatim to conversation + Edit to update state.yaml
+   Chat Mode: review code submitted in chat → compose feedback → Write session file FIRST → echo file content verbatim to conversation + Edit to update state.yaml`;
 
 export function getLearnPracticeSkillTemplate(): SkillTemplate {
   return {

@@ -1,0 +1,125 @@
+{
+  "version": 1,
+  "topic": "Python 基础",
+  "slug": "python-基础",
+  "created": "2025-02-01",
+  "domains": [
+    {
+      "name": "数据类型",
+      "slug": "数据类型",
+      "concepts": [
+        {
+          "name": "列表与元组",
+          "slug": "列表与元组",
+          "status": "mastered",
+          "confidence": 0.95,
+          "practice_count": 6,
+          "explain_count": 4,
+          "last_explained": "2025-05-14",
+          "last_practiced": "2025-05-15",
+          "details": []
+        },
+        {
+          "name": "字典与集合",
+          "slug": "字典与集合",
+          "status": "in_progress",
+          "confidence": 0.6,
+          "practice_count": 3,
+          "explain_count": 2,
+          "last_explained": null,
+          "last_practiced": "2025-05-10",
+          "details": ["创建与访问", "常用方法"]
+        },
+        {
+          "name": "字符串操作",
+          "slug": "字符串操作",
+          "status": "unexplored",
+          "confidence": 0,
+          "practice_count": 0,
+          "explain_count": 0,
+          "last_explained": null,
+          "last_practiced": null,
+          "details": []
+        }
+      ]
+    },
+    {
+      "name": "函数",
+      "slug": "函数",
+      "concepts": [
+        {
+          "name": "函数定义",
+          "slug": "函数定义",
+          "status": "unexplored",
+          "confidence": 0,
+          "practice_count": 0,
+          "explain_count": 0,
+          "last_explained": null,
+          "last_practiced": null,
+          "details": []
+        },
+        {
+          "name": "装饰器",
+          "slug": "装饰器",
+          "status": "needs_practice",
+          "confidence": 0.25,
+          "practice_count": 1,
+          "explain_count": 1,
+          "last_explained": "2025-03-15",
+          "last_practiced": null,
+          "details": ["语法糖"]
+        },
+        {
+          "name": "lambda 表达式",
+          "slug": "lambda-表达式",
+          "status": "unexplored",
+          "confidence": 0,
+          "practice_count": 0,
+          "explain_count": 0,
+          "last_explained": null,
+          "last_practiced": null,
+          "details": []
+        }
+      ]
+    },
+    {
+      "name": "面向对象",
+      "slug": "面向对象",
+      "concepts": [
+        {
+          "name": "类定义",
+          "slug": "类定义",
+          "status": "unexplored",
+          "confidence": 0,
+          "practice_count": 0,
+          "explain_count": 0,
+          "last_explained": null,
+          "last_practiced": null,
+          "details": []
+        },
+        {
+          "name": "__init__ 与构造",
+          "slug": "__init__-与构造",
+          "status": "in_progress",
+          "confidence": 0.5,
+          "practice_count": 2,
+          "explain_count": 1,
+          "last_explained": null,
+          "last_practiced": "2025-04-20",
+          "details": ["self 参数"]
+        },
+        {
+          "name": "继承与多态",
+          "slug": "继承与多态",
+          "status": "unexplored",
+          "confidence": 0,
+          "practice_count": 0,
+          "explain_count": 0,
+          "last_explained": null,
+          "last_practiced": null,
+          "details": []
+        }
+      ]
+    }
+  ]
+}

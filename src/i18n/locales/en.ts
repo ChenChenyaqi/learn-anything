@@ -31,5 +31,7 @@ export const en: LocaleMessages = {
     cmdLine: (cmd: string, desc: string) => `  ${cmd}${desc}`,
     interactiveSelectPrompt:
       'Select AI tools to generate skills for (space to select, enter to confirm):',
+    migrationComplete: (count: number) =>
+      `Migrated ${count} topic(s) from v0 to v1 format (backups created).`,
   },
 };

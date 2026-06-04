@@ -7,3 +7,6 @@ dist/
 .claude
 .codex
 .learn
+
+# test output
+test/core/learn-protocol/fixtures/migrates/

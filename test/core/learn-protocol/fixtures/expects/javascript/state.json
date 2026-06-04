@@ -1,0 +1,81 @@
+{
+  "version": 1,
+  "topic": "JavaScript",
+  "slug": "javascript",
+  "created": "2025-01-15 10:30:00",
+  "domains": [
+    {
+      "name": "Variables & Data Types",
+      "slug": "variables-data-types",
+      "concepts": [
+        {
+          "name": "Variables & Data Types",
+          "slug": "variables-data-types",
+          "status": "mastered",
+          "confidence": 0.9,
+          "practice_count": 5,
+          "explain_count": 5,
+          "last_explained": "2025-06-01 09:00:00",
+          "last_practiced": "2025-06-01",
+          "details": []
+        }
+      ]
+    },
+    {
+      "name": "Functions",
+      "slug": "functions",
+      "concepts": [
+        {
+          "name": "Function Declaration",
+          "slug": "function-declaration",
+          "status": "mastered",
+          "confidence": 0.85,
+          "practice_count": 4,
+          "explain_count": 3,
+          "last_explained": "2025-05-28 14:00:00",
+          "last_practiced": "2025-05-28",
+          "details": []
+        },
+        {
+          "name": "Arrow Functions",
+          "slug": "arrow-functions",
+          "status": "in_progress",
+          "confidence": 0.5,
+          "practice_count": 2,
+          "explain_count": 1,
+          "last_explained": null,
+          "last_practiced": "2025-06-03",
+          "details": ["Implicit return", "Lexical this"]
+        },
+        {
+          "name": "Closures",
+          "slug": "closures",
+          "status": "needs_practice",
+          "confidence": 0.3,
+          "practice_count": 1,
+          "explain_count": 2,
+          "last_explained": "2025-04-20",
+          "last_practiced": null,
+          "details": ["Module Pattern"]
+        }
+      ]
+    },
+    {
+      "name": "Objects & OOP",
+      "slug": "objects-oop",
+      "concepts": [
+        {
+          "name": "Prototype Chain",
+          "slug": "prototype-chain",
+          "status": "in_progress",
+          "confidence": 0.45,
+          "practice_count": 2,
+          "explain_count": 0,
+          "last_explained": null,
+          "last_practiced": "2025-05-20",
+          "details": []
+        }
+      ]
+    }
+  ]
+}

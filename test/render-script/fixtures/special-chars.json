@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "topic": "Special Chars",
+  "slug": "special-chars",
+  "created": "2025-01-01",
+  "domains": [
+    {
+      "name": "Memory (堆/栈)",
+      "slug": "memory-堆-栈",
+      "concepts": [
+        {
+          "name": "所有权 (ownership)",
+          "slug": "所有权-ownership",
+          "status": "in_progress",
+          "confidence": 0,
+          "practice_count": 0,
+          "explain_count": 0,
+          "last_explained": null,
+          "last_practiced": null,
+          "details": ["& 引用", "&mut 可变引用"]
+        }
+      ]
+    }
+  ]
+}

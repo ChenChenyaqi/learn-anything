@@ -25,6 +25,7 @@ export interface InitMessages {
   availableCommands: string;
   cmdLine: (cmd: string, desc: string) => string;
   interactiveSelectPrompt: string;
+  migrationComplete: (count: number) => string;
 }
 
 export interface LocaleMessages {

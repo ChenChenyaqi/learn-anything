@@ -28,5 +28,6 @@ export const zhCN: LocaleMessages = {
     availableCommands: '可用的学习命令：',
     cmdLine: (cmd: string, desc: string) => `  ${cmd}${desc}`,
     interactiveSelectPrompt: '选择要生成技能的 AI 工具（空格选择，回车确认）：',
+    migrationComplete: (count: number) => `已迁移 ${count} 个主题从 v0 到 v1 格式（已创建备份）。`,
   },
 };

@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "topic": "Already Migrated",
+  "slug": "already-migrated",
+  "created": "2025-01-01",
+  "domains": [
+    {
+      "name": "Test",
+      "slug": "test",
+      "concepts": [
+        {
+          "name": "Existing Concept",
+          "slug": "existing-concept",
+          "status": "mastered",
+          "confidence": 1,
+          "practice_count": 10,
+          "explain_count": 10,
+          "last_explained": "2025-06-01",
+          "last_practiced": "2025-06-01",
+          "details": ["Detail 1"]
+        }
+      ]
+    }
+  ]
+}

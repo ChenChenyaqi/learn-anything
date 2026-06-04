@@ -2,6 +2,7 @@ import path from 'path';
 import chalk from 'chalk';
 import * as fs from 'fs';
 import { createRequire } from 'module';
+import { fileURLToPath } from 'url';
 import { FileSystemUtils } from '../utils/file-system.js';
 import { AI_TOOLS, AIToolOption, LEARN_DIR } from './config.js';
 import { isInteractive } from '../utils/interactive.js';
@@ -42,7 +43,15 @@ export class InitCommand {
 
     // Create .learn/ directory in the target project
     const learnDir = path.join(resolvedPath, LEARN_DIR);
-    await FileSystemUtils.ensureDir(path.join(learnDir, 'topics'));
+    const topicsDir = path.join(learnDir, 'topics');
+    await FileSystemUtils.ensureDir(topicsDir);
+
+    // Run v0→v1 migration for any existing learning data
+    const { migrateAll } = await import('./learn-protocol/index.js');
+    const report = await migrateAll(topicsDir);
+    if (report.migratedCount > 0) {
+      console.log(chalk.green(m.init.migrationComplete(report.migratedCount)));
+    }
 
     console.log(chalk.bold(m.init.header));
 
@@ -164,13 +173,29 @@ export class InitCommand {
 
   private async generateSkillsForTool(resolvedPath: string, tool: AIToolOption): Promise<void> {
     const skillTemplates = getSkillTemplates();
+    const renderScriptContent = this.readRenderScript();
 
     for (const entry of skillTemplates) {
       const skillDir = path.join(resolvedPath, tool.skillsDir!, 'skills', entry.dirName);
       const skillFile = path.join(skillDir, 'SKILL.md');
       const content = generateSkillContent(entry.template, VERSION);
       await FileSystemUtils.writeFile(skillFile, content);
+
+      // Deploy render.mjs to scripts/ subdirectory
+      const renderScriptFile = path.join(skillDir, 'scripts', 'render.mjs');
+      await FileSystemUtils.writeFile(renderScriptFile, renderScriptContent);
     }
+  }
+
+  /** Read the compiled render.mjs from dist/ (bundled alongside this module). */
+  private readRenderScript(): string {
+    const renderScriptPath = path.resolve(
+      path.dirname(fileURLToPath(import.meta.url)),
+      '..',
+      'render-script',
+      'render.mjs',
+    );
+    return fs.readFileSync(renderScriptPath, 'utf-8');
   }
 
   private async generateCommandsForTool(resolvedPath: string, tool: AIToolOption): Promise<void> {

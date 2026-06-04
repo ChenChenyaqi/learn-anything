@@ -24,9 +24,9 @@
 
 ## 4. Skill Deployment Pipeline
 
-- [ ] 4.1 Integrate render.mjs deployment logic in `skill-generation.ts`: when generating SKILL.md, also copy from `dist/render-script/render.mjs` to each skill's `scripts/render.mjs`
-- [ ] 4.2 Integrate migration call in `init.ts` InitCommand: detect and execute migrateAll before init
-- [ ] 4.3 Integrate migration call in `update` command (if it exists)
+- [x] 4.1 Integrate render.mjs deployment logic in `skill-generation.ts`: when generating SKILL.md, also copy from `dist/render-script/render.mjs` to each skill's `scripts/render.mjs`
+- [x] 4.2 Integrate migration call in `init.ts` InitCommand: detect and execute migrateAll before init
+- [x] 4.3 Integrate migration call in `update` command (if it exists)
 
 ## 5. Skill Workflow Template Updates
 

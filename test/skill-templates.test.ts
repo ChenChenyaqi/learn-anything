@@ -227,4 +227,13 @@ describe('Skill Template v1 Format Compliance', () => {
       expect(t.instructions).toContain('state.json is the single source of truth');
     },
   );
+
+  it.each(writeTemplates.map((t) => ({ name: t.name })))(
+    '$name template should instruct AI that render.mjs validates state.json',
+    ({ name }) => {
+      const t = writeTemplates.find((w) => w.name === name)!.getter();
+      expect(t.instructions).toContain('validates state.json');
+      expect(t.instructions).toContain('re-run render.mjs');
+    },
+  );
 });

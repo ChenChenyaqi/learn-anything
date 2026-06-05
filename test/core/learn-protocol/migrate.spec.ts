@@ -67,7 +67,9 @@ describe('migrateAll (end-to-end)', () => {
       if (dir === 'javascript' || dir === 'python') {
         // Originals must be gone
         expect(allFiles).not.toContain('state.yaml');
-        expect(allFiles).not.toContain('knowledge-map.md');
+
+        // knowledge-map.md is regenerated from state.json after migration
+        expect(allFiles).toContain('knowledge-map.md');
 
         // Backups must exist
         expect(allFiles).toContain('state.yaml.v0.bak');

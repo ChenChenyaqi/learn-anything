@@ -141,9 +141,14 @@ function extractListItemText(item: ListItem, source: string): string {
   return extractText(item);
 }
 
+/** Strip common Markdown escape backslashes (e.g. `\_` → `_`, `\*` → `*`). */
+function unescapeMarkdown(text: string): string {
+  return text.replace(/\\([\\`*{}[\]()#+\-.!_>~|])/g, '$1');
+}
+
 /** Extract a concept (and its optional details) from a list item. */
 function processListItem(item: ListItem, domain: ParsedDomain, source: string): void {
-  const name = extractListItemText(item, source).trim();
+  const name = unescapeMarkdown(extractListItemText(item, source).trim());
   if (!name) return;
 
   const concept: ParsedConcept = { name, children: [] };
@@ -152,7 +157,9 @@ function processListItem(item: ListItem, domain: ParsedDomain, source: string): 
   for (const child of item.children) {
     if (isList(child)) {
       for (const nestedItem of child.children) {
-        const detailName = extractListItemText(nestedItem as ListItem, source).trim();
+        const detailName = unescapeMarkdown(
+          extractListItemText(nestedItem as ListItem, source).trim(),
+        );
         if (detailName) {
           concept.children.push(detailName);
         }

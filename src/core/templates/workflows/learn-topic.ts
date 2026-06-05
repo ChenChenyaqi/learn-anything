@@ -115,6 +115,8 @@ node "$SCRIPT" ./.learn/topics/<topic-name>
 
 This reads state.json and generates knowledge-map.md automatically. Do NOT manually write knowledge-map.md.
 
+> **Note:** render.mjs validates state.json against the v1 schema before rendering. If validation fails, you will see clear error messages indicating which fields are wrong. Fix the issues in state.json and re-run render.mjs.
+
 ### Step 5: Present and guide the user
 
 Display the knowledge map as an ASCII tree:

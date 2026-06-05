@@ -333,7 +333,7 @@ SCRIPT=$(find . -path '*/learn-anything-practice/scripts/render.mjs' -print -qui
 node "$SCRIPT" ./.learn/topics/<topic-name>
 \`\`\`
 
-This regenerates knowledge-map.md from the updated state.json.
+This regenerates knowledge-map.md from the updated state.json. render.mjs also validates state.json against the v1 schema — if validation fails, you will see clear error messages. Fix the issues in state.json and re-run render.mjs.
 
 ### Step 5: Practice Session Record Format
 

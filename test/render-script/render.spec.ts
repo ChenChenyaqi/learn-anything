@@ -3,7 +3,12 @@ import { readFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { render, totalCount, masteredCount } from '../../src/render-script/render.mts';
+import {
+  render,
+  totalCount,
+  masteredCount,
+  validateStateV1,
+} from '../../src/render-script/render.mts';
 
 /* ------------------------------------------------------------------ */
 /*  Fixtures                                                           */
@@ -199,5 +204,228 @@ describe('masteredCount', () => {
       { name: 'D2', slug: 'd2', concepts: [c('C', 'in_progress'), c('D', 'mastered')] },
     ]);
     expect(masteredCount(state)).toBe(3);
+  });
+});
+
+// ===========================================================================
+// validateStateV1
+// ===========================================================================
+
+describe('validateStateV1', () => {
+  // ── Valid inputs ──────────────────────────────────────────────────────
+
+  it('should return no errors for a valid minimal state', () => {
+    const state = s('Valid', [
+      { name: 'Domain', slug: 'domain', concepts: [c('Concept', 'unexplored')] },
+    ]);
+    expect(validateStateV1(state)).toEqual([]);
+  });
+
+  it('should return no errors for a fully populated state', () => {
+    const state: StateV1 = {
+      version: 1,
+      topic: 'Full',
+      slug: 'full',
+      created: '2026-01-15 10:30:00',
+      domains: [
+        {
+          name: 'D',
+          slug: 'd',
+          concepts: [
+            {
+              name: 'C',
+              slug: 'c',
+              status: 'mastered',
+              confidence: 1,
+              practice_count: 5,
+              explain_count: 3,
+              last_explained: '2026-03-01 12:00:00',
+              last_practiced: '2026-03-05',
+              details: ['Detail A', 'Detail B'],
+            },
+          ],
+        },
+      ],
+    };
+    expect(validateStateV1(state)).toEqual([]);
+  });
+
+  it('should return no errors for empty domains array', () => {
+    const state = s('Empty', []);
+    expect(validateStateV1(state)).toEqual([]);
+  });
+
+  it('should accept date-only and datetime formats', () => {
+    const state = s('Dates', [
+      {
+        name: 'D',
+        slug: 'd',
+        concepts: [
+          {
+            ...c('A', 'in_progress'),
+            last_explained: '2026-01-01',
+            last_practiced: '2026-01-01 12:00:00',
+          },
+        ],
+      },
+    ]);
+    expect(validateStateV1(state)).toEqual([]);
+  });
+
+  // ── Invalid top-level ─────────────────────────────────────────────────
+
+  it('should reject null', () => {
+    const errs = validateStateV1(null);
+    expect(errs).toHaveLength(1);
+    expect(errs[0].message).toContain('non-null object');
+  });
+
+  it('should reject a string', () => {
+    const errs = validateStateV1('not an object');
+    expect(errs).toHaveLength(1);
+    expect(errs[0].message).toContain('non-null object');
+  });
+
+  it('should reject an array', () => {
+    const errs = validateStateV1([]);
+    expect(errs).toHaveLength(1);
+    expect(errs[0].message).toContain('non-null object');
+  });
+
+  it('should reject wrong version', () => {
+    const state = { ...s('X', []), version: 2 };
+    const errs = validateStateV1(state);
+    expect(errs.some((e) => e.path === 'version')).toBe(true);
+  });
+
+  it('should reject missing topic', () => {
+    const { topic, ...noTopic } = s('X', []);
+    void topic;
+    const errs = validateStateV1(noTopic);
+    expect(errs.some((e) => e.path === 'topic')).toBe(true);
+  });
+
+  it('should reject empty topic string', () => {
+    const state = { ...s('X', []), topic: '' };
+    const errs = validateStateV1(state);
+    expect(errs.some((e) => e.path === 'topic')).toBe(true);
+  });
+
+  it('should reject empty slug string', () => {
+    const state = { ...s('X', []), slug: '' };
+    const errs = validateStateV1(state);
+    expect(errs.some((e) => e.path === 'slug')).toBe(true);
+  });
+
+  it('should reject invalid created format', () => {
+    const state = { ...s('X', []), created: '2026/01/15' };
+    const errs = validateStateV1(state);
+    expect(errs.some((e) => e.path === 'created')).toBe(true);
+  });
+
+  it('should reject non-array domains', () => {
+    const state = { ...s('X', []), domains: 'oops' };
+    const errs = validateStateV1(state);
+    expect(errs.some((e) => e.path === 'domains')).toBe(true);
+  });
+
+  // ── Invalid domain ────────────────────────────────────────────────────
+
+  it('should reject domain with empty name', () => {
+    const state = s('X', [{ name: '', slug: 'd', concepts: [] }]);
+    const errs = validateStateV1(state);
+    expect(errs.some((e) => e.path === 'domains[0].name')).toBe(true);
+  });
+
+  it('should reject domain with non-array concepts', () => {
+    const state = s('X', [{ name: 'D', slug: 'd', concepts: 'nope' } as unknown as Domain]);
+    const errs = validateStateV1(state);
+    expect(errs.some((e) => e.path === 'domains[0].concepts')).toBe(true);
+  });
+
+  // ── Invalid concept ───────────────────────────────────────────────────
+
+  it('should reject invalid status value', () => {
+    const state = s('X', [
+      { name: 'D', slug: 'd', concepts: [{ ...c('C', 'unexplored'), status: 'unknown' }] },
+    ]);
+    const errs = validateStateV1(state);
+    expect(errs.some((e) => e.path === 'domains[0].concepts[0].status')).toBe(true);
+  });
+
+  it('should reject negative confidence', () => {
+    const state = s('X', [
+      { name: 'D', slug: 'd', concepts: [{ ...c('C', 'unexplored'), confidence: -0.1 }] },
+    ]);
+    const errs = validateStateV1(state);
+    expect(errs.some((e) => e.path === 'domains[0].concepts[0].confidence')).toBe(true);
+  });
+
+  it('should reject confidence > 1', () => {
+    const state = s('X', [
+      { name: 'D', slug: 'd', concepts: [{ ...c('C', 'unexplored'), confidence: 1.5 }] },
+    ]);
+    const errs = validateStateV1(state);
+    expect(errs.some((e) => e.path === 'domains[0].concepts[0].confidence')).toBe(true);
+  });
+
+  it('should reject negative practice_count', () => {
+    const state = s('X', [
+      { name: 'D', slug: 'd', concepts: [{ ...c('C', 'unexplored'), practice_count: -1 }] },
+    ]);
+    const errs = validateStateV1(state);
+    expect(errs.some((e) => e.path === 'domains[0].concepts[0].practice_count')).toBe(true);
+  });
+
+  it('should reject float practice_count', () => {
+    const state = s('X', [
+      { name: 'D', slug: 'd', concepts: [{ ...c('C', 'unexplored'), practice_count: 1.5 }] },
+    ]);
+    const errs = validateStateV1(state);
+    expect(errs.some((e) => e.path === 'domains[0].concepts[0].practice_count')).toBe(true);
+  });
+
+  it('should reject invalid last_explained format', () => {
+    const state = s('X', [
+      { name: 'D', slug: 'd', concepts: [{ ...c('C', 'unexplored'), last_explained: 'bad' }] },
+    ]);
+    const errs = validateStateV1(state);
+    expect(errs.some((e) => e.path === 'domains[0].concepts[0].last_explained')).toBe(true);
+  });
+
+  it('should accept null last_explained', () => {
+    const state = s('X', [
+      { name: 'D', slug: 'd', concepts: [{ ...c('C', 'unexplored'), last_explained: null }] },
+    ]);
+    expect(validateStateV1(state)).toEqual([]);
+  });
+
+  it('should reject non-array details', () => {
+    const state = s('X', [
+      { name: 'D', slug: 'd', concepts: [{ ...c('C', 'unexplored'), details: 'nope' }] },
+    ]);
+    const errs = validateStateV1(state);
+    expect(errs.some((e) => e.path === 'domains[0].concepts[0].details')).toBe(true);
+  });
+
+  it('should reject non-string items in details', () => {
+    const state = s('X', [
+      {
+        name: 'D',
+        slug: 'd',
+        concepts: [{ ...c('C', 'unexplored'), details: ['ok', 42 as unknown as string] }],
+      },
+    ]);
+    const errs = validateStateV1(state);
+    expect(errs.some((e) => e.path === 'domains[0].concepts[0].details')).toBe(true);
+  });
+
+  // ── Multiple errors at once ───────────────────────────────────────────
+
+  it('should report multiple errors simultaneously', () => {
+    const state = { version: 2, topic: '', slug: '', created: 'bad', domains: 'nope' };
+    const errs = validateStateV1(state);
+    // version, topic, slug, created, domains = 5 errors
+    expect(errs.length).toBeGreaterThanOrEqual(5);
   });
 });

@@ -189,7 +189,9 @@ concepts:
 
     // Originals should be removed
     expect(files).not.toContain('state.yaml');
-    expect(files).not.toContain('knowledge-map.md');
+
+    // knowledge-map.md is regenerated from state.json after migration
+    expect(files).toContain('knowledge-map.md');
 
     // state.json should exist
     expect(files).toContain('state.json');

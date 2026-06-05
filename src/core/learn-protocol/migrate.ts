@@ -220,6 +220,17 @@ export async function migrateV0ToV1(topicDir: string): Promise<MigrationResult> 
     );
   }
 
+  // 13. Regenerate knowledge-map.md from state.json (v1 format)
+  try {
+    const rendered = renderKnowledgeMap(stateV1);
+    await FileSystemUtils.writeFile(knowledgeMapPath, rendered);
+  } catch (err) {
+    // Render failure is non-fatal — migration itself succeeded
+    console.error(
+      `Warning: Failed to regenerate knowledge-map.md in ${topicDir}: ${(err as Error).message}`,
+    );
+  }
+
   return {
     migrated: true,
     topic: v0State.topic,
@@ -277,4 +288,52 @@ function mapStatus(status: unknown): Concept['status'] {
     return status;
   }
   return 'unexplored';
+}
+
+// ---- Knowledge-map rendering (mirrors render.mts for migration use) ----
+
+const STATUS_ICON: Record<string, string> = {
+  mastered: '✅',
+  in_progress: '🔄',
+  needs_practice: '⚠️',
+  unexplored: '⬜',
+};
+
+const STATUS_LABEL: Record<string, string> = {
+  mastered: 'mastered',
+  in_progress: 'in progress',
+  needs_practice: 'needs practice',
+  unexplored: 'unexplored',
+};
+
+const esc = (s: string): string => s.replace(/_/g, '\\_');
+
+function renderKnowledgeMap(state: StateV1): string {
+  const lines: string[] = [];
+
+  lines.push(`# ${esc(state.topic)}`);
+  lines.push('');
+
+  const allConcepts = state.domains.flatMap((d) => d.concepts);
+  const total = allConcepts.length;
+  const mastered = allConcepts.filter((c) => c.status === 'mastered').length;
+  const pct = total > 0 ? Math.round((mastered / total) * 100) : 0;
+  lines.push(`> ${mastered}/${total} mastered · ${pct}% complete`);
+  lines.push('');
+
+  for (const domain of state.domains) {
+    lines.push(`## ${esc(domain.name)}`);
+    lines.push('');
+    for (const concept of domain.concepts) {
+      const icon = STATUS_ICON[concept.status] ?? '⬜';
+      const label = STATUS_LABEL[concept.status] ?? 'unexplored';
+      lines.push(`- ${icon} **${esc(concept.name)}** (${label})`);
+      for (const detail of concept.details) {
+        lines.push(`  - ${esc(detail)}`);
+      }
+    }
+    if (domain.concepts.length > 0) lines.push('');
+  }
+
+  return lines.join('\n').trimEnd() + '\n';
 }

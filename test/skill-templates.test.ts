@@ -149,11 +149,11 @@ describe('Skill Template Content Quality', () => {
     expect(t.instructions).toContain('Code Template');
   });
 
-  it('topic template should include knowledge map generation', () => {
+  it('topic template should include knowledge map generation via state.json', () => {
     const t = getLearnTopicSkillTemplate();
     expect(t.instructions).toContain('Knowledge Map');
-    expect(t.instructions).toContain('knowledge-map.md');
-    expect(t.instructions).toContain('state.yaml');
+    expect(t.instructions).toContain('state.json');
+    expect(t.instructions).toContain('render.mjs');
     expect(t.instructions).toContain('mkdir -p');
   });
 
@@ -169,4 +169,62 @@ describe('Skill Template Content Quality', () => {
     expect(t.instructions).toContain('✅');
     expect(t.instructions).toContain('Summary Panel');
   });
+});
+
+// ── v1 Format: state.json and render.mjs integration ────────────────
+
+describe('Skill Template v1 Format Compliance', () => {
+  // topic, explain, practice should reference render.mjs (write workflows)
+  const writeTemplates = [
+    { name: 'topic', getter: getLearnTopicSkillTemplate },
+    { name: 'explain', getter: getLearnExplainSkillTemplate },
+    { name: 'practice', getter: getLearnPracticeSkillTemplate },
+  ];
+
+  // review, status should NOT run render.mjs (read-only workflows)
+  const readTemplates = [
+    { name: 'review', getter: getLearnReviewSkillTemplate },
+    { name: 'status', getter: getLearnStatusSkillTemplate },
+  ];
+
+  it.each(writeTemplates.map((t) => ({ name: t.name })))(
+    '$name template should reference render.mjs for write workflows',
+    ({ name }) => {
+      const t = writeTemplates.find((w) => w.name === name)!.getter();
+      expect(t.instructions).toContain('render.mjs');
+    },
+  );
+
+  it.each(readTemplates.map((t) => ({ name: t.name })))(
+    '$name template should NOT run render.mjs (read-only)',
+    ({ name }) => {
+      const t = readTemplates.find((r) => r.name === name)!.getter();
+      // Read-only templates explicitly say "do NOT run render.mjs"
+      expect(t.instructions).toContain('do NOT run render.mjs');
+    },
+  );
+
+  const allTemplates = [
+    { name: 'topic', getter: getLearnTopicSkillTemplate },
+    { name: 'explain', getter: getLearnExplainSkillTemplate },
+    { name: 'practice', getter: getLearnPracticeSkillTemplate },
+    { name: 'review', getter: getLearnReviewSkillTemplate },
+    { name: 'status', getter: getLearnStatusSkillTemplate },
+  ];
+
+  it.each(allTemplates.map((t) => ({ name: t.name })))(
+    '$name template should reference state.json as data source',
+    ({ name }) => {
+      const t = allTemplates.find((a) => a.name === name)!.getter();
+      expect(t.instructions).toContain('state.json');
+    },
+  );
+
+  it.each(allTemplates.map((t) => ({ name: t.name })))(
+    '$name template should explicitly say not to read state.yaml or knowledge-map.md for data',
+    ({ name }) => {
+      const t = allTemplates.find((a) => a.name === name)!.getter();
+      expect(t.instructions).toContain('state.json is the single source of truth');
+    },
+  );
 });

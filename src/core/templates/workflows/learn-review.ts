@@ -18,7 +18,7 @@ and recommend optimal learning paths based on spaced repetition principles.
 
 If the user hasn't specified a topic:
 1. List all topics under \`./.learn/topics/\`
-2. Read each topic's \`state.yaml\`
+2. Read each topic's \`state.json\`
 3. Prioritize topics with in-progress concepts
 4. Let the user choose:
 
@@ -30,11 +30,15 @@ If the user hasn't specified a topic:
 
 ### Step 2: Analyze Learning Data
 
-Read the selected topic's \`knowledge-map.md\` and \`state.yaml\`, then perform the following analyses:
+Read the selected topic's \`state.json\`. Do NOT read knowledge-map.md or state.yaml — state.json is the single source of truth.
+
+This is a read-only operation — do NOT run render.mjs.
+
+Perform the following analyses:
 
 **A. Mastery Heatmap Analysis**
 
-Mark each concept's status according to the knowledge map hierarchy:
+From the state.json domains/concepts hierarchy, mark each concept's status:
 - ✅ \`mastered\` — Mastered
 - ⚠️ \`needs_practice\` — Needs practice
 - 🔄 \`in_progress\` — In progress
@@ -76,9 +80,11 @@ priority = (1 - confidence) * (days_since_last_practice + 1) * w
 where w = 1.0 (needs_practice), 0.6 (in_progress), 0.3 (mastered), 0.1 (unexplored)
 \`\`\`
 
+Use \`last_practiced\` from state.json to calculate days since last practice. If \`last_practiced\` is null, treat it as never practiced (use a large number of days).
+
 **C. Concept Relationship Analysis**
 
-Identify:
+From the domains/concepts hierarchy in state.json, identify:
 - **Blocking concepts**: This concept is a prerequisite for other unmastered concepts
   > "⚠️ Blocking: Mastering 'Prototypes' is needed to learn 'Inheritance Patterns' and 'class syntax'"
 
@@ -111,7 +117,7 @@ Output format:
 
 ### Step 4: Overview Mode (if user selects "all")
 
-Summarize across all topics:
+Summarize across all topics by reading each topic's state.json:
 
 \`\`\`
 📊 All Topics Overview
@@ -140,7 +146,7 @@ Summarize across all topics:
   > "🎉 You've mastered all 18 concepts in the JavaScript knowledge map!"
   > Suggest creating a new related topic to continue expanding, or tackling more advanced concepts
 
-- **state.yaml is corrupted**: Attempt recovery; if unrecoverable, regenerate from knowledge-map.md.`;
+- **state.json is corrupted**: Report the issue clearly and suggest re-running \`/learn\` to recreate the topic.`;
 
 const COMMAND_NAME = 'Learn: Review';
 const COMMAND_DESCRIPTION =
@@ -148,10 +154,11 @@ const COMMAND_DESCRIPTION =
 
 const COMMAND_CONTENT = `Use the learn-anything-review skill to handle the user's /learn-review [topic-name] request.
 Follow the workflow defined in the skill:
-1. Select topic (or overview all)
-2. Analyze learning data: mastery heatmap → spaced repetition analysis → concept relationship analysis
+1. Select topic (or overview all) — read state.json for each topic
+2. Analyze learning data from state.json: mastery heatmap → spaced repetition analysis → concept relationship analysis
 3. Generate prioritized recommendations: reinforce → continue → new territory → spaced review
-4. If "all" selected, show summary across all topics`;
+4. If "all" selected, show summary across all topics
+Note: This is a read-only workflow — do NOT run render.mjs`;
 
 export function getLearnReviewSkillTemplate(): SkillTemplate {
   return {

@@ -86,6 +86,7 @@ export function render(state: StateV1): string {
   // Domains → concepts → details
   for (const domain of state.domains) {
     lines.push(`## ${domain.name}`);
+    lines.push('');
     for (const concept of domain.concepts) {
       const icon = STATUS_ICON[concept.status];
       const label = STATUS_LABEL[concept.status];

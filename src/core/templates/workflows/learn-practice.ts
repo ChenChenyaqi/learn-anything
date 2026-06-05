@@ -54,7 +54,10 @@ Then follow the corresponding workflow below.
 ### Step 1: Load Context
 
 1. **Match topic and concept**: Same matching logic as \`/learn-explain\`.
-   Read \`./.learn/topics/<topic-name>/knowledge-map.md\` and \`state.yaml\`.
+   Read \`./.learn/topics/<topic-name>/state.json\` (the single source of truth).
+   Locate the concept within the domains/concepts hierarchy.
+
+   Do NOT read knowledge-map.md or state.yaml — state.json is the single source of truth.
 
 2. **Check prerequisites**: Identify prerequisite concepts for this concept in the knowledge map.
    E.g., "Closures" depends on "Scope" and "Function Basics". Check the status of these prerequisites:
@@ -63,7 +66,7 @@ Then follow the corresponding workflow below.
 
 ### Step 2: Assess Difficulty Level
 
-Determine exercise difficulty based on state.yaml:
+Determine exercise difficulty based on the concept's fields in state.json:
 
 | Condition | Difficulty |
 |-----------|------------|
@@ -282,23 +285,24 @@ The user submits their code or answer in the chat. Review it using the framework
 4. **Code Quality Tips** (if applicable):
    > "Your logic is completely correct. One small suggestion: using clearTimeout + setTimeout is cleaner than creating new timers each time."
 
-5. **Final Assessment** — Update state based on performance:
+5. **Final Assessment** — Update state.json based on performance:
 
    **If the user performed excellently (code correct, thoughtful):**
    > "🎉 Great job! You have a solid understanding of closures."
 
-   In state.yaml:
+   In state.json (use the Edit tool):
    - Increase confidence (+0.1 to +0.15)
-   - Increment practice_count
-   - Update last_practiced
+   - Increment practice_count by 1
+   - Update last_practiced to current date (YYYY-MM-DD)
    - If confidence > 0.7 and practice_count >= 2, set status to mastered
 
    **If the user did well but has room for improvement (code mostly correct, edge case issues):**
    > "📝 Core logic is right — polish the edge case handling and it'll be perfect."
 
-   In state.yaml:
+   In state.json (use the Edit tool):
    - Slightly increase confidence (+0.05)
-   - Increment practice_count
+   - Increment practice_count by 1
+   - Update last_practiced to current date
    - Set status to needs_practice (if not already)
 
    **If the user is struggling (code doesn't run or wrong direction):**
@@ -309,7 +313,7 @@ The user submits their code or answer in the chat. Review it using the framework
    - Use guiding questions to help the user find the right direction
    - If the user explicitly asks for help, give more hints or step-by-step guidance
 
-   In state.yaml:
+   In state.json (use the Edit tool):
    - Don't change confidence
    - Set status to needs_practice
    - Note specific areas to focus on
@@ -320,9 +324,20 @@ The user submits their code or answer in the chat. Review it using the framework
 
 2. **Output the file content to the conversation** — After writing, present the exact content of the file you just wrote as your conversation response. Do NOT rephrase or regenerate it — copy the file content verbatim into your message.
 
+**After updating state.json, run render.mjs to regenerate knowledge-map.md:**
+
+Use the Bash tool to run the render script (located in the scripts/ directory next to this SKILL.md file):
+
+\`\`\`bash
+SCRIPT=$(find . -path '*/learn-anything-practice/scripts/render.mjs' -print -quit 2>/dev/null)
+node "$SCRIPT" ./.learn/topics/<topic-name>
+\`\`\`
+
+This regenerates knowledge-map.md from the updated state.json.
+
 ### Step 5: Practice Session Record Format
 
-**Filename rule:** Use the concept name exactly as it appears in the knowledge map, in the same language. Match the language the user is learning in — don't force-translate.
+**Filename rule:** Use the concept name exactly as it appears in state.json, in the same language. Match the language the user is learning in — don't force-translate.
 
 Reference format for the Write tool call in Step 4:
 
@@ -350,7 +365,7 @@ Reference format for the Write tool call in Step 4:
 
 File path: \`./.learn/topics/<topic-name>/sessions/<concept-name>-practice-YYYY-MM-DD.md\`
 
-Note: State.yaml updates are handled in Step 4's assessment (use the Edit tool to apply those changes).
+Note: state.json updates are handled in Step 4's assessment (use the Edit tool to apply those changes).
 
 ---
 
@@ -363,7 +378,7 @@ Note: State.yaml updates are handled in Step 4's assessment (use the Edit tool t
 
 - **User skips the template and writes their own implementation**: Totally fine! Check if their implementation meets the requirements and give the same feedback.
 
-- **User wants to practice a concept not in the knowledge map**: Follow the same handling logic as \`/learn-explain\`.
+- **User wants to practice a concept not in state.json**: Follow the same handling logic as \`/learn-explain\`.
 
 - **Project Mode: user doesn't have the language runtime installed**: Check first with \`which node\` or equivalent. If missing, tell the user what to install, or fall back to Chat Mode.
 
@@ -380,12 +395,12 @@ const COMMAND_DESCRIPTION =
 const COMMAND_CONTENT = `Use the learn-anything-practice skill to handle the user's /learn-practice <concept-name> request.
 Follow the workflow defined in the skill:
 0. Determine practice mode: Project Mode for coding topics (create real files in .learn/topics/<topic>/exercises/), Chat Mode for conceptual topics
-1. Load context: match topic and concept → check prerequisites
-2. Assess difficulty level based on state.yaml (beginner/intermediate/challenge)
+1. Load context: match topic and concept from state.json (single source of truth) → check prerequisites
+2. Assess difficulty level based on state.json concept fields (beginner/intermediate/challenge)
 3. Project Mode: use Bash to create exercise dir → use Write to create README.md + starter file → tell user to open in IDE
    Chat Mode: generate exercise in chat (background → requirements → code template → hint)
-4. Project Mode: use Read to review user's code file → optionally use Bash to run it → compose feedback → Write session file FIRST → echo file content verbatim to conversation + Edit to update state.yaml
-   Chat Mode: review code submitted in chat → compose feedback → Write session file FIRST → echo file content verbatim to conversation + Edit to update state.yaml`;
+4. Project Mode: use Read to review user's code file → optionally use Bash to run it → compose feedback → Write session file FIRST → echo file content verbatim to conversation + Edit state.json (last_practiced, practice_count, confidence, status) + run render.mjs
+   Chat Mode: review code submitted in chat → compose feedback → Write session file FIRST → echo file content verbatim to conversation + Edit state.json + run render.mjs`;
 
 export function getLearnPracticeSkillTemplate(): SkillTemplate {
   return {

@@ -29,12 +29,12 @@ Your explanations follow the "Recursive Learning Method": first establish a foun
 1. **Match topic**: Infer the parent topic from the concept name.
    - Look at all directories under \`./.learn/topics/\`
    - If there's only one topic, use it directly
-   - If there are multiple topics, search knowledge maps for the concept name
+   - If there are multiple topics, search each topic's state.json for the concept name
    - If no matching topic is found, ask the user "Which topic would you like to learn this concept under? Available topics: [list]"
 
-2. **Read knowledge map**: Use the Read tool to read \`./.learn/topics/<topic-name>/knowledge-map.md\`, locating the concept's position in the knowledge tree.
+2. **Read state.json**: Use the Read tool to read \`./.learn/topics/<topic-name>/state.json\`. Locate the concept's position within the domains/concepts hierarchy and find its current status, confidence, explain_count, and other fields.
 
-3. **Read learning state**: Use the Read tool to read \`./.learn/topics/<topic-name>/state.yaml\`, finding the concept's current status.
+   Do NOT read knowledge-map.md or state.yaml — state.json is the single source of truth.
 
 ### Step 2: Assess User Level
 
@@ -44,19 +44,19 @@ Synthesize these signals to judge whether the user is beginner, intermediate, or
 - Short, vague questions (e.g., "What is a closure?")
 - Uses general descriptors ("I don't really get it", "completely lost")
 - Concept status is \`unexplored\`
-- Related concept confidence in state.yaml < 0.3
+- Related concept confidence in state.json < 0.3
 
 **Intermediate signals:**
 - Uses some technical terms, though not always precise
 - Questions are targeted ("How do closures cause memory leaks?")
 - Concept status is \`in_progress\`
-- Related concept confidence in state.yaml 0.3-0.7
+- Related concept confidence in state.json 0.3-0.7
 
 **Advanced signals:**
 - Uses precise technical terminology
 - Questions go deep ("How does V8 optimize scope chain lookups for closures?")
 - Concept status is \`mastered\` but seeking deeper discussion
-- Related concept confidence in state.yaml > 0.7
+- Related concept confidence in state.json > 0.7
 
 **Level-adaptive strategy:**
 - Beginners: Explanation-heavy (70% explanation + 30% guided questions), heavy use of analogies
@@ -101,14 +101,14 @@ Synthesize these signals to judge whether the user is beginner, intermediate, or
 
 **A) Determine the filename:**
 
-Use the concept name exactly as it appears in the knowledge map, in the same language. Convert to kebab-case and append the date:
+Use the concept name exactly as it appears in state.json, in the same language. Convert to kebab-case and append the date:
 
 > \`./.learn/topics/<topic-name>/sessions/<concept-name-as-is>-YYYY-MM-DD.md\`
 
 Examples:
-- Knowledge map has \`变量声明与数据类型\` → \`变量声明与数据类型-2026-05-24.md\`
-- Knowledge map has \`Scope & Closures\` → \`Scope-Closures-2026-05-24.md\`
-- Knowledge map has \`Event Loop\` → \`Event-Loop-2026-05-24.md\`
+- state.json has \`变量声明与数据类型\` → \`变量声明与数据类型-2026-05-24.md\`
+- state.json has \`Scope & Closures\` → \`Scope-Closures-2026-05-24.md\`
+- state.json has \`Event Loop\` → \`Event-Loop-2026-05-24.md\`
 
 Match the language the user is learning in — don't force-translate.
 
@@ -123,7 +123,7 @@ Write this content to the session file FIRST, before outputting anything to the 
 
 > **Date:** YYYY-MM-DD
 > **Topic:** [topic name]
-> **Path:** [knowledge map path]
+> **Path:** [domain → concept path from state.json]
 > **Level:** [beginner/intermediate/advanced]
 
 ---
@@ -173,12 +173,24 @@ Write this content to the session file FIRST, before outputting anything to the 
 
 After writing the session file, present the EXACT content of the file you just wrote as your conversation response. Do NOT rephrase or regenerate — copy the file content verbatim into your message. Only after echoing the file content, proceed to Step 5 (identify sub-topics).
 
-**D) Update state.yaml — use the Edit tool:**
+**D) Update state.json — use the Edit tool:**
 
-In the same turn, also use the Edit tool to update \`./.learn/topics/<topic-name>/state.yaml\`:
+In the same turn, use the Edit tool to update the concept's fields in \`./.learn/topics/<topic-name>/state.json\`:
 - If concept status is \`unexplored\`, update to \`in_progress\`
-- Update \`last_session\` to current date
+- Update \`last_explained\` to current date (YYYY-MM-DD)
+- Increment \`explain_count\` by 1
 - If the user showed good understanding, increase \`confidence\` by 0.05 to 0.1
+
+**E) Run render.mjs to regenerate knowledge-map.md:**
+
+Use the Bash tool to run the render script (located in the scripts/ directory next to this SKILL.md file):
+
+\`\`\`bash
+SCRIPT=$(find . -path '*/learn-anything-explain/scripts/render.mjs' -print -quit 2>/dev/null)
+node "$SCRIPT" ./.learn/topics/<topic-name>
+\`\`\`
+
+This regenerates knowledge-map.md from the updated state.json.
 
 ### Step 5: Identify Sub-topics (Recursive Entry Points)
 
@@ -209,19 +221,19 @@ After recording the session, identify deeper sub-topics under this concept. Thes
 
 ## Edge Cases
 
-- **Concept name mismatch**: Fuzzy search the concept name in the knowledge map.
+- **Concept name mismatch**: Fuzzy search the concept name in state.json's domains/concepts.
   E.g., user enters "closure principles", matches to "Functions/Closures". "Did you mean **Closures** (under the Functions branch)?"
 
 - **Multiple matches**: List all matching concepts for the user to choose.
-  "I found several possible matches in the knowledge map:
+  "I found several possible matches:
   1. Functions/Closures — A function combined with its lexical environment
   2. Rust/Ownership & Borrowing — Ownership rules similar to closures
   Which would you like to learn?"
 
-- **Concept not in knowledge map**:
+- **Concept not in state.json**:
   "'Micro-frontends' isn't in the current JavaScript knowledge map. This might be a more advanced or cross-domain concept.
   I can:
-  - Add this concept to the JavaScript knowledge map
+  - Add this concept to the JavaScript state.json
   - Or create a separate 'Micro-frontends' learning topic
   Which do you prefer?"
 
@@ -240,10 +252,10 @@ const COMMAND_DESCRIPTION =
 
 const COMMAND_CONTENT = `Use the learn-anything-explain skill to handle the user's /learn-explain <concept-name> request.
 Follow the workflow defined in the skill:
-1. Load context: match topic → read knowledge map → read learning state
+1. Load context: match topic → read state.json (single source of truth, do NOT read knowledge-map.md)
 2. Assess user level (beginner/intermediate/advanced) and adjust teaching strategy
 3. Compose the full explanation: positioning → analogy → core mechanism → code example → common misconceptions → Socratic check
-4. CRITICAL — Write the session file FIRST (./.learn/topics/<topic>/sessions/<concept-name>-YYYY-MM-DD.md, matching the user's language), then echo the file content verbatim to the conversation. Also update state.yaml with Edit.
+4. CRITICAL — Write the session file FIRST (./.learn/topics/<topic>/sessions/<concept-name>-YYYY-MM-DD.md, matching the user's language), then echo the file content verbatim to the conversation. Also update state.json with Edit (last_explained, explain_count, status, confidence). Then run render.mjs to regenerate knowledge-map.md.
 5. Identify sub-topics as recursive entry points (only AFTER saving the session and echoing to conversation)`;
 
 export function getLearnExplainSkillTemplate(): SkillTemplate {

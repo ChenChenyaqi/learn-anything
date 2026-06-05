@@ -35,60 +35,85 @@ Use the Bash tool to check if the directory ./.learn/topics/<topic-name>/ exists
 
 ### Step 2: Create directory structure
 
-Use Bash to create the following directories and files:
+Use Bash to create the following directories:
 
 \`\`\`bash
 mkdir -p ./.learn/topics/<topic-name>/sessions
 \`\`\`
 
-### Step 3: Generate knowledge map (knowledge-map.md)
+### Step 3: Generate state.json
 
-Based on your expert understanding of "<topic-name>", generate a hierarchical knowledge map.
+Based on your expert understanding of "<topic-name>", generate a hierarchical knowledge map and write it as \`state.json\` (v1 format).
 
-**Knowledge map format requirements:**
+**Use the Write tool to create \`./.learn/topics/<topic-name>/state.json\`:**
 
-\`\`\`markdown
-# <Topic Name> Knowledge Map
-
-## <Domain 1>
-- <Concept 1.1>
-- <Concept 1.2>
-  - <Detail 1.2.1> (only when the concept is complex enough)
-  - <Detail 1.2.2>
-
-## <Domain 2>
-- <Concept 2.1>
-- <Concept 2.2>
+\`\`\`json
+{
+  "version": 1,
+  "topic": "<topic-name>",
+  "slug": "<kebab-case-topic-slug>",
+  "created": "<current date YYYY-MM-DD>",
+  "domains": [
+    {
+      "name": "<Domain 1>",
+      "slug": "<kebab-case-domain-slug>",
+      "concepts": [
+        {
+          "name": "<Concept 1.1>",
+          "slug": "<kebab-case-concept-slug>",
+          "status": "unexplored",
+          "confidence": 0,
+          "practice_count": 0,
+          "explain_count": 0,
+          "last_explained": null,
+          "last_practiced": null,
+          "details": []
+        },
+        {
+          "name": "<Concept 1.2>",
+          "slug": "<kebab-case-concept-slug>",
+          "status": "unexplored",
+          "confidence": 0,
+          "practice_count": 0,
+          "explain_count": 0,
+          "last_explained": null,
+          "last_practiced": null,
+          "details": ["<Detail 1.2.1>", "<Detail 1.2.2>"]
+        }
+      ]
+    }
+  ]
+}
 \`\`\`
 
 **Knowledge map generation rules:**
-- Use Markdown \`##\` for top-level domains, \`-\` for second-level concepts, indented \`-\` for third-level details
-- Keep depth to 2-3 levels, no more than 3
+- Use \`domains\` for top-level areas, each containing \`concepts\` (the minimum trackable learning unit)
+- Each concept can have \`details\` (string array of third-level sub-topics, only when the concept is complex enough)
+- Keep depth to 2-3 levels (domains → concepts → details), no more than 3
 - Breadth over depth: establish the full picture before going into details
 - For larger topics (e.g., "JavaScript"), include 15-25 core concepts
 - For narrower topics (e.g., "React Hooks"), include 10-15 concepts with more granularity
 - Name concepts precisely so they can be learned independently. E.g., use "Closures" not "Closure-related stuff"
-- Each leaf node should be a concept the user can learn and understand in a single session
+- Each leaf concept should be a concept the user can learn and understand in a single session
+- **Slug format**: convert names to lowercase kebab-case (e.g., "Scope & Closures" → "scope-closures", "Event Loop" → "event-loop")
+- All initial concepts must have: status "unexplored", confidence 0, practice_count 0, explain_count 0, last_explained null, last_practiced null
 
-### Step 4: Generate initial state.yaml
+### Step 4: Run render.mjs to generate knowledge-map.md
 
-Use the Bash tool to write \`./.learn/topics/<topic-name>/state.yaml\`:
+Use the Bash tool to run the render script (located in the scripts/ directory next to this SKILL.md file):
 
-\`\`\`yaml
-topic: <topic-name>
-created: <current date YYYY-MM-DD>
-concepts:
-  - path: "<Domain>/<Concept>"
-    status: unexplored
-    last_practiced: null
-    practice_count: 0
-    confidence: 0.0
-  - path: "<Domain>/<Concept>"
-    status: unexplored
-    ...
+\`\`\`bash
+node "$(dirname "$(find . -path '*/learn-anything-topic/scripts/render.mjs' -print -quit 2>/dev/null)")/render.mjs" ./.learn/topics/<topic-name>
 \`\`\`
 
-The path format is "Domain/Concept", e.g., "Functions/Closures". Every leaf concept in the knowledge map corresponds to one path.
+Or equivalently, find the render.mjs script path and execute:
+
+\`\`\`bash
+SCRIPT=$(find . -path '*/learn-anything-topic/scripts/render.mjs' -print -quit 2>/dev/null)
+node "$SCRIPT" ./.learn/topics/<topic-name>
+\`\`\`
+
+This reads state.json and generates knowledge-map.md automatically. Do NOT manually write knowledge-map.md.
 
 ### Step 5: Present and guide the user
 
@@ -126,12 +151,13 @@ Then say:
 
 ### Step 2: Read existing data
 
-1. Use the Read tool to read \`./.learn/topics/<topic-name>/knowledge-map.md\`
-2. Use the Read tool to read \`./.learn/topics/<topic-name>/state.yaml\`
+Use the Read tool to read \`./.learn/topics/<topic-name>/state.json\`.
+
+Do NOT read knowledge-map.md or state.yaml — state.json is the single source of truth.
 
 ### Step 3: Calculate and display progress
 
-Calculate the following statistics:
+From the state.json domains/concepts structure, calculate the following statistics:
 - ✅ Concepts mastered
 - 🔄 Concepts in progress
 - ⚠️ Concepts needing practice
@@ -141,7 +167,7 @@ Display the knowledge map with status markers.
 
 ### Step 4: Give personalized recommendations
 
-Based on the state.yaml analysis, provide recommendations by priority:
+Based on the state.json analysis, provide recommendations by priority:
 
 1. **Concepts with needs_practice** → Prioritize practice for reinforcement
 2. **Concepts with in_progress** → Suggest continuing deeper learning
@@ -174,8 +200,8 @@ const COMMAND_DESCRIPTION =
 const COMMAND_CONTENT = `Use the learn-anything-topic skill to handle the user's /learn <topic-name> request.
 Follow the workflow defined in the skill:
 1. Determine if the topic exists
-2. New topic: create directory structure → generate knowledge-map.md and state.yaml → present knowledge map and guide the user
-3. Existing topic: read data → calculate progress → give personalized recommendations`;
+2. New topic: create directory structure → generate state.json (v1 with domains/concepts hierarchy) → run render.mjs to generate knowledge-map.md → present knowledge map and guide the user
+3. Existing topic: read state.json → calculate progress → give personalized recommendations`;
 
 export function getLearnTopicSkillTemplate(): SkillTemplate {
   return {

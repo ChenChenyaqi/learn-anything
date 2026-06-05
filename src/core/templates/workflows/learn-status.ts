@@ -23,12 +23,15 @@ You are Learn Anything's Status Visualizer. Your sole task is to read learning d
 
 ### Step 2: Read Data
 
-1. \`./.learn/topics/<topic-name>/knowledge-map.md\`
-2. \`./.learn/topics/<topic-name>/state.yaml\`
+Use the Read tool to read \`./.learn/topics/<topic-name>/state.json\`.
+
+Do NOT read knowledge-map.md or state.yaml — state.json is the single source of truth.
+
+This is a read-only operation — do NOT run render.mjs.
 
 ### Step 3: Render Knowledge Map Heatmap
 
-Following the original structure of the knowledge map, annotate each concept with a status icon and brief information.
+From the state.json domains/concepts hierarchy, render each concept with a status icon and brief information.
 
 \`\`\`
 🌟 JavaScript Learning Status
@@ -96,9 +99,10 @@ const COMMAND_DESCRIPTION =
 const COMMAND_CONTENT = `Use the learn-anything-status skill to handle the user's /learn-status [topic-name] request.
 Follow the workflow defined in the skill:
 1. Determine topic (specified/single/multiple/none)
-2. Read knowledge-map.md and state.yaml
-3. Render heatmap following knowledge map structure, annotating status icons, practice count, confidence
-4. Show summary panel: mastery stats, last practice, days learning`;
+2. Read state.json (single source of truth — do NOT read knowledge-map.md or state.yaml)
+3. Render heatmap from state.json's domains/concepts structure, annotating status icons, practice count, confidence
+4. Show summary panel: mastery stats, last practice, days learning
+Note: This is a read-only workflow — do NOT run render.mjs`;
 
 export function getLearnStatusSkillTemplate(): SkillTemplate {
   return {

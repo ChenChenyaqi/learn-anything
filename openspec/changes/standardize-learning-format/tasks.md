@@ -30,17 +30,17 @@
 
 ## 5. Skill Workflow Template Updates
 
-- [ ] 5.1 Update learn-topic template: when creating a new topic, write state.json (full domains/concepts structure) instead of knowledge-map.md + state.yaml, run render.mjs after creation
-- [ ] 5.2 Update learn-topic template: when loading an existing topic, only read state.json, no longer read knowledge-map.md
-- [ ] 5.3 Update learn-explain template: only read state.json, update fields to last_explained / explain_count, run render.mjs after modification
-- [ ] 5.4 Update learn-practice template: only read state.json, update last_practiced / practice_count / confidence, run render.mjs after modification
-- [ ] 5.5 Update learn-review template: only read state.json to calculate mastery and review priority, do not run render.mjs (read-only operation)
-- [ ] 5.6 Update learn-status template: only read state.json to display heatmap, do not run render.mjs (read-only operation)
-- [ ] 5.7 Update learn-practice template: write exercise files to exercises/ directory when creating practice files (do not render knowledge-map.md)
+- [x] 5.1 Update learn-topic template: when creating a new topic, write state.json (full domains/concepts structure) instead of knowledge-map.md + state.yaml, run render.mjs after creation
+- [x] 5.2 Update learn-topic template: when loading an existing topic, only read state.json, no longer read knowledge-map.md
+- [x] 5.3 Update learn-explain template: only read state.json, update fields to last_explained / explain_count, run render.mjs after modification
+- [x] 5.4 Update learn-practice template: only read state.json, update last_practiced / practice_count / confidence, run render.mjs after modification
+- [x] 5.5 Update learn-review template: only read state.json to calculate mastery and review priority, do not run render.mjs (read-only operation)
+- [x] 5.6 Update learn-status template: only read state.json to display heatmap, do not run render.mjs (read-only operation)
+- [x] 5.7 Update learn-practice template: write exercise files to exercises/ directory when creating practice files (do not render knowledge-map.md)
 
 ## 6. Tests
 
-- [ ] 6.1 Write tests for learn-protocol: Zod schema validation (valid/invalid data), slug generation rules, v0 format detection
-- [ ] 6.2 Write tests for migration: parseKnowledgeMap parsing standard/empty/edge-case knowledge-map.md, migrateV0ToV1 end-to-end migration, idempotency, backup file generation
+- [x] 6.1 Write tests for learn-protocol: Zod schema validation (valid/invalid data), slug generation rules, v0 format detection
+- [x] 6.2 Write tests for migration: parseKnowledgeMap parsing standard/empty/edge-case knowledge-map.md, migrateV0ToV1 end-to-end migration, idempotency, backup file generation
 - [x] 6.3 Write tests for render.mjs: full rendering, empty knowledge map, missing optional fields, error scenarios
-- [ ] 6.4 Update existing skill template tests: verify topic/explain/practice workflows call render.mjs, review/status do not call render.mjs, all workflows no longer reference state.yaml / knowledge-map.md
+- [x] 6.4 Update existing skill template tests: verify topic/explain/practice workflows call render.mjs, review/status do not call render.mjs, all workflows no longer reference state.yaml / knowledge-map.md

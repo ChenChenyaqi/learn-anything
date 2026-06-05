@@ -160,10 +160,10 @@ Do NOT read knowledge-map.md or state.yaml — state.json is the single source o
 ### Step 3: Calculate and display progress
 
 From the state.json domains/concepts structure, calculate the following statistics:
-- ✅ Concepts mastered
-- 🔄 Concepts in progress
-- ⚠️ Concepts needing practice
-- ⬜ Concepts unexplored
+- 🟢 Concepts mastered
+- 🔵 Concepts in progress
+- 🟠 Concepts needing practice
+- ⚪ Concepts unexplored
 
 Display the knowledge map with status markers.
 
@@ -181,8 +181,8 @@ Example:
 > 📊 Your progress: 3 mastered, 2 in progress, 1 needs practice, 12 unexplored
 >
 > 🎯 Suggested next steps:
-> 1. ⚠️ **Prototypes** needs a practice session to solidify (last studied 3 days ago)
-> 2. 🔄 Continue with **Event Loop** — you last covered macrotasks and microtasks
+> 1. 🟠 **Prototypes** needs a practice session to solidify (last studied 3 days ago)
+> 2. 🔵 Continue with **Event Loop** — you last covered macrotasks and microtasks
 > 3. 📖 Explore new territory: **Module System** — this extends concepts you've already mastered
 >
 > Which would you like to pursue?

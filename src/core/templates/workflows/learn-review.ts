@@ -39,10 +39,10 @@ Perform the following analyses:
 **A. Mastery Heatmap Analysis**
 
 From the state.json domains/concepts hierarchy, mark each concept's status:
-- ✅ \`mastered\` — Mastered
-- ⚠️ \`needs_practice\` — Needs practice
-- 🔄 \`in_progress\` — In progress
-- ⬜ \`unexplored\` — Unexplored
+- 🟢 \`mastered\` — Mastered
+- 🟠 \`needs_practice\` — Needs practice
+- 🔵 \`in_progress\` — In progress
+- ⚪ \`unexplored\` — Unexplored
 
 Output format:
 
@@ -53,22 +53,22 @@ Date: 2026-05-08
 Overall Progress: ░░░░░░░░░░░░░░░░░░░░ 17% (3/18)
 
 Language Basics                  Functions
-✅ Variables & Types            🔄 Function Declarations & Expr
-✅ Operators                    ✅ Scope & Closures
-✅ Control Flow                 ⬜ this Keyword
-⬜ Type Coercion                ⬜ Arrow Functions
-                                ⬜ Higher-Order Functions
+🟢 Variables & Types            🔵 Function Declarations & Expr
+🟢 Operators                    🟢 Scope & Closures
+🟢 Control Flow                 ⚪ this Keyword
+⚪ Type Coercion                ⚪ Arrow Functions
+                                ⚪ Higher-Order Functions
 
 Objects & Prototypes            Async Programming
-⚠️ Object Literals              ⬜ Promise
-⬜ Constructors                 ⬜ async/await
-⬜ prototype & __proto__        ⬜ Event Loop
-⬜ Inheritance Patterns
+🟠 Object Literals              ⚪ Promise
+⚪ Constructors                 ⚪ async/await
+⚪ prototype & __proto__        ⚪ Event Loop
+⚪ Inheritance Patterns
 
 Tooling & Engineering
-⬜ Module System
-⬜ npm/Package Mgmt
-⬜ Build Tools
+⚪ Module System
+⚪ npm/Package Mgmt
+⚪ Build Tools
 \`\`\`
 
 **B. Spaced Repetition Analysis**
@@ -98,11 +98,11 @@ Output format:
 \`\`\`
 🎯 Recommended Next Learning Path
 
-1. ⚠️ Priority Reinforcement: "Prototypes" (blocks 2 downstream concepts)
+1. 🟠 Priority Reinforcement: "Prototypes" (blocks 2 downstream concepts)
    → /learn-practice prototypes
    Reason: This is the core of the object system; mastering it unlocks inheritance patterns
 
-2. 🔄 Continue With: "this Keyword"
+2. 🔵 Continue With: "this Keyword"
    → /learn-explain this keyword
    Reason: You've already started learning this, and it's a critical piece of the functions system
 
@@ -125,14 +125,14 @@ Summarize across all topics by reading each topic's state.json:
 ┌──────────────┬──────────┬──────────┬──────────┬─────────────┐
 │ Topic        │ Concepts │ Mastered │ Active   │ Last Active │
 ├──────────────┼──────────┼──────────┼──────────┼─────────────┤
-│ JavaScript   │ 18       │ 3 ✅     │ 4 🔄     │ 2 days ago  │
-│ Rust         │ 15       │ 0 ✅     │ 0 🔄     │ 1 week ago  │
-│ Python       │ 12       │ 8 ✅     │ 0 🔄     │ 3 weeks ago │
+│ JavaScript   │ 18       │ 3 🟢     │ 4 🔵     │ 2 days ago  │
+│ Rust         │ 15       │ 0 🟢     │ 0 🔵     │ 1 week ago  │
+│ Python       │ 12       │ 8 🟢     │ 0 🔵     │ 3 weeks ago │
 └──────────────┴──────────┴──────────┴──────────┴─────────────┘
 
 🏆 Most Progress: JavaScript (actively learning)
 ⏰ Needs Attention: Rust (created but not started)
-⚠️ Needs Review: Python (many mastered but long time untouched)
+🟠 Needs Review: Python (many mastered but long time untouched)
 \`\`\`
 
 ---

@@ -4,7 +4,7 @@
 
 ## Domain
 
-- ✅ **Mastered** (mastered)
-- 🔄 **InProgress** (in progress)
-- ⚠️ **NeedsPractice** (needs practice)
-- ⬜ **Unexplored** (unexplored)
+- 🟢 **Mastered** (mastered)
+- 🔵 **InProgress** (in progress)
+- 🟠 **NeedsPractice** (needs practice)
+- ⚪ **Unexplored** (unexplored)

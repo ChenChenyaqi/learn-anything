@@ -166,7 +166,7 @@ describe('Skill Template Content Quality', () => {
   it('status template should include visualization', () => {
     const t = getLearnStatusSkillTemplate();
     expect(t.instructions).toContain('Heatmap');
-    expect(t.instructions).toContain('✅');
+    expect(t.instructions).toContain('🟢');
     expect(t.instructions).toContain('Summary Panel');
   });
 });

@@ -51,10 +51,10 @@ interface StateV1 {
 /* ------------------------------------------------------------------ */
 
 const STATUS_ICON: Record<ConceptStatus, string> = {
-  mastered: '✅',
-  in_progress: '🔄',
-  needs_practice: '⚠️',
-  unexplored: '⬜',
+  mastered: '🟢',
+  in_progress: '🔵',
+  needs_practice: '🟠',
+  unexplored: '⚪',
 };
 
 const STATUS_LABEL: Record<ConceptStatus, string> = {

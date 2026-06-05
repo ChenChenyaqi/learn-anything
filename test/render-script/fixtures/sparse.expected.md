@@ -6,4 +6,4 @@
 
 ## Populated Domain
 
-- ✅ **Only Concept** (mastered)
+- 🟢 **Only Concept** (mastered)

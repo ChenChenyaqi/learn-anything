@@ -293,10 +293,10 @@ function mapStatus(status: unknown): Concept['status'] {
 // ---- Knowledge-map rendering (mirrors render.mts for migration use) ----
 
 const STATUS_ICON: Record<string, string> = {
-  mastered: '✅',
-  in_progress: '🔄',
-  needs_practice: '⚠️',
-  unexplored: '⬜',
+  mastered: '🟢',
+  in_progress: '🔵',
+  needs_practice: '🟠',
+  unexplored: '⚪',
 };
 
 const STATUS_LABEL: Record<string, string> = {
@@ -325,7 +325,7 @@ function renderKnowledgeMap(state: StateV1): string {
     lines.push(`## ${esc(domain.name)}`);
     lines.push('');
     for (const concept of domain.concepts) {
-      const icon = STATUS_ICON[concept.status] ?? '⬜';
+      const icon = STATUS_ICON[concept.status] ?? '⚪';
       const label = STATUS_LABEL[concept.status] ?? 'unexplored';
       lines.push(`- ${icon} **${esc(concept.name)}** (${label})`);
       for (const detail of concept.details) {

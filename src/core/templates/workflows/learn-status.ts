@@ -37,23 +37,23 @@ From the state.json domains/concepts hierarchy, render each concept with a statu
 🌟 JavaScript Learning Status
 
 Language Basics                       [3/4 mastered]
-├── ✅ Variables & Types              mastered · 3 practices · 95% confidence
-├── ✅ Operators                      mastered · 2 practices · 90% confidence
-├── ✅ Control Flow                   mastered · 1 practice · 85% confidence
-└── ⬜ Type Coercion                  unexplored
+├── 🟢 Variables & Types              mastered · 3 practices · 95% confidence
+├── 🟢 Operators                      mastered · 2 practices · 90% confidence
+├── 🟢 Control Flow                   mastered · 1 practice · 85% confidence
+└── ⚪ Type Coercion                  unexplored
 
 Functions                             [1/5 mastered]
-├── 🔄 Function Declarations & Expr   in_progress · last studied: today
-├── ✅ Scope & Closures               mastered · 5 practices · 92% confidence
-├── ⬜ this Keyword                   unexplored
-├── ⬜ Arrow Functions                unexplored
-└── ⬜ Higher-Order Functions         unexplored
+├── 🔵 Function Declarations & Expr   in_progress · last studied: today
+├── 🟢 Scope & Closures               mastered · 5 practices · 92% confidence
+├── ⚪ this Keyword                   unexplored
+├── ⚪ Arrow Functions                unexplored
+└── ⚪ Higher-Order Functions         unexplored
 
 Objects & Prototypes                  [0/4 mastered]
-├── ⚠️ Object Literals                needs_practice · 1 practice · 35% confidence
-├── ⬜ Constructors                   unexplored
-├── ⬜ prototype & __proto__          unexplored
-└── ⬜ Inheritance Patterns           unexplored
+├── 🟠 Object Literals                needs_practice · 1 practice · 35% confidence
+├── ⚪ Constructors                   unexplored
+├── ⚪ prototype & __proto__          unexplored
+└── ⚪ Inheritance Patterns           unexplored
 \`\`\`
 
 ### Step 4: Summary Panel
@@ -63,7 +63,7 @@ Objects & Prototypes                  [0/4 mastered]
 │                   📊 Learning Stats                  │
 ├──────────┬──────────┬──────────┬──────────┬─────────┤
 │ Mastered │ Active   │ Practice │ Unexplored│ Progress│
-│  3 ✅    │  1 🔄    │  1 ⚠️    │ 13 ⬜     │ 17%     │
+│  3 🟢    │  1 🔵    │  1 🟠    │ 13 ⚪     │ 17%     │
 ├──────────┴──────────┴──────────┴──────────┴─────────┤
 │ 💪 Last Practice: Closures (today)                   │
 │ 📅 Started Learning: 2026-05-01                      │
@@ -77,10 +77,10 @@ Objects & Prototypes                  [0/4 mastered]
 
 | Icon | Status | Meaning |
 |------|--------|---------|
-| ✅ | mastered | Mastered — passed practice, high confidence |
-| 🔄 | in_progress | In Progress — started but not yet mastered |
-| ⚠️ | needs_practice | Needs Practice — understand but need reinforcement |
-| ⬜ | unexplored | Unexplored — haven't started learning yet |
+| 🟢 | mastered | Mastered — passed practice, high confidence |
+| 🔵 | in_progress | In Progress — started but not yet mastered |
+| 🟠 | needs_practice | Needs Practice — understand but need reinforcement |
+| ⚪ | unexplored | Unexplored — haven't started learning yet |
 
 ---
 

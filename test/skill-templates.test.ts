@@ -163,11 +163,10 @@ describe('Skill Template Content Quality', () => {
     expect(t.instructions).toContain('priority = (1 - confidence)');
   });
 
-  it('status template should include visualization', () => {
+  it('status template should reference status.mjs script', () => {
     const t = getLearnStatusSkillTemplate();
-    expect(t.instructions).toContain('Heatmap');
-    expect(t.instructions).toContain('🟢');
-    expect(t.instructions).toContain('Summary Panel');
+    expect(t.instructions).toContain('status.mjs');
+    expect(t.instructions).toContain('heatmap');
   });
 });
 
@@ -181,11 +180,8 @@ describe('Skill Template v1 Format Compliance', () => {
     { name: 'practice', getter: getLearnPracticeSkillTemplate },
   ];
 
-  // review, status should NOT run render.mjs (read-only workflows)
-  const readTemplates = [
-    { name: 'review', getter: getLearnReviewSkillTemplate },
-    { name: 'status', getter: getLearnStatusSkillTemplate },
-  ];
+  // review should NOT run render.mjs (read-only workflow)
+  const readTemplates = [{ name: 'review', getter: getLearnReviewSkillTemplate }];
 
   it.each(writeTemplates.map((t) => ({ name: t.name })))(
     '$name template should reference render.mjs for write workflows',
@@ -204,7 +200,8 @@ describe('Skill Template v1 Format Compliance', () => {
     },
   );
 
-  const allTemplates = [
+  // Templates that directly reference state.json (script-based status handles data internally)
+  const stateJsonTemplates = [
     { name: 'topic', getter: getLearnTopicSkillTemplate },
     { name: 'explain', getter: getLearnExplainSkillTemplate },
     { name: 'practice', getter: getLearnPracticeSkillTemplate },
@@ -212,18 +209,27 @@ describe('Skill Template v1 Format Compliance', () => {
     { name: 'status', getter: getLearnStatusSkillTemplate },
   ];
 
-  it.each(allTemplates.map((t) => ({ name: t.name })))(
+  it.each(stateJsonTemplates.map((t) => ({ name: t.name })))(
     '$name template should reference state.json as data source',
     ({ name }) => {
-      const t = allTemplates.find((a) => a.name === name)!.getter();
+      const t = stateJsonTemplates.find((a) => a.name === name)!.getter();
       expect(t.instructions).toContain('state.json');
     },
   );
 
-  it.each(allTemplates.map((t) => ({ name: t.name })))(
+  // Only templates that instruct AI to read state.json directly need the "single source of truth" warning.
+  // status delegates data handling to status.mjs, so it doesn't need this phrase.
+  const singleSourceTemplates = [
+    { name: 'topic', getter: getLearnTopicSkillTemplate },
+    { name: 'explain', getter: getLearnExplainSkillTemplate },
+    { name: 'practice', getter: getLearnPracticeSkillTemplate },
+    { name: 'review', getter: getLearnReviewSkillTemplate },
+  ];
+
+  it.each(singleSourceTemplates.map((t) => ({ name: t.name })))(
     '$name template should explicitly say not to read state.yaml or knowledge-map.md for data',
     ({ name }) => {
-      const t = allTemplates.find((a) => a.name === name)!.getter();
+      const t = singleSourceTemplates.find((a) => a.name === name)!.getter();
       expect(t.instructions).toContain('state.json is the single source of truth');
     },
   );

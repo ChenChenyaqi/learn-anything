@@ -1,0 +1,20 @@
+🌟 Empty Topic Learning Status
+
+┌───────────────────────────────────────────────────────┐
+│    📊 Learning Stats                                  │
+├──────────┬─────────┬──────────┬────────────┬──────────┤
+│ Mastered │ Active  │ Practice │ Unexplored │ Progress │
+│ 0 🟢     │ 0 🔵    │ 0 🟠     │ 0 ⚪        │ 0%       │
+├──────────┴─────────┴──────────┴────────────┴──────────┤
+│ 📅 Started Learning: 2026-05-28                       │
+│ ⏱️  Days Learning: 8                                  │
+└───────────────────────────────────────────────────────┘
+
+## Legend
+
+| Icon | Status | Meaning |
+|------|--------|---------|
+| 🟢 | mastered | Mastered — passed practice, high confidence |
+| 🔵 | in progress | In Progress — started but not yet mastered |
+| 🟠 | needs practice | Needs Practice — understand but need reinforcement |
+| ⚪ | unexplored | Unexplored — haven't started learning yet |

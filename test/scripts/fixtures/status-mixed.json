@@ -1,0 +1,169 @@
+{
+  "version": 1,
+  "topic": "JavaScript",
+  "slug": "javascript",
+  "created": "2026-05-28",
+  "domains": [
+    {
+      "name": "Language Basics",
+      "slug": "language-basics",
+      "concepts": [
+        {
+          "name": "Variables & Types",
+          "slug": "variables-types",
+          "status": "mastered",
+          "confidence": 0.95,
+          "practice_count": 3,
+          "explain_count": 2,
+          "last_explained": "2026-06-01",
+          "last_practiced": "2026-06-03",
+          "details": []
+        },
+        {
+          "name": "Operators",
+          "slug": "operators",
+          "status": "mastered",
+          "confidence": 0.9,
+          "practice_count": 2,
+          "explain_count": 1,
+          "last_explained": "2026-05-30",
+          "last_practiced": "2026-06-01",
+          "details": []
+        },
+        {
+          "name": "Control Flow",
+          "slug": "control-flow",
+          "status": "mastered",
+          "confidence": 0.85,
+          "practice_count": 1,
+          "explain_count": 1,
+          "last_explained": "2026-05-29",
+          "last_practiced": "2026-05-31",
+          "details": []
+        },
+        {
+          "name": "Type Coercion",
+          "slug": "type-coercion",
+          "status": "unexplored",
+          "confidence": 0,
+          "practice_count": 0,
+          "explain_count": 0,
+          "last_explained": null,
+          "last_practiced": null,
+          "details": []
+        }
+      ]
+    },
+    {
+      "name": "Functions",
+      "slug": "functions",
+      "concepts": [
+        {
+          "name": "Function Declarations",
+          "slug": "function-declarations",
+          "status": "in_progress",
+          "confidence": 0.4,
+          "practice_count": 0,
+          "explain_count": 1,
+          "last_explained": "2026-06-04",
+          "last_practiced": null,
+          "details": []
+        },
+        {
+          "name": "Scope & Closures",
+          "slug": "scope-closures",
+          "status": "mastered",
+          "confidence": 0.92,
+          "practice_count": 5,
+          "explain_count": 3,
+          "last_explained": "2026-06-02",
+          "last_practiced": "2026-06-04",
+          "details": []
+        },
+        {
+          "name": "this Keyword",
+          "slug": "this-keyword",
+          "status": "unexplored",
+          "confidence": 0,
+          "practice_count": 0,
+          "explain_count": 0,
+          "last_explained": null,
+          "last_practiced": null,
+          "details": []
+        },
+        {
+          "name": "Arrow Functions",
+          "slug": "arrow-functions",
+          "status": "unexplored",
+          "confidence": 0,
+          "practice_count": 0,
+          "explain_count": 0,
+          "last_explained": null,
+          "last_practiced": null,
+          "details": []
+        },
+        {
+          "name": "Higher-Order Functions",
+          "slug": "higher-order-functions",
+          "status": "unexplored",
+          "confidence": 0,
+          "practice_count": 0,
+          "explain_count": 0,
+          "last_explained": null,
+          "last_practiced": null,
+          "details": []
+        }
+      ]
+    },
+    {
+      "name": "Objects & Prototypes",
+      "slug": "objects-prototypes",
+      "concepts": [
+        {
+          "name": "Object Literals",
+          "slug": "object-literals",
+          "status": "needs_practice",
+          "confidence": 0.35,
+          "practice_count": 1,
+          "explain_count": 1,
+          "last_explained": "2026-05-30",
+          "last_practiced": "2026-06-02",
+          "details": []
+        },
+        {
+          "name": "Constructors",
+          "slug": "constructors",
+          "status": "unexplored",
+          "confidence": 0,
+          "practice_count": 0,
+          "explain_count": 0,
+          "last_explained": null,
+          "last_practiced": null,
+          "details": []
+        },
+        {
+          "name": "prototype & __proto__",
+          "slug": "prototype",
+          "status": "unexplored",
+          "confidence": 0,
+          "practice_count": 0,
+          "explain_count": 0,
+          "last_explained": null,
+          "last_practiced": null,
+          "details": []
+        },
+        {
+          "name": "Inheritance Patterns",
+          "slug": "inheritance-patterns",
+          "status": "unexplored",
+          "confidence": 0,
+          "practice_count": 0,
+          "explain_count": 0,
+          "last_explained": null,
+          "last_practiced": null,
+          "details": []
+        }
+      ]
+    }
+  ]
+}

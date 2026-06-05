@@ -3,12 +3,8 @@ import { readFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import {
-  render,
-  totalCount,
-  masteredCount,
-  validateStateV1,
-} from '../../src/render-script/render.mts';
+import { render } from '../../src/scripts/render.mts';
+import { totalCount, masteredCount, validateStateV1 } from '../../src/scripts/utils.mts';
 
 /* ------------------------------------------------------------------ */
 /*  Fixtures                                                           */

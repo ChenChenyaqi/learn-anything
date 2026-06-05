@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "topic": "Done Topic",
+  "slug": "done-topic",
+  "created": "2026-05-28",
+  "domains": [
+    {
+      "name": "Core",
+      "slug": "core",
+      "concepts": [
+        {
+          "name": "A",
+          "slug": "a",
+          "status": "mastered",
+          "confidence": 1,
+          "practice_count": 5,
+          "explain_count": 3,
+          "last_explained": "2026-06-01",
+          "last_practiced": "2026-06-04",
+          "details": []
+        },
+        {
+          "name": "B",
+          "slug": "b",
+          "status": "mastered",
+          "confidence": 0.95,
+          "practice_count": 3,
+          "explain_count": 2,
+          "last_explained": "2026-06-02",
+          "last_practiced": "2026-06-05",
+          "details": []
+        }
+      ]
+    }
+  ]
+}

@@ -173,7 +173,6 @@ export class InitCommand {
 
   private async generateSkillsForTool(resolvedPath: string, tool: AIToolOption): Promise<void> {
     const skillTemplates = getSkillTemplates();
-    const renderScriptContent = this.readRenderScript();
 
     for (const entry of skillTemplates) {
       const skillDir = path.join(resolvedPath, tool.skillsDir!, 'skills', entry.dirName);
@@ -181,21 +180,49 @@ export class InitCommand {
       const content = generateSkillContent(entry.template, VERSION);
       await FileSystemUtils.writeFile(skillFile, content);
 
-      // Deploy render.mjs to scripts/ subdirectory
-      const renderScriptFile = path.join(skillDir, 'scripts', 'render.mjs');
-      await FileSystemUtils.writeFile(renderScriptFile, renderScriptContent);
+      const scriptsDir = path.join(skillDir, 'scripts');
+
+      // topic / explain / practice → utils.mjs + render.mjs
+      if (
+        entry.dirName === 'learn-anything-topic' ||
+        entry.dirName === 'learn-anything-explain' ||
+        entry.dirName === 'learn-anything-practice'
+      ) {
+        await FileSystemUtils.writeFile(
+          path.join(scriptsDir, 'utils.mjs'),
+          this.readCompiledScript('utils.mjs'),
+        );
+        await FileSystemUtils.writeFile(
+          path.join(scriptsDir, 'render.mjs'),
+          this.readCompiledScript('render.mjs'),
+        );
+      }
+
+      // status → utils.mjs + status.mjs
+      if (entry.dirName === 'learn-anything-status') {
+        await FileSystemUtils.writeFile(
+          path.join(scriptsDir, 'utils.mjs'),
+          this.readCompiledScript('utils.mjs'),
+        );
+        await FileSystemUtils.writeFile(
+          path.join(scriptsDir, 'status.mjs'),
+          this.readCompiledScript('status.mjs'),
+        );
+      }
+
+      // review → no scripts needed
     }
   }
 
-  /** Read the compiled render.mjs from dist/ (bundled alongside this module). */
-  private readRenderScript(): string {
-    const renderScriptPath = path.resolve(
+  /** Read a compiled script from dist/scripts/ (bundled alongside this module). */
+  private readCompiledScript(filename: string): string {
+    const scriptPath = path.resolve(
       path.dirname(fileURLToPath(import.meta.url)),
       '..',
-      'render-script',
-      'render.mjs',
+      'scripts',
+      filename,
     );
-    return fs.readFileSync(renderScriptPath, 'utf-8');
+    return fs.readFileSync(scriptPath, 'utf-8');
   }
 
   private async generateCommandsForTool(resolvedPath: string, tool: AIToolOption): Promise<void> {

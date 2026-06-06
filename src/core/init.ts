@@ -205,7 +205,6 @@ export class InitCommand {
 
     for (const cmd of generatedCommands) {
       const filePath = path.resolve(resolvedPath, cmd.path);
-      await FileSystemUtils.writeFile(cmd.path === cmd.path ? cmd.path : cmd.path, cmd.fileContent);
       await FileSystemUtils.writeFile(filePath, cmd.fileContent);
     }
   }

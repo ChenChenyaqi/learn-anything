@@ -12,6 +12,7 @@ import {
   type SkillTemplate,
 } from '../templates/skill-templates.js';
 import type { CommandContent } from '../command-generation/index.js';
+import type { DocUrlEntry } from '../config.js';
 
 export interface SkillTemplateEntry {
   template: SkillTemplate;
@@ -74,6 +75,25 @@ export function getCommandContents(): CommandContent[] {
     tags: template.tags,
     body: template.content,
   }));
+}
+
+/**
+ * Formats selected DocUrlEntries into a mandatory reference documentation section.
+ * Used to replace the {{DOC_URLS}} placeholder in templates.
+ */
+export function buildDocUrlsSection(urls: Record<string, DocUrlEntry>): string {
+  const entries = Object.entries(urls);
+  if (entries.length === 0) {
+    return '_(No mandatory documentation configured.)_';
+  }
+  return entries.map(([, entry]) => `- **${entry.name}**: ${entry.toc}`).join('\n');
+}
+
+/**
+ * Returns the storage path string for replacing the {{DOCS_PATH}} placeholder.
+ */
+export function buildDocsPathSection(storagePath: string): string {
+  return storagePath;
 }
 
 export function generateSkillContent(

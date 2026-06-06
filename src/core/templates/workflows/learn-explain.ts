@@ -49,13 +49,17 @@ Before explaining, scan the project to understand the environment:
 
 1. **Check local cache**: Check if \`{{DOCS_PATH}}/<language>/summary.md\` exists
 2. **If cached** → Read it. Use as ground truth.
-3. **If NOT cached** → Use WebFetch to download the relevant documentation URL above.
-   - Fetch and extract key sections relevant to the concept being explained
-   - Write summary to \`{{DOCS_PATH}}/<language>/summary.md\`
+3. **If NOT cached** → Use Context7 MCP's \`get-library-docs\` tool to fetch official documentation:
+   - Pass the library ID for the topic (e.g., \`/mdn/content\` for JavaScript, \`/reactjs/react.dev\` for React)
+   - Optionally pass a \`topic\` parameter to focus on the concept (e.g., \`topic: "closures"\`)
+   - Write a comprehensive summary to \`{{DOCS_PATH}}/<language>/summary.md\`
+   - Include: key concepts, API references, code examples, best practices, gotchas
 4. **Cross-reference your explanation**:
    - Terminology must match official docs
    - Code examples must follow official patterns
    - If your explanation conflicts with official docs → **defer to official docs**
+
+> Context7 MCP setup: https://github.com/upstash/context7
 
 ---
 

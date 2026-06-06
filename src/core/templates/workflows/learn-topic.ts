@@ -54,9 +54,9 @@ Downloaded documentation is stored at: \`{{DOCS_PATH}}\`
 
 1. **Check local cache**: Check if \`{{DOCS_PATH}}/<language>/summary.md\` exists
 2. **If cached** → Read it. Use it as the ground truth for all explanations, examples, and code snippets.
-3. **If NOT cached** → Use WebFetch to download the relevant documentation URL listed above.
-   - Fetch the documentation index page
-   - Extract key sections relevant to the current topic
+3. **If NOT cached** → Use Context7 MCP's \`get-library-docs\` tool to fetch official documentation:
+   - Pass the library ID for the topic (e.g., \`/mdn/content\` for JavaScript, \`/reactjs/react.dev\` for React)
+   - Optionally pass a \`topic\` parameter to focus on the concept (e.g., \`topic: "closures"\`)
    - Write a comprehensive summary to \`{{DOCS_PATH}}/<language>/summary.md\`
    - Include: key concepts, API references, code examples, best practices, gotchas
 4. **Cross-reference**: When generating knowledge maps, explanations, or code examples, always verify:
@@ -64,6 +64,8 @@ Downloaded documentation is stored at: \`{{DOCS_PATH}}\`
    - Code examples follow official patterns and conventions
    - API usage is accurate per the official docs
    - If your explanation conflicts with the official docs, **defer to the official docs**
+
+> Context7 MCP setup: https://github.com/upstash/context7
 
 ---
 

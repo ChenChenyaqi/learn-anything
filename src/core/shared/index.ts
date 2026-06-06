@@ -4,7 +4,6 @@ export {
   getCommandContents,
   generateSkillContent,
   buildDocUrlsSection,
-  buildDocsPathSection,
 } from './skill-generation.js';
 
 export type { SkillTemplateEntry, CommandTemplateEntry } from './skill-generation.js';

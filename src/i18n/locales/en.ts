@@ -32,10 +32,4 @@ export const en: LocaleMessages = {
     interactiveSelectPrompt:
       'Select AI tools to generate skills for (space to select, enter to confirm):',
   },
-
-  docSelection: {
-    storagePath:
-      '📁 Enter the local directory path where documentation will be cached:',
-    storagePathRequired: 'Storage path is required. Please enter a directory path.',
-  },
 };

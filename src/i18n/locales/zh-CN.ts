@@ -19,8 +19,7 @@ export const zhCN: LocaleMessages = {
 
   init: {
     header: '\n🧠 Learn Anything — AI 驱动的递归学习系统\n',
-    noToolsSelected:
-      '未选择任何 AI 工具。使用 --tools 参数指定，或在交互模式中选择。',
+    noToolsSelected: '未选择任何 AI 工具。使用 --tools 参数指定，或在交互模式中选择。',
     availableTools: (tools: string) => `可用的工具：${tools}`,
     skillGenerated: (toolName: string) => `  ✓ ${toolName} — 5 个技能文件已生成`,
     initComplete: '🎉 Learn Anything 初始化完成！\n',
@@ -28,12 +27,6 @@ export const zhCN: LocaleMessages = {
     startLearning: (example: string) => `  运行 ${example} 开始你的第一个学习主题\n`,
     availableCommands: '可用的学习命令：',
     cmdLine: (cmd: string, desc: string) => `  ${cmd}${desc}`,
-    interactiveSelectPrompt:
-      '选择要生成技能的 AI 工具（空格选择，回车确认）：',
-  },
-
-  docSelection: {
-    storagePath: '📁 请输入文档缓存的本地存储目录路径：',
-    storagePathRequired: '存储路径不能为空，请输入一个目录路径。',
+    interactiveSelectPrompt: '选择要生成技能的 AI 工具（空格选择，回车确认）：',
   },
 };

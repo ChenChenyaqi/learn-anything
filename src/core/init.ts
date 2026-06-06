@@ -11,11 +11,9 @@ import {
   getCommandContents,
   generateSkillContent,
   buildDocUrlsSection,
-  buildDocsPathSection,
 } from './shared/index.js';
 import type { SupportedLocale } from '../i18n/types.js';
 import { getMessages } from '../i18n/index.js';
-import { promptDocStoragePath } from './doc-selection.js';
 
 const require = createRequire(import.meta.url);
 const { version: VERSION } = require('../../package.json');
@@ -50,7 +48,6 @@ export class InitCommand {
     // Create .learn/ directory in the target project
     const learnDir = path.join(resolvedPath, LEARN_DIR);
     await FileSystemUtils.ensureDir(path.join(learnDir, 'topics'));
-    await FileSystemUtils.ensureDir(path.join(learnDir, 'docs'));
 
     console.log(chalk.bold(m.init.header));
 
@@ -88,15 +85,10 @@ export class InitCommand {
       return;
     }
 
-    // Collect doc storage path — all DEFAULT_DOC_URLS are baked into skills
-    const storagePath = await promptDocStoragePath(this.locale);
-    console.log(chalk.dim(`  📚 Doc storage → ${storagePath}`));
-    console.log('');
-
     // Generate skill files for each tool
     for (const tool of selectedTools) {
       if (!tool.skillsDir) continue;
-      await this.generateSkillsForTool(resolvedPath, tool, storagePath);
+      await this.generateSkillsForTool(resolvedPath, tool);
       await this.generateCommandsForTool(resolvedPath, tool);
       console.log(chalk.green(m.init.skillGenerated(tool.name)));
     }
@@ -175,22 +167,15 @@ export class InitCommand {
     return availableTools.filter((t) => selected.includes(t.value));
   }
 
-  private async generateSkillsForTool(
-    resolvedPath: string,
-    tool: AIToolOption,
-    storagePath: string,
-  ): Promise<void> {
+  private async generateSkillsForTool(resolvedPath: string, tool: AIToolOption): Promise<void> {
     const skillTemplates = getSkillTemplates();
     const docUrlsSection = buildDocUrlsSection(DEFAULT_DOC_URLS);
-    const docsPathSection = buildDocsPathSection(storagePath);
 
     for (const entry of skillTemplates) {
       const skillDir = path.join(resolvedPath, tool.skillsDir!, 'skills', entry.dirName);
       const skillFile = path.join(skillDir, 'SKILL.md');
       const content = generateSkillContent(entry.template, VERSION, (instructions) => {
-        return instructions
-          .replace(/\{\{DOC_URLS\}\}/g, docUrlsSection)
-          .replace(/\{\{DOCS_PATH\}\}/g, docsPathSection);
+        return instructions.replace(/\{\{DOC_URLS\}\}/g, docUrlsSection);
       });
       await FileSystemUtils.writeFile(skillFile, content);
     }

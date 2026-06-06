@@ -4,6 +4,8 @@ export interface DocUrlEntry {
   name: string;
   toc: string;
   base: string;
+  /** Context7 MCP library identifier (e.g. '/mdn/content') */
+  context7Id: string;
 }
 
 export const DEFAULT_DOC_URLS: Record<string, DocUrlEntry> = {
@@ -11,36 +13,43 @@ export const DEFAULT_DOC_URLS: Record<string, DocUrlEntry> = {
     name: 'JavaScript',
     toc: 'https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide',
     base: 'https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/',
+    context7Id: '/mdn/content',
   },
   typescript: {
     name: 'TypeScript',
     toc: 'https://www.typescriptlang.org/docs/handbook/intro.html',
     base: 'https://www.typescriptlang.org/docs/handbook/',
+    context7Id: '/microsoft/TypeScript-Handbook',
   },
   react: {
     name: 'React',
     toc: 'https://react.dev/learn',
     base: 'https://react.dev/learn/',
+    context7Id: '/reactjs/react.dev',
   },
   vue: {
     name: 'Vue',
     toc: 'https://vuejs.org/guide/introduction.html',
     base: 'https://vuejs.org/guide/',
+    context7Id: '/vuejs/docs',
   },
   python: {
     name: 'Python',
     toc: 'https://docs.python.org/3/tutorial/index.html',
     base: 'https://docs.python.org/3/tutorial/',
+    context7Id: '/python/cpython',
   },
   rust: {
     name: 'Rust',
     toc: 'https://doc.rust-lang.org/book/',
     base: 'https://doc.rust-lang.org/book/',
+    context7Id: '/rust-lang/book',
   },
   go: {
     name: 'Go',
     toc: 'https://go.dev/doc/',
     base: 'https://go.dev/doc/',
+    context7Id: '/golang/website',
   },
 };
 

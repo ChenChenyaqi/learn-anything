@@ -1,5 +1,49 @@
 export const LEARN_DIR = '.learn';
 
+export interface DocUrlEntry {
+  name: string;
+  toc: string;
+  base: string;
+}
+
+export const DEFAULT_DOC_URLS: Record<string, DocUrlEntry> = {
+  javascript: {
+    name: 'JavaScript',
+    toc: 'https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide',
+    base: 'https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/',
+  },
+  typescript: {
+    name: 'TypeScript',
+    toc: 'https://www.typescriptlang.org/docs/handbook/intro.html',
+    base: 'https://www.typescriptlang.org/docs/handbook/',
+  },
+  react: {
+    name: 'React',
+    toc: 'https://react.dev/learn',
+    base: 'https://react.dev/learn/',
+  },
+  vue: {
+    name: 'Vue',
+    toc: 'https://vuejs.org/guide/introduction.html',
+    base: 'https://vuejs.org/guide/',
+  },
+  python: {
+    name: 'Python',
+    toc: 'https://docs.python.org/3/tutorial/index.html',
+    base: 'https://docs.python.org/3/tutorial/',
+  },
+  rust: {
+    name: 'Rust',
+    toc: 'https://doc.rust-lang.org/book/',
+    base: 'https://doc.rust-lang.org/book/',
+  },
+  go: {
+    name: 'Go',
+    toc: 'https://go.dev/doc/',
+    base: 'https://go.dev/doc/',
+  },
+};
+
 export interface AIToolOption {
   name: string;
   value: string;

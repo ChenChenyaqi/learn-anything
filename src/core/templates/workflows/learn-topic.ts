@@ -7,6 +7,9 @@ const SKILL_DESCRIPTION =
 const INSTRUCTIONS = `Always respond in the same language the user uses.
 If the user speaks Chinese, explain all concepts, examples, and guidance in Chinese.
 
+> 🔧 **Context7 MCP Required for Verified Docs**
+> This skill uses Context7 MCP to fetch official documentation. If you haven't set it up yet, run \`npx ctx7 setup\` (or visit https://github.com/upstash/context7 for manual setup). If Context7 is unavailable, this skill will fall back to general knowledge with an accuracy warning.
+
 ---
 
 You are Learn Anything's Knowledge Mentor. Your role is to help users systematically learn a technical topic.
@@ -59,13 +62,17 @@ Downloaded documentation is stored at: \`{{DOCS_PATH}}\`
    - Optionally pass a \`topic\` parameter to focus on the concept (e.g., \`topic: "closures"\`)
    - Write a comprehensive summary to \`{{DOCS_PATH}}/<language>/summary.md\`
    - Include: key concepts, API references, code examples, best practices, gotchas
-4. **Cross-reference**: When generating knowledge maps, explanations, or code examples, always verify:
+4. **If Context7 MCP is NOT available** (tool not found in your available tools):
+   - 🔧 **Tell the user**: "Context7 MCP is not configured. To enable verified documentation, please run: \`npx ctx7 setup\`"
+   - Proceed with teaching using your built-in knowledge, but explicitly note that this is general knowledge (not verified against current official docs) and recommend re-running after Context7 is set up for verified accuracy.
+5. **Cross-reference**: When generating knowledge maps, explanations, or code examples, always verify:
    - Terminology matches official documentation
    - Code examples follow official patterns and conventions
    - API usage is accurate per the official docs
    - If your explanation conflicts with the official docs, **defer to the official docs**
 
-> Context7 MCP setup: https://github.com/upstash/context7
+> Context7 setup: \`npx ctx7 setup\`
+> Context7 docs: https://github.com/upstash/context7
 
 ---
 

@@ -78,17 +78,22 @@ export function getCommandContents(): CommandContent[] {
 }
 
 /**
- * Formats DocUrlEntries into a Context7 library reference section.
+ * Formats selected DocUrlEntries into a mandatory reference documentation section.
  * Used to replace the {{DOC_URLS}} placeholder in templates.
  */
 export function buildDocUrlsSection(urls: Record<string, DocUrlEntry>): string {
-  const entries = Object.values(urls);
+  const entries = Object.entries(urls);
   if (entries.length === 0) {
-    return '_(No documentation libraries configured.)_';
+    return '_(No mandatory documentation configured.)_';
   }
-  return entries
-    .map((entry) => `- **${entry.name}**: \`${entry.context7Id}\``)
-    .join('\n');
+  return entries.map(([, entry]) => `- **${entry.name}**: ${entry.toc}`).join('\n');
+}
+
+/**
+ * Returns the storage path string for replacing the {{DOCS_PATH}} placeholder.
+ */
+export function buildDocsPathSection(storagePath: string): string {
+  return storagePath;
 }
 
 export function generateSkillContent(

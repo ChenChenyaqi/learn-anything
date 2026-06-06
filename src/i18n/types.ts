@@ -27,7 +27,13 @@ export interface InitMessages {
   interactiveSelectPrompt: string;
 }
 
+export interface DocSelectionMessages {
+  storagePath: string;
+  storagePathRequired: string;
+}
+
 export interface LocaleMessages {
   cli: CLIMessages;
   init: InitMessages;
+  docSelection: DocSelectionMessages;
 }

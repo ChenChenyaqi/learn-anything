@@ -29,4 +29,9 @@ export const zhCN: LocaleMessages = {
     cmdLine: (cmd: string, desc: string) => `  ${cmd}${desc}`,
     interactiveSelectPrompt: '选择要生成技能的 AI 工具（空格选择，回车确认）：',
   },
+
+  docSelection: {
+    storagePath: '📁 请输入文档缓存的本地存储目录路径：',
+    storagePathRequired: '存储路径不能为空，请输入一个目录路径。',
+  },
 };

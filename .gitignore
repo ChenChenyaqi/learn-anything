@@ -2,5 +2,11 @@ node_modules/
 dist/
 .env
 *.tsbuildinfo
+
+# user local setting
 .claude
+.codex
 .learn
+
+# test output
+test/core/learn-protocol/fixtures/migrates/

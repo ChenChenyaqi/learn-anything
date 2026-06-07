@@ -150,11 +150,11 @@ describe('Skill Template Content Quality', () => {
     expect(t.instructions).toContain('Code Template');
   });
 
-  it('topic template should include knowledge map generation', () => {
+  it('topic template should include knowledge map generation via state.json', () => {
     const t = getLearnTopicSkillTemplate();
     expect(t.instructions).toContain('Knowledge Map');
-    expect(t.instructions).toContain('knowledge-map.md');
-    expect(t.instructions).toContain('state.yaml');
+    expect(t.instructions).toContain('state.json');
+    expect(t.instructions).toContain('render.mjs');
     expect(t.instructions).toContain('mkdir -p');
   });
 
@@ -164,11 +164,123 @@ describe('Skill Template Content Quality', () => {
     expect(t.instructions).toContain('priority = (1 - confidence)');
   });
 
-  it('status template should include visualization', () => {
+  it('status template should reference status.mjs script', () => {
     const t = getLearnStatusSkillTemplate();
-    expect(t.instructions).toContain('Heatmap');
-    expect(t.instructions).toContain('✅');
-    expect(t.instructions).toContain('Summary Panel');
+    expect(t.instructions).toContain('status.mjs');
+    expect(t.instructions).toContain('heatmap');
+  });
+});
+
+// ── v1 Format: state.json and render.mjs integration ────────────────
+
+describe('Skill Template v1 Format Compliance', () => {
+  // topic, explain, practice should reference render.mjs (write workflows)
+  const writeTemplates = [
+    { name: 'topic', getter: getLearnTopicSkillTemplate },
+    { name: 'explain', getter: getLearnExplainSkillTemplate },
+    { name: 'practice', getter: getLearnPracticeSkillTemplate },
+  ];
+
+  // review should NOT run render.mjs (read-only workflow)
+  const readTemplates = [{ name: 'review', getter: getLearnReviewSkillTemplate }];
+
+  it.each(writeTemplates.map((t) => ({ name: t.name })))(
+    '$name template should reference render.mjs for write workflows',
+    ({ name }) => {
+      const t = writeTemplates.find((w) => w.name === name)!.getter();
+      expect(t.instructions).toContain('render.mjs');
+    },
+  );
+
+  it.each(readTemplates.map((t) => ({ name: t.name })))(
+    '$name template should NOT run render.mjs (read-only)',
+    ({ name }) => {
+      const t = readTemplates.find((r) => r.name === name)!.getter();
+      // Read-only templates explicitly say "do NOT run render.mjs"
+      expect(t.instructions).toContain('do NOT run render.mjs');
+    },
+  );
+
+  // Templates that directly reference state.json (script-based status handles data internally)
+  const stateJsonTemplates = [
+    { name: 'topic', getter: getLearnTopicSkillTemplate },
+    { name: 'explain', getter: getLearnExplainSkillTemplate },
+    { name: 'practice', getter: getLearnPracticeSkillTemplate },
+    { name: 'review', getter: getLearnReviewSkillTemplate },
+    { name: 'status', getter: getLearnStatusSkillTemplate },
+  ];
+
+  it.each(stateJsonTemplates.map((t) => ({ name: t.name })))(
+    '$name template should reference state.json as data source',
+    ({ name }) => {
+      const t = stateJsonTemplates.find((a) => a.name === name)!.getter();
+      expect(t.instructions).toContain('state.json');
+    },
+  );
+
+  // Only templates that instruct AI to read state.json directly need the "single source of truth" warning.
+  // status delegates data handling to status.mjs, so it doesn't need this phrase.
+  const singleSourceTemplates = [
+    { name: 'topic', getter: getLearnTopicSkillTemplate },
+    { name: 'explain', getter: getLearnExplainSkillTemplate },
+    { name: 'practice', getter: getLearnPracticeSkillTemplate },
+    { name: 'review', getter: getLearnReviewSkillTemplate },
+  ];
+
+  it.each(singleSourceTemplates.map((t) => ({ name: t.name })))(
+    '$name template should explicitly say not to read state.yaml or knowledge-map.md for data',
+    ({ name }) => {
+      const t = singleSourceTemplates.find((a) => a.name === name)!.getter();
+      expect(t.instructions).toContain('state.json is the single source of truth');
+    },
+  );
+
+  it.each(writeTemplates.map((t) => ({ name: t.name })))(
+    '$name template should instruct AI that render.mjs validates state.json',
+    ({ name }) => {
+      const t = writeTemplates.find((w) => w.name === name)!.getter();
+      expect(t.instructions).toContain('validates state.json');
+      expect(t.instructions).toContain('re-run render.mjs');
+    },
+  );
+  describe('Context7 Guidance Injection', () => {
+    function injectContext7Guidance(instructions: string): string {
+      const marker = '\n## Command:';
+      const index = instructions.indexOf(marker);
+      if (index === -1) return instructions + CONTEXT7_GUIDANCE;
+      return instructions.slice(0, index) + CONTEXT7_GUIDANCE + instructions.slice(index);
+    }
+
+    it('should inject Context7 guidance when transform is provided', () => {
+      const template = getLearnTopicSkillTemplate();
+      const content = generateSkillContent(template, '0.3.0', injectContext7Guidance);
+      expect(content).toContain('resolve-library-id');
+      expect(content).toContain('query-docs');
+      expect(content).toContain('Documentation Verification');
+    });
+
+    it('should not contain Context7 when no transform is provided', () => {
+      const template = getLearnTopicSkillTemplate();
+      const content = generateSkillContent(template, '0.3.0');
+      expect(content).not.toContain('resolve-library-id');
+      expect(content).not.toContain('Context7');
+    });
+
+    it('should place guidance before ## Command: section', () => {
+      const template = getLearnExplainSkillTemplate();
+      const content = generateSkillContent(template, '0.3.0', injectContext7Guidance);
+      const guidancePos = content.indexOf('Documentation Verification');
+      const commandPos = content.indexOf('## Command:');
+      expect(guidancePos).toBeGreaterThan(0);
+      expect(commandPos).toBeGreaterThan(guidancePos);
+    });
+
+    it('review and status templates should not contain Context7 by default', () => {
+      const review = getLearnReviewSkillTemplate();
+      const status = getLearnStatusSkillTemplate();
+      expect(review.instructions).not.toContain('Context7');
+      expect(status.instructions).not.toContain('Context7');
+    });
   });
 });
 

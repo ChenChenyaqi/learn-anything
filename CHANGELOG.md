@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0-beta.1] - 2026-06-05
+
+### Added
+
+- **Learn Protocol v1**: `state.json` is now the single source of truth for all learning data, using a hierarchical knowledge map format (domains → concepts → details). The old dual-file model (state.yaml + hand-written knowledge-map.md) is replaced — `knowledge-map.md` is now a **generated artifact** produced by `render.mjs` from `state.json`, never edited directly. AI instructions explicitly forbid reading or writing `knowledge-map.md` as a data source.
+- **Automatic v0→v1 migration**: Existing learning data is auto-migrated on `learn-anything init` or `update`, with backup files created for safety.
+- **Schema validation**: `render.mjs` validates `state.json` against the v1 schema before generating `knowledge-map.md`, with clear error messages on field mismatches.
+- **Status script**: New standalone `status.mjs` script reads `state.json` and outputs a formatted heatmap or topic summary, reducing AI token spend. Supports `--locale en|zh-CN` for i18n output.
+- **Shared utils** (`utils.mjs`): Extracted shared types, validation, and helpers used by both `render.mjs` and `status.mjs`.
+
+### Changed
+
+- **Prompt compression**: Reduced skill template INSTRUCTIONS by ~69% (457 fewer lines) across 4 workflow templates, eliminating redundancy while preserving all functional behavior.
+- **Unified learning icons**: Replaced mixed icon styles with a consistent colored circle set (🟢 🔵 🟠 ⚪) across `render.mjs`, migration code, skill templates, and test fixtures.
+- **All 5 workflow templates** updated to read/write `state.json` only, dropping `knowledge-map.md` as a data source.
+
 ## [0.3.1] - 2026-06-07
 
 ### Added
@@ -54,7 +70,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Locale support: English (`en`) and Chinese (`zh-CN`).
 - MIT License.
 
-[Unreleased]: https://github.com/ChenChenyaqi/learn-anything/compare/v0.3.1...HEAD
+[Unreleased]: https://github.com/ChenChenyaqi/learn-anything/compare/v0.4.0-beta...HEAD
+[0.4.0-beta]: https://github.com/ChenChenyaqi/learn-anything/compare/v0.3.0...v0.4.0-beta
 [0.3.1]: https://github.com/ChenChenyaqi/learn-anything/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/ChenChenyaqi/learn-anything/compare/v0.2.1...v0.3.0
 [0.2.1]: https://github.com/ChenChenyaqi/learn-anything/compare/v0.2.0...v0.2.1

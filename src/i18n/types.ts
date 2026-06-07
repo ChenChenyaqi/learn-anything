@@ -25,6 +25,7 @@ export interface InitMessages {
   availableCommands: string;
   cmdLine: (cmd: string, desc: string) => string;
   interactiveSelectPrompt: string;
+  migrationComplete: (count: number) => string;
   context7Prompt: string;
   context7Enabled: string;
   context7SetupHint: string;

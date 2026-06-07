@@ -2,6 +2,7 @@ import path from 'path';
 import chalk from 'chalk';
 import * as fs from 'fs';
 import { createRequire } from 'module';
+import { fileURLToPath } from 'url';
 import { FileSystemUtils } from '../utils/file-system.js';
 import { AI_TOOLS, AIToolOption, LEARN_DIR } from './config.js';
 import { isInteractive } from '../utils/interactive.js';
@@ -47,7 +48,15 @@ export class InitCommand {
 
     // Create .learn/ directory in the target project
     const learnDir = path.join(resolvedPath, LEARN_DIR);
-    await FileSystemUtils.ensureDir(path.join(learnDir, 'topics'));
+    const topicsDir = path.join(learnDir, 'topics');
+    await FileSystemUtils.ensureDir(topicsDir);
+
+    // Run v0→v1 migration for any existing learning data
+    const { migrateAll } = await import('./learn-protocol/index.js');
+    const report = await migrateAll(topicsDir);
+    if (report.migratedCount > 0) {
+      console.log(chalk.green(m.init.migrationComplete(report.migratedCount)));
+    }
 
     console.log(chalk.bold(m.init.header));
 
@@ -205,7 +214,50 @@ export class InitCommand {
           : undefined,
       );
       await FileSystemUtils.writeFile(skillFile, content);
+
+      const scriptsDir = path.join(skillDir, 'scripts');
+
+      // topic / explain / practice → utils.mjs + render.mjs
+      if (
+        entry.dirName === 'learn-anything-topic' ||
+        entry.dirName === 'learn-anything-explain' ||
+        entry.dirName === 'learn-anything-practice'
+      ) {
+        await FileSystemUtils.writeFile(
+          path.join(scriptsDir, 'utils.mjs'),
+          this.readCompiledScript('utils.mjs'),
+        );
+        await FileSystemUtils.writeFile(
+          path.join(scriptsDir, 'render.mjs'),
+          this.readCompiledScript('render.mjs'),
+        );
+      }
+
+      // status → utils.mjs + status.mjs
+      if (entry.dirName === 'learn-anything-status') {
+        await FileSystemUtils.writeFile(
+          path.join(scriptsDir, 'utils.mjs'),
+          this.readCompiledScript('utils.mjs'),
+        );
+        await FileSystemUtils.writeFile(
+          path.join(scriptsDir, 'status.mjs'),
+          this.readCompiledScript('status.mjs'),
+        );
+      }
+
+      // review → no scripts needed
     }
+  }
+
+  /** Read a compiled script from dist/scripts/ (bundled alongside this module). */
+  private readCompiledScript(filename: string): string {
+    const scriptPath = path.resolve(
+      path.dirname(fileURLToPath(import.meta.url)),
+      '..',
+      'scripts',
+      filename,
+    );
+    return fs.readFileSync(scriptPath, 'utf-8');
   }
 
   private async generateCommandsForTool(resolvedPath: string, tool: AIToolOption): Promise<void> {

@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "topic": "Sparse",
+  "slug": "sparse",
+  "created": "2025-01-01",
+  "domains": [
+    {
+      "name": "Empty Domain",
+      "slug": "empty-domain",
+      "concepts": []
+    },
+    {
+      "name": "Populated Domain",
+      "slug": "populated-domain",
+      "concepts": [
+        {
+          "name": "Only Concept",
+          "slug": "only-concept",
+          "status": "mastered",
+          "confidence": 0,
+          "practice_count": 0,
+          "explain_count": 0,
+          "last_explained": null,
+          "last_practiced": null,
+          "details": []
+        }
+      ]
+    }
+  ]
+}

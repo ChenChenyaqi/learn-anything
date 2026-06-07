@@ -1,0 +1,174 @@
+topic: javascript
+created: 2026-05-31
+concepts:
+  - path: '语言基础/变量与数据类型'
+    status: unexplored
+    last_practiced: null
+    practice_count: 0
+    confidence: 0.0
+  - path: '语言基础/运算符与表达式'
+    status: unexplored
+    last_practiced: null
+    practice_count: 0
+    confidence: 0.0
+  - path: '语言基础/流程控制'
+    status: unexplored
+    last_practiced: null
+    practice_count: 0
+    confidence: 0.0
+  - path: '语言基础/类型转换与比较'
+    status: unexplored
+    last_practiced: null
+    practice_count: 0
+    confidence: 0.0
+  - path: '语言基础/字符串与数组操作'
+    status: unexplored
+    last_practiced: null
+    practice_count: 0
+    confidence: 0.0
+  - path: '函数与作用域/函数定义与调用'
+    status: unexplored
+    last_practiced: null
+    practice_count: 0
+    confidence: 0.0
+  - path: '函数与作用域/作用域与闭包'
+    status: in_progress
+    last_practiced: 2026-05-31
+    last_session: 2026-05-31
+    practice_count: 1
+    confidence: 0.30
+  - path: '函数与作用域/this 关键字'
+    status: unexplored
+    last_practiced: null
+    practice_count: 0
+    confidence: 0.0
+  - path: '函数与作用域/箭头函数'
+    status: unexplored
+    last_practiced: null
+    practice_count: 0
+    confidence: 0.0
+  - path: '函数与作用域/高阶函数与回调'
+    status: unexplored
+    last_practiced: null
+    practice_count: 0
+    confidence: 0.0
+  - path: '对象与面向对象/对象字面量与属性'
+    status: unexplored
+    last_practiced: null
+    practice_count: 0
+    confidence: 0.0
+  - path: '对象与面向对象/构造函数与 new'
+    status: unexplored
+    last_practiced: null
+    practice_count: 0
+    confidence: 0.0
+  - path: '对象与面向对象/原型链'
+    status: unexplored
+    last_practiced: null
+    practice_count: 0
+    confidence: 0.0
+  - path: '对象与面向对象/类的继承'
+    status: unexplored
+    last_practiced: null
+    practice_count: 0
+    confidence: 0.0
+  - path: '对象与面向对象/对象方法'
+    status: unexplored
+    last_practiced: null
+    practice_count: 0
+    confidence: 0.0
+  - path: '异步编程/回调函数模式'
+    status: unexplored
+    last_practiced: null
+    practice_count: 0
+    confidence: 0.0
+  - path: '异步编程/Promise'
+    status: unexplored
+    last_practiced: null
+    practice_count: 0
+    confidence: 0.0
+  - path: '异步编程/async-await'
+    status: unexplored
+    last_practiced: null
+    practice_count: 0
+    confidence: 0.0
+  - path: '异步编程/事件循环'
+    status: unexplored
+    last_practiced: null
+    practice_count: 0
+    confidence: 0.0
+  - path: '异步编程/错误处理'
+    status: unexplored
+    last_practiced: null
+    practice_count: 0
+    confidence: 0.0
+  - path: '核心机制/执行上下文与调用栈'
+    status: unexplored
+    last_practiced: null
+    practice_count: 0
+    confidence: 0.0
+  - path: '核心机制/变量提升'
+    status: unexplored
+    last_practiced: null
+    practice_count: 0
+    confidence: 0.0
+  - path: '核心机制/垃圾回收'
+    status: unexplored
+    last_practiced: null
+    practice_count: 0
+    confidence: 0.0
+  - path: '核心机制/严格模式'
+    status: unexplored
+    last_practiced: null
+    practice_count: 0
+    confidence: 0.0
+  - path: 'ES6+ 新特性/解构赋值'
+    status: unexplored
+    last_practiced: null
+    practice_count: 0
+    confidence: 0.0
+  - path: 'ES6+ 新特性/模板字符串'
+    status: unexplored
+    last_practiced: null
+    practice_count: 0
+    confidence: 0.0
+  - path: 'ES6+ 新特性/展开运算符与剩余参数'
+    status: unexplored
+    last_practiced: null
+    practice_count: 0
+    confidence: 0.0
+  - path: 'ES6+ 新特性/Map-Set 数据结构'
+    status: unexplored
+    last_practiced: null
+    practice_count: 0
+    confidence: 0.0
+  - path: 'ES6+ 新特性/模块化'
+    status: unexplored
+    last_practiced: null
+    practice_count: 0
+    confidence: 0.0
+  - path: '工具与工程化/CommonJS vs ES Module'
+    status: unexplored
+    last_practiced: null
+    practice_count: 0
+    confidence: 0.0
+  - path: '工具与工程化/npm 包管理'
+    status: unexplored
+    last_practiced: null
+    practice_count: 0
+    confidence: 0.0
+  - path: '工具与工程化/Babel 与转译'
+    status: unexplored
+    last_practiced: null
+    practice_count: 0
+    confidence: 0.0
+  - path: '工具与工程化/代码质量工具'
+    status: unexplored
+    last_practiced: null
+    practice_count: 0
+    confidence: 0.0
+  - path: '工具与工程化/打包工具'
+    status: unexplored
+    last_practiced: null
+    practice_count: 0
+    confidence: 0.0

@@ -4,90 +4,47 @@ const SKILL_NAME = 'learn-anything-status';
 const SKILL_DESCRIPTION =
   'Visualize your current learning state. Display a knowledge map heatmap with mastery status for each concept.';
 
-const INSTRUCTIONS = `Always respond in the same language the user uses.
-If the user speaks Chinese, explain all concepts, examples, and guidance in Chinese.
-
----
-
-You are Learn Anything's Status Visualizer. Your sole task is to read learning data and present it in an intuitive, visually appealing way.
+const INSTRUCTIONS = `You are Learn Anything's Status Visualizer. Your sole task is to run the status script and present its output to the user.
 
 ## Command: /learn-status [topic-name]
 
-### Step 1: Determine Topic
+### Step 1: Determine Locale
 
-- If the user specified a topic name: read that topic directly
-- If the user did NOT specify a topic:
-  - If there's only one topic under \`./.learn/topics/\`: use it directly
-  - If there are multiple topics: list them all and let the user choose
-  - If there are no topics: prompt the user to create one
+- If the user speaks Chinese, use \`--locale zh-CN\`
+- Otherwise, use \`--locale en\` (default)
 
-### Step 2: Read Data
+### Step 2: Determine Mode
 
-1. \`./.learn/topics/<topic-name>/knowledge-map.md\`
-2. \`./.learn/topics/<topic-name>/state.yaml\`
+- If the user **specified a topic name**: run the script with that single topic (detailed heatmap)
+- If the user did **NOT** specify a topic:
+  - Run the script with \`--all\` flag to show a summary of **all** topics
 
-### Step 3: Render Knowledge Map Heatmap
+### Step 3: Run Status Script
 
-Following the original structure of the knowledge map, annotate each concept with a status icon and brief information.
+Use the Bash tool to run the status script (located in the scripts/ directory next to this SKILL.md file):
 
-\`\`\`
-🌟 JavaScript Learning Status
-
-Language Basics                       [3/4 mastered]
-├── ✅ Variables & Types              mastered · 3 practices · 95% confidence
-├── ✅ Operators                      mastered · 2 practices · 90% confidence
-├── ✅ Control Flow                   mastered · 1 practice · 85% confidence
-└── ⬜ Type Coercion                  unexplored
-
-Functions                             [1/5 mastered]
-├── 🔄 Function Declarations & Expr   in_progress · last studied: today
-├── ✅ Scope & Closures               mastered · 5 practices · 92% confidence
-├── ⬜ this Keyword                   unexplored
-├── ⬜ Arrow Functions                unexplored
-└── ⬜ Higher-Order Functions         unexplored
-
-Objects & Prototypes                  [0/4 mastered]
-├── ⚠️ Object Literals                needs_practice · 1 practice · 35% confidence
-├── ⬜ Constructors                   unexplored
-├── ⬜ prototype & __proto__          unexplored
-└── ⬜ Inheritance Patterns           unexplored
+**Single topic (detailed heatmap):**
+\`\`\`bash
+SCRIPT=$(find . -path '*/learn-anything-status/scripts/status.mjs' -print -quit 2>/dev/null)
+node "$SCRIPT" --locale <locale> ./.learn/topics/<topic-name>
 \`\`\`
 
-### Step 4: Summary Panel
-
-\`\`\`
-┌─────────────────────────────────────────────────────┐
-│                   📊 Learning Stats                  │
-├──────────┬──────────┬──────────┬──────────┬─────────┤
-│ Mastered │ Active   │ Practice │ Unexplored│ Progress│
-│  3 ✅    │  1 🔄    │  1 ⚠️    │ 13 ⬜     │ 17%     │
-├──────────┴──────────┴──────────┴──────────┴─────────┤
-│ 💪 Last Practice: Closures (today)                   │
-│ 📅 Started Learning: 2026-05-01                      │
-│ ⏱️ Days Learning: 8                                  │
-└─────────────────────────────────────────────────────┘
+**All topics (summary by topic):**
+\`\`\`bash
+SCRIPT=$(find . -path '*/learn-anything-status/scripts/status.mjs' -print -quit 2>/dev/null)
+node "$SCRIPT" --all --locale <locale> ./.learn/topics
 \`\`\`
 
----
+The script reads state.json, validates it, and outputs a formatted heatmap or topic summary directly.
+Show the script output to the user as-is.
 
-## Legend
-
-| Icon | Status | Meaning |
-|------|--------|---------|
-| ✅ | mastered | Mastered — passed practice, high confidence |
-| 🔄 | in_progress | In Progress — started but not yet mastered |
-| ⚠️ | needs_practice | Needs Practice — understand but need reinforcement |
-| ⬜ | unexplored | Unexplored — haven't started learning yet |
+If the script reports validation errors, relay the error to the user.
 
 ---
 
 ## Edge Cases
 
-- **No learning data**:
-  > "📭 You don't have any learning records yet. Run \`/learn <topic-name>\` to start your learning journey!"
-
-- **Multiple topics, none specified**: List all topics for the user to choose
-  > "You have the following learning topics: JavaScript (17%), Rust (0%). Please specify a topic name, e.g.: \`/learn-status javascript\`"`;
+- **No topics at all**: The script will output a friendly message. Relay it to the user.`;
 
 const COMMAND_NAME = 'Learn: Status';
 const COMMAND_DESCRIPTION =
@@ -95,10 +52,10 @@ const COMMAND_DESCRIPTION =
 
 const COMMAND_CONTENT = `Use the learn-anything-status skill to handle the user's /learn-status [topic-name] request.
 Follow the workflow defined in the skill:
-1. Determine topic (specified/single/multiple/none)
-2. Read knowledge-map.md and state.yaml
-3. Render heatmap following knowledge map structure, annotating status icons, practice count, confidence
-4. Show summary panel: mastery stats, last practice, days learning`;
+1. Determine locale based on user's language (zh-CN or en)
+2. Determine mode: single topic (detailed) or all topics (summary)
+3. Run status.mjs script with appropriate flags
+Show the script output to the user.`;
 
 export function getLearnStatusSkillTemplate(): SkillTemplate {
   return {

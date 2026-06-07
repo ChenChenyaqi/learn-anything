@@ -1,0 +1,25 @@
+🌟 Done Topic Learning Status
+
+Core  [2/2 mastered]
+├── 🟢 A  mastered · 5 practices · 100% confidence
+└── 🟢 B  mastered · 3 practices · 95% confidence
+
+┌───────────────────────────────────────────────────────┐
+│    📊 Learning Stats                                  │
+├──────────┬─────────┬──────────┬────────────┬──────────┤
+│ Mastered │ Active  │ Practice │ Unexplored │ Progress │
+│ 2 🟢     │ 0 🔵    │ 0 🟠     │ 0 ⚪        │ 100%     │
+├──────────┴─────────┴──────────┴────────────┴──────────┤
+│ 💪 Last Practice: B (today)                           │
+│ 📅 Started Learning: 2026-05-28                       │
+│ ⏱️  Days Learning: 8                                  │
+└───────────────────────────────────────────────────────┘
+
+## Legend
+
+| Icon | Status | Meaning |
+|------|--------|---------|
+| 🟢 | mastered | Mastered — passed practice, high confidence |
+| 🔵 | in progress | In Progress — started but not yet mastered |
+| 🟠 | needs practice | Needs Practice — understand but need reinforcement |
+| ⚪ | unexplored | Unexplored — haven't started learning yet |

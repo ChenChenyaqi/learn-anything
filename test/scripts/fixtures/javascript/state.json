@@ -1,0 +1,424 @@
+{
+  "version": 1,
+  "topic": "javascript",
+  "slug": "javascript",
+  "created": "2026-05-31",
+  "domains": [
+    {
+      "name": "语言基础",
+      "slug": "语言基础",
+      "concepts": [
+        {
+          "name": "变量与数据类型",
+          "slug": "变量与数据类型",
+          "status": "unexplored",
+          "confidence": 0,
+          "practice_count": 0,
+          "explain_count": 0,
+          "last_explained": null,
+          "last_practiced": null,
+          "details": []
+        },
+        {
+          "name": "运算符与表达式",
+          "slug": "运算符与表达式",
+          "status": "unexplored",
+          "confidence": 0,
+          "practice_count": 0,
+          "explain_count": 0,
+          "last_explained": null,
+          "last_practiced": null,
+          "details": []
+        },
+        {
+          "name": "流程控制",
+          "slug": "流程控制",
+          "status": "unexplored",
+          "confidence": 0,
+          "practice_count": 0,
+          "explain_count": 0,
+          "last_explained": null,
+          "last_practiced": null,
+          "details": ["条件语句 (if/else, switch)", "循环 (for, while, for...of)"]
+        },
+        {
+          "name": "类型转换与比较",
+          "slug": "类型转换与比较",
+          "status": "unexplored",
+          "confidence": 0,
+          "practice_count": 0,
+          "explain_count": 0,
+          "last_explained": null,
+          "last_practiced": null,
+          "details": []
+        },
+        {
+          "name": "字符串与数组操作",
+          "slug": "字符串与数组操作",
+          "status": "unexplored",
+          "confidence": 0,
+          "practice_count": 0,
+          "explain_count": 0,
+          "last_explained": null,
+          "last_practiced": null,
+          "details": []
+        }
+      ]
+    },
+    {
+      "name": "函数与作用域",
+      "slug": "函数与作用域",
+      "concepts": [
+        {
+          "name": "函数定义与调用",
+          "slug": "函数定义与调用",
+          "status": "unexplored",
+          "confidence": 0,
+          "practice_count": 0,
+          "explain_count": 0,
+          "last_explained": null,
+          "last_practiced": null,
+          "details": ["函数声明 vs 函数表达式", "参数与返回值"]
+        },
+        {
+          "name": "作用域与闭包",
+          "slug": "作用域与闭包",
+          "status": "in_progress",
+          "confidence": 0.3,
+          "practice_count": 1,
+          "explain_count": 0,
+          "last_explained": "2026-05-31",
+          "last_practiced": "2026-05-31",
+          "details": []
+        },
+        {
+          "name": "this 关键字",
+          "slug": "this-关键字",
+          "status": "unexplored",
+          "confidence": 0,
+          "practice_count": 0,
+          "explain_count": 0,
+          "last_explained": null,
+          "last_practiced": null,
+          "details": []
+        },
+        {
+          "name": "箭头函数",
+          "slug": "箭头函数",
+          "status": "unexplored",
+          "confidence": 0,
+          "practice_count": 0,
+          "explain_count": 0,
+          "last_explained": null,
+          "last_practiced": null,
+          "details": []
+        },
+        {
+          "name": "高阶函数与回调",
+          "slug": "高阶函数与回调",
+          "status": "unexplored",
+          "confidence": 0,
+          "practice_count": 0,
+          "explain_count": 0,
+          "last_explained": null,
+          "last_practiced": null,
+          "details": []
+        }
+      ]
+    },
+    {
+      "name": "对象与面向对象",
+      "slug": "对象与面向对象",
+      "concepts": [
+        {
+          "name": "对象字面量与属性",
+          "slug": "对象字面量与属性",
+          "status": "unexplored",
+          "confidence": 0,
+          "practice_count": 0,
+          "explain_count": 0,
+          "last_explained": null,
+          "last_practiced": null,
+          "details": []
+        },
+        {
+          "name": "构造函数与 new",
+          "slug": "构造函数与-new",
+          "status": "unexplored",
+          "confidence": 0,
+          "practice_count": 0,
+          "explain_count": 0,
+          "last_explained": null,
+          "last_practiced": null,
+          "details": []
+        },
+        {
+          "name": "原型链",
+          "slug": "原型链",
+          "status": "unexplored",
+          "confidence": 0,
+          "practice_count": 0,
+          "explain_count": 0,
+          "last_explained": null,
+          "last_practiced": null,
+          "details": []
+        },
+        {
+          "name": "类的继承 (ES6 Class)",
+          "slug": "类的继承-es6-class",
+          "status": "unexplored",
+          "confidence": 0,
+          "practice_count": 0,
+          "explain_count": 0,
+          "last_explained": null,
+          "last_practiced": null,
+          "details": []
+        },
+        {
+          "name": "对象方法 (Object.keys, assign 等)",
+          "slug": "对象方法-objectkeys-assign-等",
+          "status": "unexplored",
+          "confidence": 0,
+          "practice_count": 0,
+          "explain_count": 0,
+          "last_explained": null,
+          "last_practiced": null,
+          "details": []
+        }
+      ]
+    },
+    {
+      "name": "异步编程",
+      "slug": "异步编程",
+      "concepts": [
+        {
+          "name": "回调函数模式",
+          "slug": "回调函数模式",
+          "status": "unexplored",
+          "confidence": 0,
+          "practice_count": 0,
+          "explain_count": 0,
+          "last_explained": null,
+          "last_practiced": null,
+          "details": []
+        },
+        {
+          "name": "Promise",
+          "slug": "promise",
+          "status": "unexplored",
+          "confidence": 0,
+          "practice_count": 0,
+          "explain_count": 0,
+          "last_explained": null,
+          "last_practiced": null,
+          "details": []
+        },
+        {
+          "name": "async/await",
+          "slug": "async-await",
+          "status": "unexplored",
+          "confidence": 0,
+          "practice_count": 0,
+          "explain_count": 0,
+          "last_explained": null,
+          "last_practiced": null,
+          "details": []
+        },
+        {
+          "name": "事件循环 (Event Loop)",
+          "slug": "事件循环-event-loop",
+          "status": "unexplored",
+          "confidence": 0,
+          "practice_count": 0,
+          "explain_count": 0,
+          "last_explained": null,
+          "last_practiced": null,
+          "details": ["宏任务与微任务"]
+        },
+        {
+          "name": "错误处理 (try/catch, .catch)",
+          "slug": "错误处理-try-catch-catch",
+          "status": "unexplored",
+          "confidence": 0,
+          "practice_count": 0,
+          "explain_count": 0,
+          "last_explained": null,
+          "last_practiced": null,
+          "details": []
+        }
+      ]
+    },
+    {
+      "name": "核心机制",
+      "slug": "核心机制",
+      "concepts": [
+        {
+          "name": "执行上下文与调用栈",
+          "slug": "执行上下文与调用栈",
+          "status": "unexplored",
+          "confidence": 0,
+          "practice_count": 0,
+          "explain_count": 0,
+          "last_explained": null,
+          "last_practiced": null,
+          "details": []
+        },
+        {
+          "name": "变量提升 (Hoisting)",
+          "slug": "变量提升-hoisting",
+          "status": "unexplored",
+          "confidence": 0,
+          "practice_count": 0,
+          "explain_count": 0,
+          "last_explained": null,
+          "last_practiced": null,
+          "details": []
+        },
+        {
+          "name": "垃圾回收",
+          "slug": "垃圾回收",
+          "status": "unexplored",
+          "confidence": 0,
+          "practice_count": 0,
+          "explain_count": 0,
+          "last_explained": null,
+          "last_practiced": null,
+          "details": []
+        },
+        {
+          "name": "严格模式 (Strict Mode)",
+          "slug": "严格模式-strict-mode",
+          "status": "unexplored",
+          "confidence": 0,
+          "practice_count": 0,
+          "explain_count": 0,
+          "last_explained": null,
+          "last_practiced": null,
+          "details": []
+        }
+      ]
+    },
+    {
+      "name": "ES6+ 新特性",
+      "slug": "es6-新特性",
+      "concepts": [
+        {
+          "name": "解构赋值",
+          "slug": "解构赋值",
+          "status": "unexplored",
+          "confidence": 0,
+          "practice_count": 0,
+          "explain_count": 0,
+          "last_explained": null,
+          "last_practiced": null,
+          "details": []
+        },
+        {
+          "name": "模板字符串",
+          "slug": "模板字符串",
+          "status": "unexplored",
+          "confidence": 0,
+          "practice_count": 0,
+          "explain_count": 0,
+          "last_explained": null,
+          "last_practiced": null,
+          "details": []
+        },
+        {
+          "name": "展开运算符与剩余参数",
+          "slug": "展开运算符与剩余参数",
+          "status": "unexplored",
+          "confidence": 0,
+          "practice_count": 0,
+          "explain_count": 0,
+          "last_explained": null,
+          "last_practiced": null,
+          "details": []
+        },
+        {
+          "name": "Map/Set 数据结构",
+          "slug": "map-set-数据结构",
+          "status": "unexplored",
+          "confidence": 0,
+          "practice_count": 0,
+          "explain_count": 0,
+          "last_explained": null,
+          "last_practiced": null,
+          "details": []
+        },
+        {
+          "name": "模块化 (ES Module)",
+          "slug": "模块化-es-module",
+          "status": "unexplored",
+          "confidence": 0,
+          "practice_count": 0,
+          "explain_count": 0,
+          "last_explained": null,
+          "last_practiced": null,
+          "details": []
+        }
+      ]
+    },
+    {
+      "name": "工具与工程化",
+      "slug": "工具与工程化",
+      "concepts": [
+        {
+          "name": "CommonJS vs ES Module",
+          "slug": "commonjs-vs-es-module",
+          "status": "unexplored",
+          "confidence": 0,
+          "practice_count": 0,
+          "explain_count": 0,
+          "last_explained": null,
+          "last_practiced": null,
+          "details": []
+        },
+        {
+          "name": "npm 包管理",
+          "slug": "npm-包管理",
+          "status": "unexplored",
+          "confidence": 0,
+          "practice_count": 0,
+          "explain_count": 0,
+          "last_explained": null,
+          "last_practiced": null,
+          "details": []
+        },
+        {
+          "name": "Babel 与转译",
+          "slug": "babel-与转译",
+          "status": "unexplored",
+          "confidence": 0,
+          "practice_count": 0,
+          "explain_count": 0,
+          "last_explained": null,
+          "last_practiced": null,
+          "details": []
+        },
+        {
+          "name": "代码质量工具 (ESLint, Prettier)",
+          "slug": "代码质量工具-eslint-prettier",
+          "status": "unexplored",
+          "confidence": 0,
+          "practice_count": 0,
+          "explain_count": 0,
+          "last_explained": null,
+          "last_practiced": null,
+          "details": []
+        },
+        {
+          "name": "打包工具 (Webpack, Vite)",
+          "slug": "打包工具-webpack-vite",
+          "status": "unexplored",
+          "confidence": 0,
+          "practice_count": 0,
+          "explain_count": 0,
+          "last_explained": null,
+          "last_practiced": null,
+          "details": []
+        }
+      ]
+    }
+  ]
+}

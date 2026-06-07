@@ -1,0 +1,31 @@
+topic: Python 基础
+created: '2025-02-01'
+concepts:
+  - path: 数据类型/列表与元组
+    status: mastered
+    last_practiced: '2025-05-15'
+    practice_count: 6
+    confidence: 0.95
+    last_session: '2025-05-14'
+    explain_count: 4
+  - path: 数据类型/字典与集合
+    status: in_progress
+    last_practiced: '2025-05-10'
+    practice_count: 3
+    confidence: 0.6
+    last_session: null
+    explain_count: 2
+  - path: 函数/装饰器
+    status: needs_practice
+    last_practiced: null
+    practice_count: 1
+    confidence: 0.25
+    last_session: '2025-03-15'
+    explain_count: 1
+  - path: 面向对象/__init__ 与构造
+    status: in_progress
+    last_practiced: '2025-04-20'
+    practice_count: 2
+    confidence: 0.5
+    last_session: null
+    explain_count: 1

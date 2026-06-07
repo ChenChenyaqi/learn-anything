@@ -1,6 +1,6 @@
 {
   "name": "learn-anything-cli",
-  "version": "0.3.1",
+  "version": "0.4.0-beta.1",
   "description": "AI-powered recursive learning system with Socratic method and TDD practice",
   "keywords": [
     "learn-anything-cli",
@@ -58,6 +58,7 @@
     "@commitlint/cli": "^21.0.2",
     "@commitlint/config-conventional": "^21.0.2",
     "@eslint/js": "^10.0.1",
+    "@types/mdast": "^4.0.4",
     "@types/node": "^24.2.0",
     "eslint": "^9.39.2",
     "eslint-config-prettier": "^10.1.8",
@@ -73,6 +74,8 @@
     "chalk": "^5.5.0",
     "commander": "^14.0.0",
     "fast-glob": "^3.3.3",
+    "remark-parse": "^11.0.0",
+    "unified": "^11.0.5",
     "yaml": "^2.8.2",
     "zod": "^4.0.17"
   },

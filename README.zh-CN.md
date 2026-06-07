@@ -41,7 +41,7 @@ learn-anything init
 
 ### `/learn:topic <topic-name>` — 初始化主题
 
-AI 生成层次化知识图谱（`.learn/topics/<topic>/knowledge-map.md`），创建学习状态跟踪文件（`state.yaml`），展示知识全景让你自主选择学习路径。
+AI 创建学习状态文件（`state.json`），并通过 `render.mjs` 生成知识图谱（`knowledge-map.md`），展示知识全景让你自主选择学习路径。
 
 ### `/learn:explain <concept-name>` — 递归式深度学习
 
@@ -79,8 +79,8 @@ npx learn-anything-cli update
 ├── .learn/                    # 你的学习数据（知识图谱、进度）
 │   └── topics/
 │       └── javascript/
-│           ├── knowledge-map.md
-│           ├── state.yaml
+│           ├── state.json          # 学习数据（唯一数据源）
+│           ├── knowledge-map.md    # 由 render.mjs 从 state.json 自动生成
 │           └── sessions/
 └── ...
 ```

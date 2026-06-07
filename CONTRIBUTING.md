@@ -186,13 +186,39 @@ gh pr create --base develop --title "hotfix: resolve critical issue"
 
 Both PRs are necessary: the `main` PR deploys the fix immediately, the `develop` PR ensures the fix is not lost in the next release cycle.
 
+### External Contributors (Fork & PR)
+
+If you don't have write access to this repository, the workflow is the same — but you work from a fork instead of a branch:
+
+```bash
+# 1. Fork the repository on GitHub, then clone your fork
+git clone https://github.com/YOUR_USERNAME/learn-anything.git
+cd learn-anything
+
+# 2. Add the upstream remote and create a branch from develop
+git remote add upstream https://github.com/ChenChenyaqi/learn-anything.git
+git fetch upstream
+git checkout -b feat/my-feature upstream/develop
+
+# 3. Write code and commit (follow Conventional Commits)
+git add .
+git commit -m "feat: add something"
+
+# 4. Push to your fork and open a PR
+git push -u origin feat/my-feature
+# On GitHub, create a Pull Request — make sure the base is `develop` (not `main`)
+```
+
+> **Important**: When creating a PR from your fork, GitHub defaults the base branch to `main`. Change it to `develop` before submitting. All feature and bugfix PRs target `develop`.
+
 ### Quick Reference
 
-| Task          | Branch from            | PR target                |
-| ------------- | ---------------------- | ------------------------ |
-| New feature   | `develop`              | `develop`                |
-| Bug fix       | `develop`              | `develop`                |
-| Release       | `develop`              | `main`                   |
-| Sync back     | `develop` (merge main) | `develop`                |
-| Hotfix        | `main`                 | `main` **and** `develop` |
-| Docs / README | `develop`              | `develop`                |
+| Task             | Branch from            | PR target                |
+| ---------------- | ---------------------- | ------------------------ |
+| New feature      | `develop`              | `develop`                |
+| Bug fix          | `develop`              | `develop`                |
+| Release          | `develop`              | `main`                   |
+| Sync back        | `develop` (merge main) | `develop`                |
+| Hotfix           | `main`                 | `main` **and** `develop` |
+| Docs / README    | `develop`              | `develop`                |
+| External contrib | `upstream/develop`     | `develop` (your fork)    |

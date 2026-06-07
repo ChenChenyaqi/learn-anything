@@ -23,6 +23,12 @@ npm install -g learn-anything-cli
 learn-anything init
 ```
 
+### Context7 Integration (Optional)
+
+When running `init` or `update`, you'll be prompted to enable **Context7** for documentation verification. When enabled, the AI will fetch official documentation and verify its explanations against authoritative sources — improving teaching accuracy.
+
+If you haven't set up Context7 yet, run `npx ctx7 setup` or visit the [Context7 docs](https://context7.com/docs/resources/all-clients) for your specific AI tool.
+
 After init, your AI assistant gains five learning commands:
 
 | Command                          | What it does                                                 |

@@ -12,6 +12,7 @@ import {
   getCommandContents,
   generateSkillContent,
 } from '../src/core/shared/skill-generation.js';
+import { CONTEXT7_GUIDANCE } from '../src/core/templates/context7-guidance.js';
 import { CommandAdapterRegistry } from '../src/core/command-generation/registry.js';
 import { generateCommand, generateCommands } from '../src/core/command-generation/generator.js';
 
@@ -242,4 +243,43 @@ describe('Skill Template v1 Format Compliance', () => {
       expect(t.instructions).toContain('re-run render.mjs');
     },
   );
+  describe('Context7 Guidance Injection', () => {
+    function injectContext7Guidance(instructions: string): string {
+      const marker = '\n## Command:';
+      const index = instructions.indexOf(marker);
+      if (index === -1) return instructions + CONTEXT7_GUIDANCE;
+      return instructions.slice(0, index) + CONTEXT7_GUIDANCE + instructions.slice(index);
+    }
+
+    it('should inject Context7 guidance when transform is provided', () => {
+      const template = getLearnTopicSkillTemplate();
+      const content = generateSkillContent(template, '0.3.0', injectContext7Guidance);
+      expect(content).toContain('resolve-library-id');
+      expect(content).toContain('query-docs');
+      expect(content).toContain('Documentation Verification');
+    });
+
+    it('should not contain Context7 when no transform is provided', () => {
+      const template = getLearnTopicSkillTemplate();
+      const content = generateSkillContent(template, '0.3.0');
+      expect(content).not.toContain('resolve-library-id');
+      expect(content).not.toContain('Context7');
+    });
+
+    it('should place guidance before ## Command: section', () => {
+      const template = getLearnExplainSkillTemplate();
+      const content = generateSkillContent(template, '0.3.0', injectContext7Guidance);
+      const guidancePos = content.indexOf('Documentation Verification');
+      const commandPos = content.indexOf('## Command:');
+      expect(guidancePos).toBeGreaterThan(0);
+      expect(commandPos).toBeGreaterThan(guidancePos);
+    });
+
+    it('review and status templates should not contain Context7 by default', () => {
+      const review = getLearnReviewSkillTemplate();
+      const status = getLearnStatusSkillTemplate();
+      expect(review.instructions).not.toContain('Context7');
+      expect(status.instructions).not.toContain('Context7');
+    });
+  });
 });

@@ -10,6 +10,7 @@ import { generateCommands, CommandAdapterRegistry } from './command-generation/i
 import { getSkillTemplates, getCommandContents, generateSkillContent } from './shared/index.js';
 import type { SupportedLocale } from '../i18n/types.js';
 import { getMessages } from '../i18n/index.js';
+import { CONTEXT7_GUIDANCE } from './templates/context7-guidance.js';
 
 const require = createRequire(import.meta.url);
 const { version: VERSION } = require('../../package.json');
@@ -19,6 +20,7 @@ type InitCommandOptions = {
   force?: boolean;
   locale?: SupportedLocale;
   update?: boolean;
+  context7?: boolean;
 };
 
 export class InitCommand {
@@ -26,12 +28,15 @@ export class InitCommand {
   private readonly force: boolean;
   private readonly locale: SupportedLocale;
   private readonly isUpdate: boolean;
+  private readonly context7Arg?: boolean;
+  private context7Enabled: boolean = false;
 
   constructor(options: InitCommandOptions = {}) {
     this.toolsArg = options.tools;
     this.force = options.force ?? false;
     this.locale = options.locale ?? 'en';
     this.isUpdate = options.update ?? false;
+    this.context7Arg = options.context7;
   }
 
   async execute(targetPath: string = '.'): Promise<void> {
@@ -89,6 +94,13 @@ export class InitCommand {
       return;
     }
 
+    // Context7 setup
+    this.context7Enabled = await this.promptContext7();
+    if (this.context7Enabled) {
+      console.log(chalk.dim(m.init.context7Enabled));
+    }
+    console.log('');
+
     // Generate skill files for each tool
     for (const tool of selectedTools) {
       if (!tool.skillsDir) continue;
@@ -132,6 +144,23 @@ export class InitCommand {
       ),
     );
     console.log('');
+
+    if (this.context7Enabled) {
+      console.log(chalk.dim(m.init.context7SetupHint));
+      console.log('');
+    }
+  }
+
+  private async promptContext7(): Promise<boolean> {
+    const m = getMessages(this.locale);
+
+    if (this.context7Arg === true) return true;
+    if (this.context7Arg === false) return false;
+
+    if (!isInteractive()) return true;
+
+    const { confirm } = await import('@inquirer/prompts');
+    return confirm({ message: m.init.context7Prompt, default: true });
   }
 
   private async detectTools(_resolvedPath: string): Promise<AIToolOption[]> {
@@ -177,7 +206,13 @@ export class InitCommand {
     for (const entry of skillTemplates) {
       const skillDir = path.join(resolvedPath, tool.skillsDir!, 'skills', entry.dirName);
       const skillFile = path.join(skillDir, 'SKILL.md');
-      const content = generateSkillContent(entry.template, VERSION);
+      const content = generateSkillContent(
+        entry.template,
+        VERSION,
+        this.context7Enabled && isDocVerificationTemplate(entry.workflowId)
+          ? injectContext7Guidance
+          : undefined,
+      );
       await FileSystemUtils.writeFile(skillFile, content);
 
       const scriptsDir = path.join(skillDir, 'scripts');
@@ -237,4 +272,17 @@ export class InitCommand {
       await FileSystemUtils.writeFile(filePath, cmd.fileContent);
     }
   }
+}
+
+const DOC_VERIFICATION_WORKFLOWS = new Set(['topic', 'explain', 'practice']);
+
+function isDocVerificationTemplate(workflowId: string): boolean {
+  return DOC_VERIFICATION_WORKFLOWS.has(workflowId);
+}
+
+function injectContext7Guidance(instructions: string): string {
+  const marker = '\n## Command:';
+  const index = instructions.indexOf(marker);
+  if (index === -1) return instructions + CONTEXT7_GUIDANCE;
+  return instructions.slice(0, index) + CONTEXT7_GUIDANCE + instructions.slice(index);
 }

@@ -29,8 +29,13 @@ program
   .option('--tools <tools>', m.cli.toolsOptionDescription(availableToolIds.join(', ')))
   .option('--force', m.cli.forceOption)
   .option('--lang <locale>', m.cli.langOption)
+  .option('--context7', 'Enable Context7 documentation verification')
+  .option('--no-context7', 'Disable Context7 documentation verification')
   .action(
-    async (targetPath = '.', options?: { tools?: string; force?: boolean; lang?: string }) => {
+    async (
+      targetPath = '.',
+      options?: { tools?: string; force?: boolean; lang?: string; context7?: boolean },
+    ) => {
       const cliLocale = resolveLocale(options?.lang);
       const mc = cliLocale !== earlyLocale ? getMessages(cliLocale).cli : m.cli;
       try {
@@ -56,6 +61,7 @@ program
           tools: options?.tools,
           force: options?.force,
           locale: cliLocale,
+          context7: options?.context7,
         });
         await initCommand.execute(targetPath);
       } catch (error) {

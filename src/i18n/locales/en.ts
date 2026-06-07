@@ -33,5 +33,10 @@ export const en: LocaleMessages = {
       'Select AI tools to generate skills for (space to select, enter to confirm):',
     migrationComplete: (count: number) =>
       `Migrated ${count} topic(s) from v0 to v1 format (backups created).`,
+    context7Prompt:
+      'Enable Context7 for documentation verification? (Provides on-demand access to official library docs)',
+    context7Enabled: '  📚 Context7 guidance enabled.',
+    context7SetupHint:
+      '  💡 To set up Context7 MCP, run `npx ctx7 setup` or visit https://context7.com/docs/resources/all-clients',
   },
 };

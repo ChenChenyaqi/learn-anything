@@ -21,6 +21,12 @@ npm install -g learn-anything-cli
 learn-anything init
 ```
 
+### Context7 集成（可选）
+
+在执行 `init` 或 `update` 时，会提示是否启用 **Context7** 文档验证。启用后，AI 会获取官方文档并对照权威来源验证其教学内容——提高教学准确性。
+
+如果你还没有配置 Context7，运行 `npx ctx7 setup` 或访问 [Context7 文档](https://context7.com/docs/resources/all-clients) 查看你使用的 AI 工具的配置方式。
+
 初始化后，你的 AI 助手获得五个学习命令：
 
 | 命令                             | 功能                                   |

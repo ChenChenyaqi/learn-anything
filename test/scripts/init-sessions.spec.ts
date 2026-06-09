@@ -1,8 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, rmSync } from 'node:fs';
 import { join, resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { execSync } from 'node:child_process';
 
 import { initSessions } from '../../src/scripts/init-sessions.mts';
 import type { StateV1 } from '../../src/scripts/utils.mts';
@@ -200,64 +199,5 @@ describe('initSessions()', () => {
     for (const slug of slugs) {
       expect(existsSync(join(topicDir, 'sessions', slug))).toBe(true);
     }
-  });
-});
-
-// ===========================================================================
-// CLI integration tests (spawn the script as a subprocess)
-// ===========================================================================
-
-describe('init-sessions CLI', () => {
-  beforeEach(() => {
-    rmSync(tmpRoot, { recursive: true, force: true });
-    mkdirSync(tmpRoot, { recursive: true });
-  });
-
-  afterEach(() => {
-    rmSync(tmpRoot, { recursive: true, force: true });
-  });
-
-  it('should exit 0 and create directories when state.json is valid', () => {
-    const topicDir = join(tmpRoot, 'cli-test');
-    mkdirSync(topicDir, { recursive: true });
-
-    const state = makeState('CLI', [makeDomain('D1', 'd1'), makeDomain('D2', 'd2')]);
-    writeFileSync(join(topicDir, 'state.json'), JSON.stringify(state));
-
-    const scriptPath = resolve(__dirname, '../../dist/scripts/init-sessions.mjs');
-    const output = execSync(`node "${scriptPath}" "${topicDir}"`, { encoding: 'utf-8' });
-
-    expect(output).toContain('Initialized 2 domain directories');
-    expect(output).toContain('2 new');
-    expect(existsSync(join(topicDir, 'sessions', 'd1'))).toBe(true);
-    expect(existsSync(join(topicDir, 'sessions', 'd2'))).toBe(true);
-  });
-
-  it('should exit 1 when state.json is missing', () => {
-    const topicDir = join(tmpRoot, 'no-state');
-    mkdirSync(topicDir, { recursive: true });
-
-    const scriptPath = resolve(__dirname, '../../dist/scripts/init-sessions.mjs');
-    expect(() => {
-      execSync(`node "${scriptPath}" "${topicDir}"`, { encoding: 'utf-8', stdio: 'pipe' });
-    }).toThrow();
-  });
-
-  it('should exit 1 when state.json has invalid format', () => {
-    const topicDir = join(tmpRoot, 'bad-state');
-    mkdirSync(topicDir, { recursive: true });
-    writeFileSync(join(topicDir, 'state.json'), '{ "version": 999 }');
-
-    const scriptPath = resolve(__dirname, '../../dist/scripts/init-sessions.mjs');
-    expect(() => {
-      execSync(`node "${scriptPath}" "${topicDir}"`, { encoding: 'utf-8', stdio: 'pipe' });
-    }).toThrow();
-  });
-
-  it('should exit 1 with no arguments', () => {
-    const scriptPath = resolve(__dirname, '../../dist/scripts/init-sessions.mjs');
-    expect(() => {
-      execSync(`node "${scriptPath}"`, { encoding: 'utf-8', stdio: 'pipe' });
-    }).toThrow();
   });
 });

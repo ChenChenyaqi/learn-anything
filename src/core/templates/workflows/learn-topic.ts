@@ -81,7 +81,7 @@ Based on your expert understanding of "<topic-name>", generate a hierarchical kn
 - **Slug format**: lowercase kebab-case ("Scope & Closures" → "scope-closures").
 - All initial concepts: status "unexplored", confidence 0, counts 0, dates null.
 
-### Step 4: Run render.mjs to generate knowledge-map.md
+### Step 4: Run render.mjs and init-sessions.mjs
 
 \`\`\`bash
 SCRIPT=$(find . -path '*/learn-anything-topic/scripts/render.mjs' -print -quit 2>/dev/null)
@@ -89,6 +89,13 @@ node "$SCRIPT" ./.learn/topics/<topic-name>
 \`\`\`
 
 render.mjs validates state.json against the v1 schema and generates knowledge-map.md. If validation fails, fix state.json and re-run render.mjs. Do NOT manually write knowledge-map.md.
+
+\`\`\`bash
+SCRIPT=$(find . -path '*/learn-anything-topic/scripts/init-sessions.mjs' -print -quit 2>/dev/null)
+node "$SCRIPT" ./.learn/topics/<topic-name>
+\`\`\`
+
+init-sessions.mjs reads state.json and creates domain subdirectories under \`sessions/\` (based on each domain's \`slug\`). This organizes future learning session files by domain. Safe to re-run — existing directories are skipped.
 
 ### Step 5: Present the knowledge map
 
@@ -128,6 +135,15 @@ Then guide the user:
 
 Read \`./.learn/topics/<topic-name>/state.json\` — state.json is the single source of truth, do NOT read knowledge-map.md or state.yaml.
 
+### Step 2.5: Run init-sessions.mjs to ensure domain directories exist
+
+\`\`\`bash
+SCRIPT=$(find . -path '*/learn-anything-topic/scripts/init-sessions.mjs' -print -quit 2>/dev/null)
+node "$SCRIPT" ./.learn/topics/<topic-name>
+\`\`\`
+
+This ensures domain subdirectories under \`sessions/\` are created (in case they were not created before or new domains were added). Safe to re-run.
+
 ### Step 3: Calculate and display progress
 
 From the domains/concepts structure, calculate: 🟢 mastered, 🔵 in progress, 🟠 needs practice, ⚪ unexplored.
@@ -165,8 +181,8 @@ const COMMAND_DESCRIPTION =
 const COMMAND_CONTENT = `Use the learn-anything-topic skill to handle the user's /learn <topic-name> request.
 Follow the workflow defined in the skill:
 1. Determine if the topic exists
-2. New topic: create directory structure → generate state.json (v1 with domains/concepts hierarchy) → run render.mjs to generate knowledge-map.md → present knowledge map and guide the user
-3. Existing topic: read state.json → calculate progress → give personalized recommendations`;
+2. New topic: create directory structure → generate state.json (v1 with domains/concepts hierarchy) → run render.mjs → run init-sessions.mjs → present knowledge map and guide the user
+3. Existing topic: read state.json → run init-sessions.mjs → calculate progress → give personalized recommendations`;
 
 export function getLearnTopicSkillTemplate(): SkillTemplate {
   return {

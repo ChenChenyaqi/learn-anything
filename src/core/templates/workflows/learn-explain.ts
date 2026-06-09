@@ -55,16 +55,20 @@ Structure your explanation:
 
 **A) Determine the filename:**
 
-Use the concept name exactly as it appears in state.json, in the same language. Convert to kebab-case and append the date:
+Use the concept name exactly as it appears in state.json, in the same language. Convert to kebab-case and append the date. Place the file in the subdirectory matching the domain's \`slug\` field from state.json:
 
-> \`./.learn/topics/<topic-name>/sessions/<concept-name-as-is>-YYYY-MM-DD.md\`
+> \`./.learn/topics/<topic-name>/sessions/<domain-slug>/<concept-name-as-is>-YYYY-MM-DD.md\`
+
+Where \`<domain-slug>\` is the \`slug\` field of the domain that contains this concept.
 
 Examples:
-- state.json has \`变量声明与数据类型\` → \`变量声明与数据类型-2026-05-24.md\`
-- state.json has \`Scope & Closures\` → \`Scope-Closures-2026-05-24.md\`
-- state.json has \`Event Loop\` → \`Event-Loop-2026-05-24.md\`
+- concept \`变量声明与数据类型\` in domain with slug \`语言基础\` → \`sessions/语言基础/变量声明与数据类型-2026-05-24.md\`
+- concept \`Scope & Closures\` in domain with slug \`函数与作用域\` → \`sessions/函数与作用域/Scope-Closures-2026-05-24.md\`
+- concept \`Event Loop\` in domain with slug \`async-programming\` → \`sessions/async-programming/Event-Loop-2026-05-24.md\`
 
 Match the language the user is learning in — don't force-translate.
+
+⚠️ If the domain subdirectory does not exist, create it first: \`mkdir -p ./.learn/topics/<topic-name>/sessions/<domain-slug>\`
 
 **B) Write the session file** containing: positioning, analogy, core mechanism, code example with walkthrough, misconceptions, Socratic check, and quick summary. The file should be self-contained — re-readable without the chat.
 
@@ -160,7 +164,7 @@ Follow the workflow defined in the skill:
 1. Load context: match topic → read state.json (single source of truth, do NOT read knowledge-map.md)
 2. Assess user level (beginner/intermediate/advanced) and adjust teaching strategy
 3. Compose the full explanation: positioning → analogy → core mechanism → code example → common misconceptions → Socratic check
-4. CRITICAL — Write the session file FIRST (./.learn/topics/<topic>/sessions/<concept-name>-YYYY-MM-DD.md, matching the user's language), then echo the file content verbatim to the conversation. Also update state.json with Edit (last_explained, explain_count, status, confidence). Then run render.mjs to regenerate knowledge-map.md.
+4. CRITICAL — Write the session file FIRST (./.learn/topics/<topic>/sessions/<domain-slug>/<concept-name>-YYYY-MM-DD.md, where <domain-slug> comes from state.json, matching the user's language), then echo the file content verbatim to the conversation. Also update state.json with Edit (last_explained, explain_count, status, confidence). Then run render.mjs to regenerate knowledge-map.md.
 5. Identify sub-topics as recursive entry points (only AFTER saving the session and echoing to conversation)`;
 
 export function getLearnExplainSkillTemplate(): SkillTemplate {

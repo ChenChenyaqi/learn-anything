@@ -232,6 +232,13 @@ export class InitCommand {
           this.readCompiledScript('render.mjs'),
         );
       }
+      // topic -> init-sessions.mjs
+      if (entry.dirName === 'learn-anything-topic') {
+        await FileSystemUtils.writeFile(
+          path.join(scriptsDir, 'init-sessions.mjs'),
+          this.readCompiledScript('init-sessions.mjs'),
+        );
+      }
 
       // status → utils.mjs + status.mjs
       if (entry.dirName === 'learn-anything-status') {

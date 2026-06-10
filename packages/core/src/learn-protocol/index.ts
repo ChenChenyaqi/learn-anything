@@ -20,3 +20,5 @@ export { parseKnowledgeMap } from './parser.js';
 
 export { isV0State, migrateV0ToV1, migrateAll } from './migrate.js';
 export type { MigrationResult, MigrationReport } from './migrate.js';
+
+export { render } from './render.js';

@@ -14,3 +14,12 @@ export interface CommandTemplate {
   tags: string[];
   content: string;
 }
+
+export interface CommandContent {
+  id: string;
+  name: string;
+  description: string;
+  category: string;
+  tags: string[];
+  body: string;
+}

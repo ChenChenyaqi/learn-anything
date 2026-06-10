@@ -10,21 +10,21 @@
 
 ## 2. Extract @learn-anything/core
 
-- [ ] 2.1 Scaffold `packages/core/` directory with `package.json` (`"name": "@learn-anything/core"`, version `0.4.1`, `"type": "module"`) and `tsconfig.json` (`"composite": true`)
-- [ ] 2.2 Move `src/config.ts` → `packages/core/src/config.ts`
-- [ ] 2.3 Move `src/utils/` → `packages/core/src/utils/`
-- [ ] 2.4 Move `src/i18n/` → `packages/core/src/i18n/`
-- [ ] 2.5 Move `src/core/learn-protocol/` → `packages/core/src/learn-protocol/`
-- [ ] 2.6 Move `src/core/templates/` → `packages/core/src/templates/`
-- [ ] 2.7 Move `src/core/shared/` → `packages/core/src/shared/`
-- [ ] 2.8 Move `CommandContent` type from `command-generation/types.ts` into `packages/core/src/templates/types.ts`
-- [ ] 2.9 Create `packages/core/src/index.ts` with public API barrel exports matching the spec
-- [ ] 2.10 Update all internal imports within core to use relative paths (no `@learn-anything/core` self-references)
-- [ ] 2.11 Move `test/core/learn-protocol/` → `packages/core/test/learn-protocol/` (fixtures and spec files)
-- [ ] 2.12 Move `test/skill-templates.test.ts` → `packages/core/test/skill-templates.test.ts`
-- [ ] 2.13 Add core-specific `dependencies` to `packages/core/package.json` (yaml, zod, fast-glob, unified, remark-parse)
-- [ ] 2.14 Run `tsc -b packages/core` to verify core builds cleanly
-- [ ] 2.15 Run `pnpm --filter @learn-anything/core test` to verify core tests pass
+- [x] 2.1 Scaffold `packages/core/` directory with `package.json` (`"name": "@learn-anything/core"`, version `0.4.1`, `"type": "module"`) and `tsconfig.json` (`"composite": true`)
+- [x] 2.2 Move `src/core/config.ts` → `packages/core/src/config.ts`
+- [x] 2.3 Move `src/utils/` → `packages/core/src/utils/`
+- [x] 2.4 Move `src/i18n/` → `packages/core/src/i18n/`
+- [x] 2.5 Move `src/core/learn-protocol/` → `packages/core/src/learn-protocol/`
+- [x] 2.6 Move `src/core/templates/` → `packages/core/src/templates/`
+- [x] 2.7 Move `src/core/shared/` → `packages/core/src/shared/`
+- [x] 2.8 Move `CommandContent` type from `command-generation/types.ts` into `packages/core/src/templates/types.ts`
+- [x] 2.9 Create `packages/core/src/index.ts` with public API barrel exports matching the spec
+- [x] 2.10 Update all internal imports within core to use relative paths (no `@learn-anything/core` self-references)
+- [x] 2.11 Move `test/core/learn-protocol/` → `packages/core/test/learn-protocol/` (fixtures and spec files)
+- [x] 2.12 Move `test/skill-templates.test.ts` → `packages/cli/test/` (depends on CLI command-generation)
+- [x] 2.13 Add core-specific `dependencies` to `packages/core/package.json` (yaml, zod, unified, remark-parse)
+- [x] 2.14 Run `tsc -b packages/core` to verify core builds cleanly
+- [x] 2.15 Run `pnpm --filter @learn-anything/core test` to verify core tests pass (95/95)
 
 ## 3. Extract @learn-anything/cli
 

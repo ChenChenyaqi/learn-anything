@@ -1,0 +1,8 @@
+topic: Already Migrated
+created: '2025-01-01'
+concepts:
+  - path: Test/Existing Concept
+    status: mastered
+    last_practiced: '2025-06-01'
+    practice_count: 10
+    confidence: 1

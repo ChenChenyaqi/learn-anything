@@ -11,7 +11,7 @@ import {
   getLearnStatusCommandTemplate,
   type SkillTemplate,
 } from '../templates/skill-templates.js';
-import type { CommandContent } from '../command-generation/index.js';
+import type { CommandContent } from '../templates/types.js';
 
 export interface SkillTemplateEntry {
   template: SkillTemplate;

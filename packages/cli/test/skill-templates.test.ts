@@ -5,16 +5,16 @@ import {
   getLearnPracticeSkillTemplate,
   getLearnReviewSkillTemplate,
   getLearnStatusSkillTemplate,
-} from '../src/core/templates/skill-templates.js';
+} from '@learn-anything/core';
 import {
   getSkillTemplates,
   getCommandTemplates,
   getCommandContents,
   generateSkillContent,
-} from '../src/core/shared/skill-generation.js';
-import { CONTEXT7_GUIDANCE } from '../src/core/templates/context7-guidance.js';
-import { CommandAdapterRegistry } from '../src/core/command-generation/registry.js';
-import { generateCommand, generateCommands } from '../src/core/command-generation/generator.js';
+} from '@learn-anything/core';
+import { CONTEXT7_GUIDANCE } from '@learn-anything/core';
+import { CommandAdapterRegistry } from '../src/command-generation/registry.js';
+import { generateCommand, generateCommands } from '../src/command-generation/generator.js';
 
 describe('Skill Templates', () => {
   it('should return 5 skill templates with required fields', () => {

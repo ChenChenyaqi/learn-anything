@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import path from 'path';
 import { promises as fs } from 'fs';
 import os from 'os';
-import { migrateV0ToV1, migrateAll } from '../../../src/core/learn-protocol/migrate.js';
+import { migrateV0ToV1, migrateAll } from '../../src/learn-protocol/migrate.js';
 
 // ── Helpers ───────────────────────────────────────────────────────────
 

@@ -1,4 +1,5 @@
-import type { CommandContent, GeneratedCommand, ToolCommandAdapter } from './types.js';
+import type { CommandContent } from '@learn-anything/core';
+import type { GeneratedCommand, ToolCommandAdapter } from './types.js';
 
 export function generateCommand(
   content: CommandContent,

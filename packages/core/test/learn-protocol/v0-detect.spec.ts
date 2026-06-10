@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { isV0State } from '../../../src/core/learn-protocol/migrate.js';
+import { isV0State } from '../../src/learn-protocol/migrate.js';
 
 describe('isV0State', () => {
   // ── Valid v0 detection ────────────────────────────────────────────

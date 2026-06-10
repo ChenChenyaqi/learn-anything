@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { generateSlug } from '../../../src/core/learn-protocol/slug.js';
+import { generateSlug } from '../../src/learn-protocol/slug.js';
 
 describe('generateSlug', () => {
   // ── Basic ASCII ───────────────────────────────────────────────────

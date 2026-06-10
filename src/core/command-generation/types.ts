@@ -1,11 +1,4 @@
-export interface CommandContent {
-  id: string;
-  name: string;
-  description: string;
-  category: string;
-  tags: string[];
-  body: string;
-}
+import type { CommandContent } from '@learn-anything/core';
 
 export interface ToolCommandAdapter {
   toolId: string;

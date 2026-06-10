@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll } from 'vitest';
 import path from 'path';
 import { promises as fs } from 'fs';
 import { fileURLToPath } from 'url';
-import { migrateAll } from '../../../src/core/learn-protocol/migrate.js';
+import { migrateAll } from '../../src/learn-protocol/migrate.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

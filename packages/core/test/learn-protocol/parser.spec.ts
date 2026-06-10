@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseKnowledgeMap } from '../../../src/core/learn-protocol/parser.js';
+import { parseKnowledgeMap } from '../../src/learn-protocol/parser.js';
 
 describe('parseKnowledgeMap', () => {
   // -- Mixed Chinese + English (realistic data) -------------------

@@ -19,8 +19,8 @@ import type { V0State, V0Concept, ParsedKnowledgeMap, StateV1, Domain, Concept }
 import { parseKnowledgeMap } from './parser.js';
 import { generateSlug } from './slug.js';
 import { stateV1Schema } from './schema.js';
-import { render } from '../../scripts/render.mjs';
-import { FileSystemUtils } from '../../utils/file-system.js';
+import { render } from './render.js';
+import { FileSystemUtils } from '../utils/file-system.js';
 
 // ---- Public API ---------------------------------------------------------
 

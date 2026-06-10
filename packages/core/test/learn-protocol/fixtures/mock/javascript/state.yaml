@@ -1,0 +1,38 @@
+topic: JavaScript
+created: '2025-01-15 10:30:00'
+concepts:
+  - path: 'Variables & Data Types/Variables & Data Types'
+    status: mastered
+    last_practiced: '2025-06-01'
+    practice_count: 5
+    confidence: 0.9
+    last_session: '2025-06-01 09:00:00'
+    explain_count: 5
+  - path: Functions/Function Declaration
+    status: mastered
+    last_practiced: '2025-05-28'
+    practice_count: 4
+    confidence: 0.85
+    last_session: '2025-05-28 14:00:00'
+    explain_count: 3
+  - path: Functions/Arrow Functions
+    status: in_progress
+    last_practiced: '2025-06-03'
+    practice_count: 2
+    confidence: 0.5
+    last_session: null
+    explain_count: 1
+  - path: Functions/Closures
+    status: needs_practice
+    last_practiced: null
+    practice_count: 1
+    confidence: 0.3
+    last_session: '2025-04-20'
+    explain_count: 2
+  - path: Objects & OOP/Prototype Chain
+    status: in_progress
+    last_practiced: '2025-05-20'
+    practice_count: 2
+    confidence: 0.45
+    last_session: null
+    explain_count: 0

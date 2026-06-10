@@ -1,0 +1,44 @@
+{
+  "name": "@learn-anything/core",
+  "version": "0.4.1",
+  "description": "Shared domain logic for Learn Anything — protocol, templates, i18n, and utilities",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "license": "MIT",
+  "author": "yaqi chen",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ChenChenyaqi/learn-anything"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "files": [
+    "dist",
+    "!dist/**/*.test.js",
+    "!dist/**/__tests__",
+    "!dist/**/*.map"
+  ],
+  "scripts": {
+    "build": "tsc -b",
+    "dev": "tsc -b --watch",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "remark-parse": "^11.0.0",
+    "unified": "^11.0.5",
+    "yaml": "^2.8.2",
+    "zod": "^4.0.17"
+  },
+  "devDependencies": {
+    "@types/mdast": "^4.0.4"
+  }
+}

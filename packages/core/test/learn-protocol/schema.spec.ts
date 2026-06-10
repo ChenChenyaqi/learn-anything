@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { validateStateV1, stateV1Schema } from '../../../src/core/learn-protocol/schema.js';
-import type { StateV1 } from '../../../src/core/learn-protocol/types.js';
+import { validateStateV1, stateV1Schema } from '../../src/learn-protocol/schema.js';
+import type { StateV1 } from '../../src/learn-protocol/types.js';
 
 // ── Helper: a fully valid StateV1 object ──────────────────────────────
 

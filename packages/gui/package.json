@@ -1,0 +1,23 @@
+{
+  "name": "@learn-anything/gui",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Learn Anything GUI — a visual recursive learning canvas",
+  "type": "module",
+  "license": "MIT",
+  "author": "yaqi chen",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ChenChenyaqi/learn-anything"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "dev": "tsc -b --watch"
+  },
+  "dependencies": {
+    "@learn-anything/core": "workspace:*"
+  }
+}

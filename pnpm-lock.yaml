@@ -107,6 +107,12 @@ importers:
         specifier: ^4.0.4
         version: 4.0.4
 
+  packages/gui:
+    dependencies:
+      '@learn-anything/core':
+        specifier: workspace:*
+        version: link:../core
+
 packages:
 
   '@babel/code-frame@7.29.7':

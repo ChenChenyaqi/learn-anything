@@ -45,11 +45,11 @@
 
 ## 4. Scaffold GUI Placeholder
 
-- [ ] 4.1 Create `packages/gui/` directory
-- [ ] 4.2 Create `packages/gui/package.json` with `"name": "@learn-anything/gui"`, `"private": true`, `"dependencies": { "@learn-anything/core": "workspace:*" }`
-- [ ] 4.3 Create `packages/gui/tsconfig.json` with `"composite": true` and a reference to `../core`
-- [ ] 4.4 Write `packages/gui/README.md` documenting the planned architecture (Tauri + React, three-panel layout, DialogueNode data model, .learn protocol integration)
-- [ ] 4.5 Run `pnpm install` to verify GUI is registered as workspace member
+- [x] 4.1 Create `packages/gui/` directory
+- [x] 4.2 Create `packages/gui/package.json` with `"name": "@learn-anything/gui"`, `"private": true`, `"dependencies": { "@learn-anything/core": "workspace:*" }`
+- [x] 4.3 Create `packages/gui/tsconfig.json` with `"composite": true` and a reference to `../core`
+- [x] 4.4 Write `packages/gui/README.md` documenting the planned architecture (Tauri + React, three-panel layout, DialogueNode data model, .learn protocol integration)
+- [x] 4.5 Run `pnpm install` to verify GUI is registered as workspace member
 
 ## 5. Cleanup & Documentation
 

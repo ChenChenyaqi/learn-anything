@@ -28,20 +28,20 @@
 
 ## 3. Extract @learn-anything/cli
 
-- [ ] 3.1 Scaffold `packages/cli/` directory with `package.json` (`"name": "learn-anything-cli"`, version `0.4.1`, `"bin"`, `"dependencies"` with `@learn-anything/core: "workspace:*"`)
-- [ ] 3.2 Create `packages/cli/tsconfig.json` with `"composite": true` and a reference to `../core`
-- [ ] 3.3 Move `src/cli/index.ts` → `packages/cli/src/cli/index.ts`
-- [ ] 3.4 Move `src/core/init.ts` → `packages/cli/src/init.ts`, update all imports to use `@learn-anything/core`
-- [ ] 3.5 Move `src/core/command-generation/` → `packages/cli/src/command-generation/`
-- [ ] 3.6 Move `src/scripts/*.mts` → `packages/cli/src/scripts/`
-- [ ] 3.7 Move `bin/learn-anything.js` → `packages/cli/bin/learn-anything.js`, update dist path reference
-- [ ] 3.8 Update `readCompiledScript()` in `init.ts` to resolve scripts from the new dist location
-- [ ] 3.9 Update all internal imports in CLI to use `@learn-anything/core` for core imports and relative paths for CLI-internal imports
-- [ ] 3.10 Move `test/scripts/` → `packages/cli/test/scripts/` (fixtures and spec files)
-- [ ] 3.11 Verify `packages/cli/package.json` `files` field includes `dist/` and `bin/` for correct npm publish tarball
-- [ ] 3.12 Run `tsc -b` from root to verify full project builds (core first, then cli)
-- [ ] 3.13 Run `node packages/cli/bin/learn-anything.js` to verify CLI binary works
-- [ ] 3.14 Run `pnpm test` from root to verify all tests pass across both packages
+- [x] 3.1 Scaffold `packages/cli/` directory with `package.json` (`"name": "learn-anything-cli"`, version `0.4.1`, `"bin"`, `"dependencies"` with `@learn-anything/core: "workspace:*"`)
+- [x] 3.2 Create `packages/cli/tsconfig.json` with `"composite": true` and a reference to `../core`
+- [x] 3.3 Move `src/cli/index.ts` → `packages/cli/src/cli/index.ts`
+- [x] 3.4 Move `src/core/init.ts` → `packages/cli/src/init.ts`, update all imports to use `@learn-anything/core`
+- [x] 3.5 Move `src/core/command-generation/` → `packages/cli/src/command-generation/`
+- [x] 3.6 Move `src/scripts/*.mts` → `packages/cli/src/scripts/`
+- [x] 3.7 Move `bin/learn-anything.js` → `packages/cli/bin/learn-anything.js`, update dist path reference
+- [x] 3.8 Update `readCompiledScript()` in `init.ts` to resolve scripts from the new dist location (auto-correct — relative path resolves to dist/scripts/ correctly)
+- [x] 3.9 Update all internal imports in CLI to use `@learn-anything/core` for core imports and relative paths for CLI-internal imports
+- [x] 3.10 Move `test/scripts/` → `packages/cli/test/scripts/` (fixtures and spec files)
+- [x] 3.11 Verify `packages/cli/package.json` `files` field includes `dist/` and `bin/` for correct npm publish tarball (verified via pnpm pack)
+- [x] 3.12 Run `tsc -b` from root to verify full project builds (both core and cli build cleanly)
+- [x] 3.13 Run `node packages/cli/bin/learn-anything.js` to verify CLI binary works
+- [x] 3.14 Run `pnpm test` from root to verify all tests pass across both packages (196/196)
 
 ## 4. Scaffold GUI Placeholder
 

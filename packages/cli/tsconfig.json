@@ -4,6 +4,9 @@
     "module": "NodeNext",
     "lib": ["ES2022"],
     "moduleResolution": "NodeNext",
+    "composite": true,
+    "rootDir": "./src",
+    "outDir": "./dist",
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "strict": true,
@@ -14,6 +17,7 @@
     "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true
   },
-  "references": [{ "path": "packages/core" }, { "path": "packages/cli" }],
-  "files": []
+  "references": [{ "path": "../core" }],
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "test"]
 }

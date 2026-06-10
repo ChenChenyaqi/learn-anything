@@ -1,4 +1,5 @@
 import type { CommandContent } from '@learn-anything/core';
+export type { CommandContent } from '@learn-anything/core';
 
 export interface ToolCommandAdapter {
   toolId: string;

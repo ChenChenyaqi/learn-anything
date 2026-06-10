@@ -3,14 +3,19 @@ import chalk from 'chalk';
 import * as fs from 'fs';
 import { createRequire } from 'module';
 import { fileURLToPath } from 'url';
-import { FileSystemUtils } from '../utils/file-system.js';
-import { AI_TOOLS, AIToolOption, LEARN_DIR } from './config.js';
-import { isInteractive } from '../utils/interactive.js';
+import {
+  FileSystemUtils,
+  AI_TOOLS,
+  isInteractive,
+  getMessages,
+  getSkillTemplates,
+  getCommandContents,
+  generateSkillContent,
+  CONTEXT7_GUIDANCE,
+} from '@learn-anything/core';
+import type { AIToolOption, SupportedLocale } from '@learn-anything/core';
+import { LEARN_DIR } from '@learn-anything/core';
 import { generateCommands, CommandAdapterRegistry } from './command-generation/index.js';
-import { getSkillTemplates, getCommandContents, generateSkillContent } from './shared/index.js';
-import type { SupportedLocale } from '../i18n/types.js';
-import { getMessages } from '../i18n/index.js';
-import { CONTEXT7_GUIDANCE } from './templates/context7-guidance.js';
 
 const require = createRequire(import.meta.url);
 const { version: VERSION } = require('../../package.json');
@@ -52,7 +57,7 @@ export class InitCommand {
     await FileSystemUtils.ensureDir(topicsDir);
 
     // Run v0→v1 migration for any existing learning data
-    const { migrateAll } = await import('./learn-protocol/index.js');
+    const { migrateAll } = await import('@learn-anything/core');
     const report = await migrateAll(topicsDir);
     if (report.migratedCount > 0) {
       console.log(chalk.green(m.init.migrationComplete(report.migratedCount)));

@@ -1,0 +1,58 @@
+{
+  "name": "learn-anything-cli",
+  "version": "0.4.1",
+  "description": "AI-powered recursive learning system with Socratic method and TDD practice",
+  "keywords": [
+    "learn-anything-cli",
+    "learn-anything",
+    "learning",
+    "cli",
+    "ai",
+    "education",
+    "socratic",
+    "tdd"
+  ],
+  "homepage": "https://github.com/ChenChenyaqi/learn-anything",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ChenChenyaqi/learn-anything"
+  },
+  "license": "MIT",
+  "author": "yaqi chen",
+  "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "bin": {
+    "learn-anything": "./bin/learn-anything.js"
+  },
+  "files": [
+    "dist",
+    "bin",
+    "!dist/**/*.test.js",
+    "!dist/**/__tests__",
+    "!dist/**/*.map"
+  ],
+  "scripts": {
+    "build": "tsc -b",
+    "dev": "tsc -b --watch",
+    "dev:cli": "pnpm build && node bin/learn-anything.js",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "dependencies": {
+    "@learn-anything/core": "workspace:*",
+    "@inquirer/prompts": "^7.8.0",
+    "chalk": "^5.5.0",
+    "commander": "^14.0.0"
+  }
+}

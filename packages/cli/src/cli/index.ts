@@ -3,9 +3,7 @@ import { createRequire } from 'module';
 import path from 'path';
 import { promises as fs } from 'fs';
 import chalk from 'chalk';
-import { AI_TOOLS } from '../core/config.js';
-import { resolveLocale } from '../i18n/index.js';
-import { getMessages } from '../i18n/index.js';
+import { AI_TOOLS, resolveLocale, getMessages } from '@learn-anything/core';
 
 const program = new Command();
 const require = createRequire(import.meta.url);
@@ -56,7 +54,7 @@ program
           }
         }
 
-        const { InitCommand } = await import('../core/init.js');
+        const { InitCommand } = await import('../init.js');
         const initCommand = new InitCommand({
           tools: options?.tools,
           force: options?.force,
@@ -81,7 +79,7 @@ program
     const cliLocale = resolveLocale(options?.lang);
     const mc = cliLocale !== earlyLocale ? getMessages(cliLocale).cli : m.cli;
     try {
-      const { InitCommand } = await import('../core/init.js');
+      const { InitCommand } = await import('../init.js');
       const initCommand = new InitCommand({
         update: true,
         force: options?.force ?? true,

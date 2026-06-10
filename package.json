@@ -24,6 +24,7 @@
   "scripts": {
     "build": "pnpm -r build",
     "dev": "pnpm -r dev",
+    "dev:cli": "pnpm -r build && node packages/cli/bin/learn-anything.js",
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "eslint packages/",

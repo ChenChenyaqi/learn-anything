@@ -1,12 +1,12 @@
 ## 1. Workspace Infrastructure Setup
 
-- [ ] 1.1 Create `pnpm-workspace.yaml` with `packages: ["packages/*"]`
-- [ ] 1.2 Convert root `package.json` to workspace root: add `"private": true`, replace scripts with `pnpm -r` delegation (`build`, `test`, `lint`, `typecheck`), move all `devDependencies` to root
-- [ ] 1.3 Create root `vitest.workspace.ts` replacing `vitest.config.ts` with workspace-aware config
-- [ ] 1.4 Update root `tsconfig.json` to use project references (`"references"`, `"files": []`) instead of `rootDir`/`outDir`/`include`
-- [ ] 1.5 Update `eslint.config.mjs` igores to cover `packages/*/dist/` and `packages/*/node_modules/`
-- [ ] 1.6 Update `.gitignore` to exclude per-package `dist/` and `*.tsbuildinfo`
-- [ ] 1.7 Run `pnpm install` to verify workspace resolution and lockfile generation
+- [x] 1.1 Create `pnpm-workspace.yaml` with `packages: ["packages/*"]`
+- [x] 1.2 Convert root `package.json` to workspace root: add `"private": true`, replace scripts with `pnpm -r` delegation (`build`, `test`, `lint`, `typecheck`), move all `devDependencies` to root
+- [x] 1.3 Create root `vitest.workspace.ts` replacing `vitest.config.ts` with workspace-aware config
+- [x] 1.4 Update root `tsconfig.json` to use project references (`"references"`, `"files": []`) instead of `rootDir`/`outDir`/`include`
+- [x] 1.5 Update `eslint.config.mjs` igores to cover `packages/*/dist/` and `packages/*/node_modules/`
+- [x] 1.6 Update `.gitignore` to exclude per-package `dist/` and `*.tsbuildinfo`
+- [x] 1.7 Run `pnpm install` to verify workspace resolution and lockfile generation
 
 ## 2. Extract @learn-anything/core
 

@@ -1,7 +1,8 @@
 {
-  "name": "learn-anything-cli",
+  "name": "learn-anything-monorepo",
   "version": "0.4.1",
-  "description": "AI-powered recursive learning system with Socratic method and TDD practice",
+  "private": true,
+  "description": "Learn Anything monorepo — CLI, core library, and GUI",
   "keywords": [
     "learn-anything-cli",
     "learn-anything",
@@ -20,35 +21,15 @@
   "license": "MIT",
   "author": "yaqi chen",
   "type": "module",
-  "publishConfig": {
-    "access": "public"
-  },
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "default": "./dist/index.js"
-    }
-  },
-  "bin": {
-    "learn-anything": "./bin/learn-anything.js"
-  },
-  "files": [
-    "dist",
-    "bin",
-    "!dist/**/*.test.js",
-    "!dist/**/__tests__",
-    "!dist/**/*.map"
-  ],
   "scripts": {
-    "build": "node build.js",
-    "dev": "tsc --watch",
-    "dev:cli": "pnpm build && node bin/learn-anything.js",
+    "build": "pnpm -r build",
+    "dev": "pnpm -r dev",
     "test": "vitest run",
     "test:watch": "vitest",
-    "lint": "eslint src/",
+    "lint": "eslint packages/",
+    "typecheck": "tsc -b",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "prepublishOnly": "pnpm run build",
     "prepare": "husky"
   },
   "engines": {

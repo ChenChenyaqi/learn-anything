@@ -7,7 +7,15 @@ export default tseslint.config(
   ...tseslint.configs.recommended,
   eslintConfigPrettier,
   {
-    ignores: ['dist/', 'node_modules/', 'bin/', '.claude/', '.learn/'],
+    ignores: [
+      'dist/',
+      'node_modules/',
+      'bin/',
+      '.claude/',
+      '.learn/',
+      'packages/*/dist/',
+      'packages/*/node_modules/',
+    ],
   },
   {
     rules: {

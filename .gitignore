@@ -10,3 +10,8 @@ dist/
 
 # test output
 test/core/learn-protocol/fixtures/migrates/
+
+# per-package build output (covered by dist/ above, listed here for clarity)
+packages/*/dist/
+packages/*/node_modules/
+packages/*/tsconfig.tsbuildinfo

@@ -40,7 +40,7 @@
     "!dist/**/*.map"
   ],
   "scripts": {
-    "build": "echo 'Building @learn-anything/cli...' && tsc -b",
+    "build": "rm -rf dist tsconfig.tsbuildinfo && echo 'Building @learn-anything/cli...' && tsc -b",
     "dev": "tsc -b --watch",
     "dev:cli": "pnpm build && node bin/learn-anything.js",
     "test": "vitest run",

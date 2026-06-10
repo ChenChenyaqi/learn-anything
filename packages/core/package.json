@@ -27,7 +27,7 @@
     "!dist/**/*.map"
   ],
   "scripts": {
-    "build": "tsc -b",
+    "build": "echo 'Building @learn-anything/core...' && tsc -b",
     "dev": "tsc -b --watch",
     "test": "vitest run",
     "test:watch": "vitest"

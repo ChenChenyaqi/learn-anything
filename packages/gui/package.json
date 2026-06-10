@@ -14,8 +14,8 @@
     "node": ">=20.0.0"
   },
   "scripts": {
-    "build": "tsc -b",
-    "dev": "tsc -b --watch"
+    "build": "echo 'no src yet, skipping'",
+    "dev": "echo 'no src yet, skipping'"
   },
   "dependencies": {
     "@learn-anything/core": "workspace:*"

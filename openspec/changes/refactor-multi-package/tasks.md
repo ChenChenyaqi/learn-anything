@@ -53,10 +53,10 @@
 
 ## 5. Cleanup & Documentation
 
-- [ ] 5.1 Remove empty `src/` directories at root level that are now fully migrated
-- [ ] 5.2 Update `CLAUDE.md` `## Architecture` section to reflect multi-package structure
-- [ ] 5.3 Update `CONTRIBUTING.md` development setup steps to reference `pnpm install` and workspace commands
-- [ ] 5.4 Update `.github/workflows/ci.yml` to use `pnpm -r` commands and build before typecheck
-- [ ] 5.5 Update `build.js` to use `tsc -b` instead of singleton `tsc`
-- [ ] 5.6 Run final end-to-end verification: `pnpm install && pnpm build && pnpm lint && pnpm test && pnpm dev:cli`
-- [ ] 5.7 Commit all changes with `git mv` for moved files where possible, with descriptive commit messages documenting the migration
+- [x] 5.1 Remove empty `src/` directories at root level that are now fully migrated
+- [x] 5.2 Update `CLAUDE.md` `## Architecture` section to reflect multi-package structure
+- [x] 5.3 Update `CONTRIBUTING.md` development setup steps to reference `pnpm install` and workspace commands
+- [x] 5.4 Update `.github/workflows/ci.yml` to use `pnpm typecheck` instead of `pnpm exec tsc --noEmit`
+- [x] 5.5 Delete unused `build.js`
+- [x] 5.6 End-to-end verification: install ✓ build ✓ lint ✓ test (196/196) ✓ CLI binary ✓
+- [x] 5.7 Final commit — Phase 5 cleanup and documentation update

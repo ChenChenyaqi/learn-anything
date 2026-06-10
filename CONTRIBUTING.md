@@ -34,6 +34,24 @@ Add an optional scope in parentheses to indicate the affected area:
 - `fix(template): correct review workflow`
 - `refactor(i18n): extract shared messages`
 
+### Development Setup
+
+```bash
+git clone https://github.com/ChenChenyaqi/learn-anything.git
+cd learn-anything
+pnpm install         # Install all dependencies across packages
+pnpm build           # Build all packages (core first, then cli)
+pnpm test            # Run all tests across packages
+```
+
+The repository uses a pnpm workspace with three packages:
+
+| Package          | npm name               | Purpose                                     |
+| ---------------- | ---------------------- | ------------------------------------------- |
+| `packages/core/` | `@learn-anything/core` | Shared protocol, templates, i18n, utilities |
+| `packages/cli/`  | `learn-anything-cli`   | CLI application (published)                 |
+| `packages/gui/`  | `@learn-anything/gui`  | Desktop GUI (placeholder, in development)   |
+
 ### Examples
 
 ```bash

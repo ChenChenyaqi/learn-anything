@@ -1,6 +1,6 @@
 {
   "name": "@learn-anything/core",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "private": true,
   "description": "Shared domain logic for Learn Anything — protocol, templates, i18n, and utilities",
   "type": "module",

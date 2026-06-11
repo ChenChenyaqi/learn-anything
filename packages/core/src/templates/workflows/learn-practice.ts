@@ -2,7 +2,7 @@ import type { SkillTemplate, CommandTemplate } from '../types.js';
 
 const SKILL_NAME = 'learn-anything-practice';
 const SKILL_DESCRIPTION =
-  'Master concepts through hands-on practice. Coding topics get real project files to edit in your IDE; conceptual topics get chat-based discussion. Dual-mode: Project Mode + Chat Mode.';
+  'Master concepts through hands-on practice. Coding topics get real project files to edit in your IDE; conceptual topics get chat-based discussion. Dual-mode (Project Mode + Chat Mode).';
 
 const INSTRUCTIONS = `Always respond in the same language the user uses.
 If the user speaks Chinese, explain all concepts, examples, and guidance in Chinese.

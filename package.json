@@ -1,6 +1,6 @@
 {
   "name": "learn-anything-monorepo",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "private": true,
   "description": "Learn Anything monorepo — CLI, core library, and GUI",
   "keywords": [

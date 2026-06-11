@@ -4,6 +4,7 @@ import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { render } from '../../src/scripts/render.mts';
+import { render as coreRender } from '@learn-anything/core';
 import { totalCount, masteredCount, validateStateV1 } from '../../src/scripts/utils.mts';
 
 /* ------------------------------------------------------------------ */
@@ -424,4 +425,49 @@ describe('validateStateV1', () => {
     // version, topic, slug, created, domains = 5 errors
     expect(errs.length).toBeGreaterThanOrEqual(5);
   });
+});
+
+// ===========================================================================
+// Consistency: core render() vs script render() must produce identical output
+// ===========================================================================
+
+describe('render consistency (core vs script)', () => {
+  const fixtures: StateV1[] = [
+    s('Test Topic', [
+      {
+        name: 'Domain A',
+        slug: 'domain-a',
+        concepts: [c('Concept 1', 'mastered'), c('Concept 2', 'in_progress')],
+      },
+    ]),
+    s('Empty', []),
+    s('All Statuses', [
+      {
+        name: 'D',
+        slug: 'd',
+        concepts: [
+          c('A', 'mastered'),
+          c('B', 'in_progress'),
+          c('C', 'needs_practice'),
+          c('D', 'unexplored'),
+        ],
+      },
+    ]),
+    s('中文主题', [
+      { name: '领域', slug: 'ling-yu', concepts: [c('概念', 'mastered', ['细节1', '细节2'])] },
+    ]),
+    s('Special_Chars', [
+      { name: 'Under_Score', slug: 'under-score', concepts: [c('A_B', 'mastered')] },
+    ]),
+    s('Multi Domain', [
+      { name: 'D1', slug: 'd1', concepts: [c('A', 'mastered', ['detail'])] },
+      { name: 'D2', slug: 'd2', concepts: [c('B', 'in_progress'), c('C', 'needs_practice')] },
+    ]),
+  ];
+
+  for (let i = 0; i < fixtures.length; i++) {
+    it(`should produce identical output for fixture #${i} ("${fixtures[i].topic}")`, () => {
+      expect(render(fixtures[i])).toBe(coreRender(fixtures[i]));
+    });
+  }
 });

@@ -7,6 +7,7 @@ import {
   FileSystemUtils,
   AI_TOOLS,
   isInteractive,
+  LEARN_DIR,
   getMessages,
   getSkillTemplates,
   getCommandContents,
@@ -14,7 +15,6 @@ import {
   CONTEXT7_GUIDANCE,
 } from '@learn-anything/core';
 import type { AIToolOption, SupportedLocale } from '@learn-anything/core';
-import { LEARN_DIR } from '@learn-anything/core';
 import { generateCommands, CommandAdapterRegistry } from './command-generation/index.js';
 
 const require = createRequire(import.meta.url);

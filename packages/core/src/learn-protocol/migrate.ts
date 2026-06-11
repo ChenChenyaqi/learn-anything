@@ -123,7 +123,7 @@ export async function migrateV0ToV1(topicDir: string): Promise<MigrationResult> 
 
   const v0State: V0State = v0Data;
 
-  // 7. Read and parse knowledge-map.md
+  // 5. Read and parse knowledge-map.md
   let parsedMap: ParsedKnowledgeMap;
   if (await FileSystemUtils.fileExists(knowledgeMapPath)) {
     try {
@@ -147,13 +147,13 @@ export async function migrateV0ToV1(topicDir: string): Promise<MigrationResult> 
     };
   }
 
-  // 8. Merge: build a lookup from v0 path -> V0Concept
+  // 6. Merge: build a lookup from v0 path -> V0Concept
   const conceptLookup = new Map<string, V0Concept>();
   for (const c of v0State.concepts) {
     conceptLookup.set(c.path, c);
   }
 
-  // 9. Build StateV1 from parsed hierarchy + v0 state data
+  // 7. Build StateV1 from parsed hierarchy + v0 state data
   const domains: Domain[] = parsedMap.domains.map((pd) => ({
     name: pd.name,
     slug: generateSlug(pd.name),
@@ -183,7 +183,7 @@ export async function migrateV0ToV1(topicDir: string): Promise<MigrationResult> 
     domains,
   };
 
-  // 10. Validate the generated state against the schema
+  // 8. Validate the generated state against the schema
   const validation = stateV1Schema.safeParse(stateV1);
   if (!validation.success) {
     return {
@@ -194,7 +194,7 @@ export async function migrateV0ToV1(topicDir: string): Promise<MigrationResult> 
     };
   }
 
-  // 11. Write state.json
+  // 9. Write state.json
   try {
     await FileSystemUtils.writeFile(stateJsonPath, JSON.stringify(stateV1, null, 2) + '\n');
   } catch (err) {
@@ -206,7 +206,7 @@ export async function migrateV0ToV1(topicDir: string): Promise<MigrationResult> 
     };
   }
 
-  // 12. Create backup files, then remove originals
+  // 10. Create backup files, then remove originals
   //     After migration, state.json is the single source of truth,
   //     so the v0 files should not remain alongside it.
   try {
@@ -221,7 +221,7 @@ export async function migrateV0ToV1(topicDir: string): Promise<MigrationResult> 
     );
   }
 
-  // 13. Regenerate knowledge-map.md from state.json (v1 format)
+  // 11. Regenerate knowledge-map.md from state.json (v1 format)
   try {
     const rendered = render(stateV1);
     await FileSystemUtils.writeFile(knowledgeMapPath, rendered);

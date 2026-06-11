@@ -13,8 +13,5 @@
   "engines": {
     "node": ">=20.0.0"
   },
-  "scripts": {},
-  "dependencies": {
-    "@learn-anything/core": "workspace:*"
-  }
+  "scripts": {}
 }

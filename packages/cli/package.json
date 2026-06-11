@@ -43,6 +43,7 @@
     "build": "tsup",
     "dev": "tsc -b --watch",
     "dev:cli": "pnpm build && node bin/learn-anything.js",
+    "prepublishOnly": "pnpm build",
     "test": "vitest run",
     "test:watch": "vitest"
   },

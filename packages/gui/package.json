@@ -4,7 +4,7 @@
   "private": true,
   "description": "Learn Anything GUI — a visual recursive learning canvas",
   "type": "module",
-  "license": "MIT",
+  "license": "AGPL-3.0",
   "author": "yaqi chen",
   "repository": {
     "type": "git",
@@ -13,10 +13,7 @@
   "engines": {
     "node": ">=20.0.0"
   },
-  "scripts": {
-    "build": "echo 'no src yet, skipping'",
-    "dev": "echo 'no src yet, skipping'"
-  },
+  "scripts": {},
   "dependencies": {
     "@learn-anything/core": "workspace:*"
   }

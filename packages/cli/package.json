@@ -40,7 +40,7 @@
     "!dist/**/*.map"
   ],
   "scripts": {
-    "build": "rm -rf dist tsconfig.tsbuildinfo && echo 'Building @learn-anything/cli...' && tsc -b",
+    "build": "tsup",
     "dev": "tsc -b --watch",
     "dev:cli": "pnpm build && node bin/learn-anything.js",
     "test": "vitest run",
@@ -50,9 +50,13 @@
     "node": ">=20.0.0"
   },
   "dependencies": {
-    "@learn-anything/core": "workspace:*",
     "@inquirer/prompts": "^7.8.0",
     "chalk": "^5.5.0",
     "commander": "^14.0.0"
-  }
+  },
+  "devDependencies": {
+    "@learn-anything/core": "workspace:*",
+    "tsup": "^8.5.1"
+  },
+  "//": "@learn-anything/core is bundled by tsup at build time (noExternal), so it's a devDependency — not needed at runtime"
 }

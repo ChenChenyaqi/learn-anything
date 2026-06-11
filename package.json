@@ -51,16 +51,7 @@
     "typescript-eslint": "^8.50.1",
     "vitest": "^3.2.4"
   },
-  "dependencies": {
-    "@inquirer/prompts": "^7.8.0",
-    "chalk": "^5.5.0",
-    "commander": "^14.0.0",
-    "fast-glob": "^3.3.3",
-    "remark-parse": "^11.0.0",
-    "unified": "^11.0.5",
-    "yaml": "^2.8.2",
-    "zod": "^4.0.17"
-  },
+  "dependencies": {},
   "lint-staged": {
     "*.{ts,js,mjs}": [
       "eslint --fix",

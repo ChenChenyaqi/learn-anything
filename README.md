@@ -2,7 +2,8 @@
 
 <p align="center">
   <strong>AI-Powered Recursive Learning System</strong><br />
-  Turn your AI coding assistant into an interactive tutor — Socratic method &amp; TDD-style exercises.
+  Turn your AI coding assistant into an interactive tutor — Socratic method &amp; TDD-style exercises.<br />
+  <em>Now with a built-in visual learning dashboard.</em>
 </p>
 
 <p align="center">
@@ -27,6 +28,7 @@
 - 🧪 **TDD-style practice** — Write real code with structured feedback, from beginner to challenge
 - 📊 **Spaced repetition** — Smart review that surfaces weak spots when you need them most
 - 🔥 **Knowledge visualization** — Heatmap showing exactly where you stand
+- 🖥️ **Visual Dashboard** — Browse knowledge maps, session notes, and exercises in a rich web interface
 
 ## Quick Start
 
@@ -58,6 +60,28 @@ During `init` or `update`, you'll be prompted to enable **Context7** for documen
 | `/learn:review [name]`   | Spaced repetition review with personalized next-step plan    |
 | `/learn:status [name]`   | Knowledge map heatmap — mastery, practice counts, confidence |
 
+### Visual Learning Dashboard
+
+Generate a full-featured web dashboard to browse your learning data:
+
+```bash
+# Start the visual dashboard
+learn-anything serve
+
+# Or include site files during init/update
+learn-anything init --site
+learn-anything update --site
+```
+
+The dashboard provides:
+
+- **Knowledge Map** — Markdown-rendered overview of your learning topic
+- **Session Notes** — Browse and read all learning session notes organized by domain
+- **Exercise Viewer** — View starter code, solutions, and practice results with syntax highlighting
+- **Dark Mode** — Light/dark theme toggle
+- **i18n** — Full English and Chinese interface
+- **Hot Reload** — Auto-refresh when you add or modify topic files
+
 ## How It Works
 
 ```
@@ -71,11 +95,13 @@ Your Project/
 │   ...                          # (30+ other tool formats)
 │
 ├── .learn/                      # 🧠 Your learning data lives here
+│   ├── site/                        # Visual learning dashboard (Vue 3 + Vite)
 │   └── topics/
 │       └── typescript/
 │           ├── state.json           # Single source of truth
 │           ├── knowledge-map.md     # Auto-rendered from state.json
-│           └── sessions/            # Session history for spaced repetition
+│           ├── sessions/            # Session history for spaced repetition
+│           └── exercises/           # TDD-style coding exercises
 └── ...
 ```
 
@@ -87,6 +113,7 @@ Each AI tool receives **tool-appropriate file formats** via an adapter pattern �
 learn-anything/
 ├── packages/
 │   ├── cli/                     # learn-anything-cli — published to npm
+│   │   ├── site/                 # Vue 3 + Vite visual learning dashboard
 │   │   ├── src/
 │   │   │   ├── cli/             # Commander.js CLI entry point
 │   │   │   ├── core/            # init, config, command generation, templates
@@ -141,6 +168,7 @@ pnpm install
 | `pnpm dev`        | TypeScript watch mode (all packages) |
 | `pnpm lint`       | Lint all packages (`eslint`)         |
 | `pnpm format`     | Format code (`prettier`)             |
+| `pnpm dev:site`   | Dev server for the visual dashboard  |
 
 ### Per-Package Commands
 

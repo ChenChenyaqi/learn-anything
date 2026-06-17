@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0] - 2026-06-18
+
+### Added
+
+- **Visual learning site**: A custom Vue 3 + Vite application with Vue Router, Tailwind CSS v4, markdown-it, and highlight.js. Provides a rich visual interface to browse knowledge maps, session notes, and exercise files.
+- **SiteGenerator class**: Writes front-end site files into `.learn/` directory, with smart config overwrite rules and `--force` mode.
+- **`serve` command**: `learn-anything serve [path]` generates the visual site, installs dependencies, and starts a Vite dev server with hot module replacement.
+- **`--site` flag**: `learn-anything init --site` and `learn-anything update --site` generate the visual site alongside skill/command files.
+- **Interactive site prompt**: `init` and `update` now prompt whether to generate the visual learning site in interactive mode.
+- **Enhanced file scanning**: `sessions/*.md` and `exercises/*` files without subdirectory grouping are now supported and displayed as a flat list at the bottom of the sidebar.
+- **Hot module replacement**: Modifying topic files (state.json, sessions, exercises) triggers automatic browser refresh.
+- **New main specs**: `site-build`, `site-cli`, `site-generator`, `site-theme` specifications added.
+
+### Changed
+
+- **Monorepo structure**: `packages/cli/site/` now houses the standalone Vue 3 front-end app. Site files are bundled into `packages/cli/src/site/files.ts` at build time.
+- **`.learn/` layout**: Site files now live under `.learn/site/`, separate from `.learn/topics/`.
+
 ## [0.5.1] - 2026-06-16
 
 ### Added
@@ -100,7 +118,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Locale support: English (`en`) and Chinese (`zh-CN`).
 - MIT License.
 
-[Unreleased]: https://github.com/ChenChenyaqi/learn-anything/compare/v0.5.1...HEAD
+[Unreleased]: https://github.com/ChenChenyaqi/learn-anything/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/ChenChenyaqi/learn-anything/compare/v0.5.1...v1.0.0
 [0.5.1]: https://github.com/ChenChenyaqi/learn-anything/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/ChenChenyaqi/learn-anything/compare/v0.4.2...v0.5.0
 [0.4.2]: https://github.com/ChenChenyaqi/learn-anything/compare/v0.4.1...v0.4.2

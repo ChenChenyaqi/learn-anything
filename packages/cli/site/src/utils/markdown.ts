@@ -1,9 +1,10 @@
 import MarkdownIt from 'markdown-it';
+import emphasisRule from 'markdown-it/lib/rules_inline/emphasis.mjs';
 import hljs from 'highlight.js';
 import '../styles/code.css';
 
 const md = new MarkdownIt({
-  html: true,
+  html: false,
   linkify: true,
   typographer: true,
   breaks: false,
@@ -29,6 +30,14 @@ const md = new MarkdownIt({
       return '<pre><code>' + md.utils.escapeHtml(str) + '</code></pre>';
     }
   },
+});
+
+// Treat underscores as literal text (so __init__, __proto__ etc. render verbatim),
+// while keeping * / ** emphasis. Code spans/blocks are unaffected.
+const tokenizeEmphasis = emphasisRule.tokenize;
+md.inline.ruler.at('emphasis', (state, silent) => {
+  if (state.src.charCodeAt(state.pos) === 0x5f /* _ */) return false;
+  return tokenizeEmphasis(state, silent);
 });
 
 /**

@@ -184,7 +184,7 @@ function buildTopicData(slug) {
           .filter((f) => f.endsWith('.md'))
           .map((f) => ({ filename: f, path: `/topics/${slug}/sessions/${entry.name}/${f}` }))
           .sort((a, b) => b.filename.localeCompare(a.filename));
-        if (files.length > 0) sessions[entry.name] = files;
+        sessions[entry.name] = files;
       } else if (entry.isFile() && entry.name.endsWith('.md')) {
         rootSessions.push({
           filename: entry.name,

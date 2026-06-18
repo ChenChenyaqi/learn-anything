@@ -14,10 +14,10 @@ const fileDisplayName = computed(() => {
 
 const fileExt = computed(() => getFileExtension(fileDisplayName.value));
 
-const hasContent = computed(() => !!props.file?.content);
+const hasContent = computed(() => props.file?.content !== undefined);
 
 const renderedHtml = computed(() => {
-  if (!props.file?.content) return '';
+  if (props.file?.content === undefined) return '';
   if (props.file.type === 'markdown') return renderMarkdown(props.file.content);
   return highlightCode(props.file.content, fileExt.value);
 });

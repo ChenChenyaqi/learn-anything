@@ -42,11 +42,6 @@ const showKnowledgeMap = computed(() => !selectedFile.value);
   <div v-else>
     <!-- Knowledge Map (default) — VitePress style: h1 outside prose, content flows naturally -->
     <template v-if="showKnowledgeMap">
-      <h1
-        class="text-[28px] md:text-[32px] font-semibold tracking-[-0.02em] leading-10 text-(--color-ink) mb-6"
-      >
-        {{ state.topic }}
-      </h1>
       <div class="prose-content" v-html="knowledgeMapHtml" />
     </template>
 

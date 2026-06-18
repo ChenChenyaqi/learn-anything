@@ -30,6 +30,7 @@ export type I18nKey =
   | 'sidebar.exercises'
   | 'sidebar.noNotes'
   | 'sidebar.noExercises'
+  | 'sidebar.orphanTip'
   | 'lang.switch'
   | 'theme.switch'
   | 'loading.note';
@@ -67,6 +68,7 @@ const messages: Record<Locale, Messages> = {
     'sidebar.exercises': 'Exercises',
     'sidebar.noNotes': 'No sessions',
     'sidebar.noExercises': 'No exercises',
+    'sidebar.orphanTip': 'This folder is not part of the knowledge map',
     'loading.note': 'Opening note…',
   },
   'zh-CN': {
@@ -95,6 +97,7 @@ const messages: Record<Locale, Messages> = {
     'sidebar.exercises': '练习',
     'sidebar.noNotes': '没有笔记',
     'sidebar.noExercises': '没有练习',
+    'sidebar.orphanTip': '此目录不在知识地图中',
     'loading.note': '正在打开笔记',
   },
 };

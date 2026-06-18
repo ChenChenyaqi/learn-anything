@@ -315,6 +315,11 @@ export function scanSessions(slug: string, domain: string): SessionFile[] {
   return sessionsBySlug.get(slug)?.get(domain) ?? [];
 }
 
+/** Slugs of the actual `sessions/<domain>` folders that contain note files. */
+export function scanDomainDirs(slug: string): string[] {
+  return [...(sessionsBySlug.get(slug)?.keys() ?? [])];
+}
+
 export function scanExercises(slug: string): ExerciseGroup[] {
   return exerciseGroupsBySlug.get(slug) ?? [];
 }

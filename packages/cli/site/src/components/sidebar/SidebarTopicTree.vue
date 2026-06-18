@@ -5,6 +5,7 @@ import { useTreeExpansion } from '../../composables/useTreeExpansion';
 import {
   loadTopic,
   scanSessions,
+  scanDomainDirs,
   scanRootSessions,
   getDataVersion,
 } from '../../composables/useTopicData';
@@ -32,6 +33,7 @@ const {
 interface DomainWithSessions {
   domain: Domain;
   sessions: SessionFile[];
+  isOrphan: boolean;
 }
 
 const currentState = computed(() => {
@@ -39,13 +41,31 @@ const currentState = computed(() => {
   return loadTopic(props.topicSlug);
 });
 
+/* Mirror the actual sessions/ folders. state.json only supplies the display
+   name and ordering; folders absent from state.json are shown as orphans. */
 const domainSessions = computed<DomainWithSessions[]>(() => {
   void getDataVersion();
-  if (!currentState.value) return [];
-  return currentState.value.domains.map((domain) => ({
-    domain,
-    sessions: scanSessions(props.topicSlug, domain.slug),
-  }));
+  const state = currentState.value;
+  const dirSlugs = scanDomainDirs(props.topicSlug);
+  if (dirSlugs.length === 0) return [];
+
+  const domainMap = new Map((state?.domains ?? []).map((d) => [d.slug, d]));
+  const orderMap = new Map((state?.domains ?? []).map((d, i) => [d.slug, i]));
+
+  return dirSlugs
+    .map((slug) => {
+      const domain = domainMap.get(slug);
+      return {
+        domain: domain ?? { name: slug, slug, concepts: [] },
+        sessions: scanSessions(props.topicSlug, slug),
+        isOrphan: !domain,
+      };
+    })
+    .sort((a, b) => {
+      const oa = orderMap.get(a.domain.slug) ?? Number.MAX_SAFE_INTEGER;
+      const ob = orderMap.get(b.domain.slug) ?? Number.MAX_SAFE_INTEGER;
+      return oa !== ob ? oa - ob : a.domain.slug.localeCompare(b.domain.slug);
+    });
 });
 
 const rootSessions = computed<SessionFile[]>(() => {
@@ -53,7 +73,7 @@ const rootSessions = computed<SessionFile[]>(() => {
   return scanRootSessions(props.topicSlug);
 });
 
-/* Switching topic: restore its persisted expansion (default to first domain). */
+/* Switching topic: restore its persisted expansion (default to first node). */
 watch(
   () => props.topicSlug,
   (slug) => {
@@ -61,23 +81,21 @@ watch(
       expandedDomains.value = new Set();
       return;
     }
-    const state = loadTopic(slug);
-    const first = state?.domains[0]?.slug;
+    const first = domainSessions.value[0]?.domain.slug;
     loadExpansion(slug, first ? [first] : []);
   },
   { immediate: true },
 );
 
-/* Selecting a file: expand its parent domain without collapsing others. */
+/* Selecting a file: expand its parent folder (incl. orphans) without collapsing others. */
 watch(
   () => props.selectedFilePath,
   (filePath) => {
     if (!filePath || !props.topicSlug) return;
-    const state = loadTopic(props.topicSlug);
-    for (const domain of state?.domains ?? []) {
-      const sessions = scanSessions(props.topicSlug, domain.slug);
+    for (const dirSlug of scanDomainDirs(props.topicSlug)) {
+      const sessions = scanSessions(props.topicSlug, dirSlug);
       if (sessions.some((s) => s.path === filePath)) {
-        addExpansion(props.topicSlug, domain.slug);
+        addExpansion(props.topicSlug, dirSlug);
         return;
       }
     }
@@ -112,12 +130,18 @@ function selectSessionFile(file: SessionFile) {
               ? 'text-text-1'
               : 'text-text-2 hover:text-text-1'
           "
+          :title="ds.isOrphan ? t('sidebar.orphanTip') : undefined"
           @click="toggleDomain(ds.domain.slug)"
         >
           <span
             class="text-[10px] transition-transform duration-150 shrink-0 w-3 text-center"
             :class="expandedDomains.has(ds.domain.slug) ? 'rotate-90' : ''"
           >▶</span>
+          <span
+            v-if="ds.isOrphan"
+            class="inline-block w-[5px] h-[5px] rounded-full bg-text-3 shrink-0"
+            aria-hidden="true"
+          ></span>
           <span class="truncate">{{ ds.domain.name }}</span>
         </button>
 

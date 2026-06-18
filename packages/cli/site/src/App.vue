@@ -21,10 +21,17 @@ const topicSelectedFile = ref<SelectedFilePayload | null>(null);
 provide('topicSelectedFile', topicSelectedFile);
 
 const selectedFilePath = computed(() => topicSelectedFile.value?.path ?? null);
-const initialTab = computed<'topics' | 'exercises'>(() => {
-  const tab = route.query.tab as string | undefined;
-  return tab === 'exercises' ? 'exercises' : 'topics';
-});
+
+function inferTabFromPath(filePath: string | undefined): 'topics' | 'exercises' {
+  const p = filePath ?? '';
+  if (/^\/topics\/[^/]+\/exercises\//.test(p)) return 'exercises';
+  if (/^\/topics\/[^/]+\/sessions\//.test(p)) return 'topics';
+  return 'topics';
+}
+
+const initialTab = computed<'topics' | 'exercises'>(() =>
+  inferTabFromPath(route.query.file as string | undefined),
+);
 
 /* --- Content loader: delayed loading state (150ms threshold) --- */
 const { isLoading: contentLoading, load: loadContent, reset: resetLoader } = useContentLoader();
@@ -38,7 +45,7 @@ function selectFile(
   // Selection is synchronous → first render already shows the file view,
   // never the knowledge map. Content is filled back in asynchronously.
   topicSelectedFile.value = { path, type, sourceTab };
-  if (syncUrl) router.replace({ query: { file: path, tab: sourceTab } });
+  if (syncUrl) router.replace({ query: { file: path } });
 
   loadContent(
     path,
@@ -61,10 +68,11 @@ function restoreFromRoute() {
   const slug = route.params.slug as string | undefined;
   const filePath = route.query.file as string | undefined;
   if (slug && filePath) {
+    const sourceTab = inferTabFromPath(filePath);
     selectFile(
       filePath,
       filePath.endsWith('.md') ? 'markdown' : 'code',
-      (route.query.tab as 'topics' | 'exercises' | undefined) ?? 'topics',
+      sourceTab,
       false, // URL already correct — no need to replace
     );
   } else {
@@ -92,12 +100,6 @@ function onBackToDashboard() {
   resetLoader();
   topicSelectedFile.value = null;
   router.push('/');
-}
-
-function onTabChanged(tab: 'topics' | 'exercises') {
-  if (topicSelectedFile.value) {
-    router.replace({ query: { file: topicSelectedFile.value.path, tab } });
-  }
 }
 
 /* Restore the selected file from the URL on mount and whenever the topic changes.
@@ -157,7 +159,6 @@ onUnmounted(() => {
       @file-selected="onFileSelected"
       @topic-selected="onTopicSelected"
       @back-to-dashboard="onBackToDashboard"
-      @tab-changed="onTabChanged"
     />
 
     <main class="flex-1 min-w-0 lg:pl-68">

@@ -19,7 +19,6 @@ const emit = defineEmits<{
   'file-selected': [file: SelectedFilePayload | null];
   'topic-selected': [slug: string];
   'back-to-dashboard': [];
-  'tab-changed': [tab: 'topics' | 'exercises'];
 }>();
 
 const { t } = useI18n();
@@ -55,7 +54,6 @@ function onKnowledgeMap() {
 
 function switchTab(tab: 'topics' | 'exercises') {
   tabMode.value = tab;
-  emit('tab-changed', tab);
 }
 </script>
 

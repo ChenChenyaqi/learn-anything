@@ -33,7 +33,10 @@ git diff --quiet && git diff --cached --quiet || die "Working tree must be clean
 CURRENT_VERSION="$(awk -F'"' '/"version":/ {print $4; exit}' packages/cli/package.json)"
 
 ver_gt() {
-  local IFS=. a=($1) b=($2) i
+  local a b i
+  local IFS=.
+  a=($1)
+  b=($2)
   for i in 0 1 2; do
     (( ${a[i]:-0} > ${b[i]:-0} )) && return 0
     (( ${a[i]:-0} < ${b[i]:-0} )) && return 1

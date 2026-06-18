@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue';
+import { computed, watch } from 'vue';
 import { useI18n } from '../../composables/useI18n';
+import { useTreeExpansion } from '../../composables/useTreeExpansion';
 import {
   scanExercises,
   scanRootExercises,
@@ -20,7 +21,12 @@ const emit = defineEmits<{
 
 const { t } = useI18n();
 
-const expandedConcepts = ref<Set<string>>(new Set());
+const {
+  expanded: expandedConcepts,
+  load: loadExpansion,
+  toggle: toggleExpansion,
+  add: addExpansion,
+} = useTreeExpansion('exercises');
 
 const exerciseGroups = computed<ExerciseGroup[]>(() => {
   void getDataVersion();
@@ -32,19 +38,31 @@ const rootExercises = computed<ExerciseFile[]>(() => {
   return scanRootExercises(props.topicSlug);
 });
 
+/* Switching topic: restore its persisted expansion (default to first concept). */
 watch(
-  () => [props.topicSlug, props.selectedFilePath] as const,
-  ([slug, filePath]) => {
-    expandedConcepts.value = new Set();
-    if (!slug) return;
+  () => props.topicSlug,
+  (slug) => {
+    if (!slug) {
+      expandedConcepts.value = new Set();
+      return;
+    }
+    const groups = scanExercises(slug);
+    const first = groups[0]?.conceptSlug;
+    loadExpansion(slug, first ? [first] : []);
+  },
+  { immediate: true },
+);
 
-    if (filePath) {
-      const groups = scanExercises(slug);
-      for (const group of groups) {
-        if (group.files.some((f) => f.path === filePath)) {
-          expandedConcepts.value.add(group.conceptSlug);
-          return;
-        }
+/* Selecting a file: expand its parent concept without collapsing others. */
+watch(
+  () => props.selectedFilePath,
+  (filePath) => {
+    if (!filePath || !props.topicSlug) return;
+    const groups = scanExercises(props.topicSlug);
+    for (const group of groups) {
+      if (group.files.some((f) => f.path === filePath)) {
+        addExpansion(props.topicSlug, group.conceptSlug);
+        return;
       }
     }
   },
@@ -52,10 +70,7 @@ watch(
 );
 
 function toggleConcept(conceptSlug: string) {
-  const s = new Set(expandedConcepts.value);
-  if (s.has(conceptSlug)) s.delete(conceptSlug);
-  else s.add(conceptSlug);
-  expandedConcepts.value = s;
+  toggleExpansion(props.topicSlug, conceptSlug);
 }
 
 function selectExerciseFile(file: ExerciseFile) {

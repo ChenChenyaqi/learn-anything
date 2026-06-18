@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue';
+import { computed, watch } from 'vue';
 import { useI18n } from '../../composables/useI18n';
+import { useTreeExpansion } from '../../composables/useTreeExpansion';
 import {
   loadTopic,
   scanSessions,
@@ -21,7 +22,12 @@ const emit = defineEmits<{
 
 const { t } = useI18n();
 
-const expandedDomains = ref<Set<string>>(new Set());
+const {
+  expanded: expandedDomains,
+  load: loadExpansion,
+  toggle: toggleExpansion,
+  add: addExpansion,
+} = useTreeExpansion('topics');
 
 interface DomainWithSessions {
   domain: Domain;
@@ -47,33 +53,40 @@ const rootSessions = computed<SessionFile[]>(() => {
   return scanRootSessions(props.topicSlug);
 });
 
+/* Switching topic: restore its persisted expansion (default to first domain). */
 watch(
-  () => [props.topicSlug, props.selectedFilePath] as const,
-  ([slug, filePath]) => {
-    expandedDomains.value = new Set();
-    if (!slug) return;
+  () => props.topicSlug,
+  (slug) => {
+    if (!slug) {
+      expandedDomains.value = new Set();
+      return;
+    }
     const state = loadTopic(slug);
+    const first = state?.domains[0]?.slug;
+    loadExpansion(slug, first ? [first] : []);
+  },
+  { immediate: true },
+);
 
-    if (filePath) {
-      for (const domain of state?.domains ?? []) {
-        const sessions = scanSessions(slug, domain.slug);
-        if (sessions.some((s) => s.path === filePath)) {
-          expandedDomains.value.add(domain.slug);
-          return;
-        }
+/* Selecting a file: expand its parent domain without collapsing others. */
+watch(
+  () => props.selectedFilePath,
+  (filePath) => {
+    if (!filePath || !props.topicSlug) return;
+    const state = loadTopic(props.topicSlug);
+    for (const domain of state?.domains ?? []) {
+      const sessions = scanSessions(props.topicSlug, domain.slug);
+      if (sessions.some((s) => s.path === filePath)) {
+        addExpansion(props.topicSlug, domain.slug);
+        return;
       }
     }
-
-    if (state?.domains[0]) expandedDomains.value.add(state.domains[0].slug);
   },
   { immediate: true },
 );
 
 function toggleDomain(domainSlug: string) {
-  const s = new Set(expandedDomains.value);
-  if (s.has(domainSlug)) s.delete(domainSlug);
-  else s.add(domainSlug);
-  expandedDomains.value = s;
+  toggleExpansion(props.topicSlug, domainSlug);
 }
 
 function selectSessionFile(file: SessionFile) {

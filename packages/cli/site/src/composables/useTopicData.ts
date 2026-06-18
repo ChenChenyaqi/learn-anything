@@ -72,6 +72,7 @@ export interface SelectedFilePayload {
   path: string;
   content: string;
   type: 'markdown' | 'code';
+  sourceTab?: 'topics' | 'exercises';
 }
 
 /* ------------------------------------------------------------------ */

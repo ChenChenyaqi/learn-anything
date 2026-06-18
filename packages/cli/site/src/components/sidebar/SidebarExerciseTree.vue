@@ -12,6 +12,7 @@ import { isMarkdownFile } from '../../utils/markdown';
 
 const props = defineProps<{
   topicSlug: string;
+  selectedFilePath?: string | null;
 }>();
 
 const emit = defineEmits<{
@@ -33,9 +34,20 @@ const rootExercises = computed<ExerciseFile[]>(() => {
 });
 
 watch(
-  () => props.topicSlug,
-  () => {
+  () => [props.topicSlug, props.selectedFilePath] as const,
+  ([slug, filePath]) => {
     expandedConcepts.value = new Set();
+    if (!slug) return;
+
+    if (filePath) {
+      const groups = scanExercises(slug);
+      for (const group of groups) {
+        if (group.files.some((f) => f.path === filePath)) {
+          expandedConcepts.value.add(group.conceptSlug);
+          return;
+        }
+      }
+    }
   },
   { immediate: true },
 );

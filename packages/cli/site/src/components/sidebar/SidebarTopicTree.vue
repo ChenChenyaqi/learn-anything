@@ -12,6 +12,7 @@ import type { Domain, SessionFile } from '../../composables/useTopicData';
 
 const props = defineProps<{
   topicSlug: string;
+  selectedFilePath?: string | null;
 }>();
 
 const emit = defineEmits<{
@@ -48,10 +49,22 @@ const rootSessions = computed<SessionFile[]>(() => {
 });
 
 watch(
-  () => props.topicSlug,
-  (slug) => {
+  () => [props.topicSlug, props.selectedFilePath] as const,
+  ([slug, filePath]) => {
     expandedDomains.value = new Set();
+    if (!slug) return;
     const state = loadTopic(slug);
+
+    if (filePath) {
+      for (const domain of state?.domains ?? []) {
+        const sessions = scanSessions(slug, domain.slug);
+        if (sessions.some((s) => s.path === filePath)) {
+          expandedDomains.value.add(domain.slug);
+          return;
+        }
+      }
+    }
+
     if (state?.domains[0]) expandedDomains.value.add(state.domains[0].slug);
   },
   { immediate: true },

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 import { useI18n } from '../composables/useI18n';
 import type { SelectedFilePayload } from '../composables/useTopicData';
 import SidebarMobileToggle from './sidebar/SidebarMobileToggle.vue';
@@ -8,21 +8,32 @@ import SidebarTopicTree from './sidebar/SidebarTopicTree.vue';
 import SidebarExerciseTree from './sidebar/SidebarExerciseTree.vue';
 import SidebarFooter from './sidebar/SidebarFooter.vue';
 
-defineProps<{
+const props = defineProps<{
   context: 'dashboard' | 'topic';
   topicSlug?: string;
+  initialTab?: 'topics' | 'exercises';
+  selectedFilePath?: string | null;
 }>();
 
 const emit = defineEmits<{
   'file-selected': [file: SelectedFilePayload | null];
   'topic-selected': [slug: string];
   'back-to-dashboard': [];
+  'tab-changed': [tab: 'topics' | 'exercises'];
 }>();
 
 const { t } = useI18n();
 
 const mobileOpen = ref(false);
 const tabMode = ref<'topics' | 'exercises'>('topics');
+
+watch(
+  () => props.initialTab,
+  (tab) => {
+    if (tab === 'exercises') tabMode.value = 'exercises';
+  },
+  { immediate: true },
+);
 
 function onMobileClose() {
   mobileOpen.value = false;
@@ -34,12 +45,17 @@ function onTopicSelected(slug: string) {
 }
 
 function onFileSelected(payload: { path: string; content: string; type: 'markdown' | 'code' }) {
-  emit('file-selected', payload);
+  emit('file-selected', { ...payload, sourceTab: tabMode.value });
   mobileOpen.value = false;
 }
 
 function onKnowledgeMap() {
   emit('file-selected', null);
+}
+
+function switchTab(tab: 'topics' | 'exercises') {
+  tabMode.value = tab;
+  emit('tab-changed', tab);
 }
 </script>
 
@@ -82,7 +98,7 @@ function onKnowledgeMap() {
                 ? 'border-brand-2 text-brand-2'
                 : 'border-transparent text-text-2 hover:text-text-1'
             "
-            @click="tabMode = 'topics'"
+            @click="switchTab('topics')"
           >
             {{ t('sidebar.topics') }}
           </button>
@@ -93,7 +109,7 @@ function onKnowledgeMap() {
                 ? 'border-brand-2 text-brand-2'
                 : 'border-transparent text-text-2 hover:text-text-1'
             "
-            @click="tabMode = 'exercises'"
+            @click="switchTab('exercises')"
           >
             {{ t('sidebar.exercises') }}
           </button>
@@ -105,6 +121,7 @@ function onKnowledgeMap() {
       <SidebarTopicTree
         v-if="tabMode === 'topics' && topicSlug"
         :topic-slug="topicSlug"
+        :selected-file-path="selectedFilePath"
         @file-selected="onFileSelected"
         @knowledge-map="onKnowledgeMap"
       />
@@ -112,6 +129,7 @@ function onKnowledgeMap() {
       <SidebarExerciseTree
         v-if="tabMode === 'exercises' && topicSlug"
         :topic-slug="topicSlug"
+        :selected-file-path="selectedFilePath"
         @file-selected="onFileSelected"
       />
     </template>

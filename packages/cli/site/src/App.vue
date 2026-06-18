@@ -18,10 +18,17 @@ const currentTopicSlug = computed(() => route.params.slug as string | undefined)
 const topicSelectedFile = ref<SelectedFilePayload | null>(null);
 provide('topicSelectedFile', topicSelectedFile);
 
+const selectedFilePath = computed(() => topicSelectedFile.value?.path ?? null);
+const initialTab = computed<'topics' | 'exercises'>(() => {
+  const tab = route.query.tab as string | undefined;
+  return tab === 'exercises' ? 'exercises' : 'topics';
+});
+
 function onFileSelected(payload: SelectedFilePayload | null) {
   topicSelectedFile.value = payload;
   if (payload) {
-    router.replace({ query: { file: payload.path } });
+    const tab = payload.sourceTab ?? 'topics';
+    router.replace({ query: { file: payload.path, tab } });
   } else {
     router.replace({ query: {} });
   }
@@ -34,6 +41,12 @@ function onTopicSelected(slug: string) {
 
 function onBackToDashboard() {
   router.push('/');
+}
+
+function onTabChanged(tab: 'topics' | 'exercises') {
+  if (topicSelectedFile.value) {
+    router.replace({ query: { file: topicSelectedFile.value.path, tab } });
+  }
 }
 
 watch(
@@ -49,6 +62,7 @@ watch(
             path: filePath,
             content,
             type: filePath.endsWith('.md') ? 'markdown' : 'code',
+            sourceTab: (route.query.tab as 'topics' | 'exercises' | undefined) || 'topics',
           };
         }
       }
@@ -98,9 +112,12 @@ onUnmounted(() => {
     <AppSidebar
       :context="sidebarContext"
       :topic-slug="currentTopicSlug"
+      :initial-tab="initialTab"
+      :selected-file-path="selectedFilePath"
       @file-selected="onFileSelected"
       @topic-selected="onTopicSelected"
       @back-to-dashboard="onBackToDashboard"
+      @tab-changed="onTabChanged"
     />
 
     <main class="flex-1 min-w-0 lg:pl-68">

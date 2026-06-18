@@ -13,3 +13,6 @@ packages/cli/test/core/learn-protocol/fixtures/migrates/
 
 # build artifacts
 packages/cli/site-dist/
+
+# local release notes (consumed by scripts/release.sh)
+release-notes.md

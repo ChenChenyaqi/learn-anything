@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, inject, type Ref } from 'vue';
 import { useI18n } from '../composables/useI18n';
-import { loadTopic, loadKnowledgeMap } from '../composables/useTopicData';
+import { loadTopic, loadKnowledgeMap, getDataVersion } from '../composables/useTopicData';
 import ContentViewer from './ContentViewer.vue';
 import type { SelectedFilePayload } from '../composables/useTopicData';
 import { renderMarkdown } from '../utils/markdown';
@@ -10,8 +10,14 @@ const props = defineProps<{ slug: string }>();
 
 const { t } = useI18n();
 
-const state = computed(() => loadTopic(props.slug));
-const knowledgeMapRaw = computed(() => loadKnowledgeMap(props.slug));
+const state = computed(() => {
+  void getDataVersion();
+  return loadTopic(props.slug);
+});
+const knowledgeMapRaw = computed(() => {
+  void getDataVersion();
+  return loadKnowledgeMap(props.slug);
+});
 
 const knowledgeMapHtml = computed(() => {
   const raw = knowledgeMapRaw.value;

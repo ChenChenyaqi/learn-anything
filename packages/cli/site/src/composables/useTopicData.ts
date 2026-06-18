@@ -9,6 +9,8 @@
 /*  In prod, serve.mjs serves both static + API on a single port.      */
 /* ================================================================== */
 
+import { ref } from 'vue';
+
 /* ------------------------------------------------------------------ */
 /*  Types                                                             */
 /* ------------------------------------------------------------------ */
@@ -89,6 +91,12 @@ const orphanExercisesBySlug = new Map<string, ExerciseFile[]>();
 const fileContents = new Map<string, string>();
 
 let topicSummaryCache: TopicSummary[] | null = null;
+
+const dataVersion = ref(0);
+
+export function getDataVersion(): number {
+  return dataVersion.value;
+}
 
 const FILE_CACHE_MAX = 200;
 
@@ -242,7 +250,10 @@ export function listenForChanges(callback: () => void): () => void {
 
   function handleReload() {
     clearIndexes();
-    initTopicData().then(() => callback());
+    initTopicData().then(() => {
+      dataVersion.value++;
+      callback();
+    });
   }
 
   function connect() {

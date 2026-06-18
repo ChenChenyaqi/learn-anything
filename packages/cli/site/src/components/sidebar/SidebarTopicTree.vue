@@ -6,6 +6,7 @@ import {
   scanSessions,
   scanRootSessions,
   loadFileContent,
+  getDataVersion,
 } from '../../composables/useTopicData';
 import type { Domain, SessionFile } from '../../composables/useTopicData';
 
@@ -27,9 +28,13 @@ interface DomainWithSessions {
   sessions: SessionFile[];
 }
 
-const currentState = computed(() => loadTopic(props.topicSlug));
+const currentState = computed(() => {
+  void getDataVersion();
+  return loadTopic(props.topicSlug);
+});
 
 const domainSessions = computed<DomainWithSessions[]>(() => {
+  void getDataVersion();
   if (!currentState.value) return [];
   return currentState.value.domains.map((domain) => ({
     domain,
@@ -37,7 +42,10 @@ const domainSessions = computed<DomainWithSessions[]>(() => {
   }));
 });
 
-const rootSessions = computed<SessionFile[]>(() => scanRootSessions(props.topicSlug));
+const rootSessions = computed<SessionFile[]>(() => {
+  void getDataVersion();
+  return scanRootSessions(props.topicSlug);
+});
 
 watch(
   () => props.topicSlug,

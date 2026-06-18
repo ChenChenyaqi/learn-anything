@@ -1,14 +1,17 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useI18n } from '../../composables/useI18n';
-import { listAllTopics } from '../../composables/useTopicData';
+import { listAllTopics, getDataVersion } from '../../composables/useTopicData';
 
 defineEmits<{
   'topic-selected': [slug: string];
 }>();
 
 const { t } = useI18n();
-const topics = computed(() => listAllTopics());
+const topics = computed(() => {
+  void getDataVersion();
+  return listAllTopics();
+});
 </script>
 
 <template>

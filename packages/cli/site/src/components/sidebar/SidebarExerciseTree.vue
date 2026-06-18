@@ -5,6 +5,7 @@ import {
   scanExercises,
   scanRootExercises,
   loadFileContent,
+  getDataVersion,
 } from '../../composables/useTopicData';
 import type { ExerciseGroup, ExerciseFile } from '../../composables/useTopicData';
 import { isMarkdownFile } from '../../utils/markdown';
@@ -21,9 +22,15 @@ const { t } = useI18n();
 
 const expandedConcepts = ref<Set<string>>(new Set());
 
-const exerciseGroups = computed<ExerciseGroup[]>(() => scanExercises(props.topicSlug));
+const exerciseGroups = computed<ExerciseGroup[]>(() => {
+  void getDataVersion();
+  return scanExercises(props.topicSlug);
+});
 
-const rootExercises = computed<ExerciseFile[]>(() => scanRootExercises(props.topicSlug));
+const rootExercises = computed<ExerciseFile[]>(() => {
+  void getDataVersion();
+  return scanRootExercises(props.topicSlug);
+});
 
 watch(
   () => props.topicSlug,

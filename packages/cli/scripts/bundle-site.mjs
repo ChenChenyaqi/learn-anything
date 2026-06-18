@@ -31,7 +31,7 @@ const outputDir = join(packageDir, 'site-dist');
 const isMain = fileURLToPath(import.meta.url) === process.argv[1];
 if (isMain) {
   console.log('[bundle-site] Building site with vite...');
-  execSync('npx vite build', { cwd: siteDir, stdio: 'inherit' });
+  execSync('pnpm exec vite build', { cwd: siteDir, stdio: 'inherit' });
 
   // Clear output
   rmSync(outputDir, { recursive: true, force: true });

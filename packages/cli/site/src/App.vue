@@ -2,8 +2,10 @@
 import { computed, nextTick, onMounted, onUnmounted, ref, watch, provide } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import AppSidebar from './components/AppSidebar.vue';
+import LoadingOverlay from './components/LoadingOverlay.vue';
 import type { SelectedFilePayload } from './composables/useTopicData';
 import { listenForChanges, loadFileContent } from './composables/useTopicData';
+import { useContentLoader } from './composables/useContentLoader';
 
 const route = useRoute();
 const router = useRouter();
@@ -24,22 +26,71 @@ const initialTab = computed<'topics' | 'exercises'>(() => {
   return tab === 'exercises' ? 'exercises' : 'topics';
 });
 
-function onFileSelected(payload: SelectedFilePayload | null) {
-  topicSelectedFile.value = payload;
-  if (payload) {
-    const tab = payload.sourceTab ?? 'topics';
-    router.replace({ query: { file: payload.path, tab } });
+/* --- Content loader: delayed loading state (150ms threshold) --- */
+const { isLoading: contentLoading, load: loadContent, reset: resetLoader } = useContentLoader();
+
+function selectFile(
+  path: string,
+  type: 'markdown' | 'code',
+  sourceTab: 'topics' | 'exercises',
+  syncUrl = true,
+) {
+  // Selection is synchronous → first render already shows the file view,
+  // never the knowledge map. Content is filled back in asynchronously.
+  topicSelectedFile.value = { path, type, sourceTab };
+  if (syncUrl) router.replace({ query: { file: path, tab: sourceTab } });
+
+  loadContent(
+    path,
+    (content) => {
+      if (topicSelectedFile.value?.path === path) {
+        topicSelectedFile.value = { ...topicSelectedFile.value, content };
+      }
+    },
+    () => {
+      if (topicSelectedFile.value?.path === path) {
+        topicSelectedFile.value = null;
+        router.replace({ query: {} });
+      }
+    },
+  );
+}
+
+function restoreFromRoute() {
+  resetLoader();
+  const slug = route.params.slug as string | undefined;
+  const filePath = route.query.file as string | undefined;
+  if (slug && filePath) {
+    selectFile(
+      filePath,
+      filePath.endsWith('.md') ? 'markdown' : 'code',
+      (route.query.tab as 'topics' | 'exercises' | undefined) ?? 'topics',
+      false, // URL already correct — no need to replace
+    );
   } else {
-    router.replace({ query: {} });
+    topicSelectedFile.value = null;
   }
 }
 
+function onFileSelected(payload: SelectedFilePayload | null) {
+  if (!payload) {
+    resetLoader();
+    topicSelectedFile.value = null;
+    router.replace({ query: {} });
+    return;
+  }
+  selectFile(payload.path, payload.type, payload.sourceTab ?? 'topics');
+}
+
 function onTopicSelected(slug: string) {
+  resetLoader();
   topicSelectedFile.value = null;
   router.push(`/topics/${slug}`);
 }
 
 function onBackToDashboard() {
+  resetLoader();
+  topicSelectedFile.value = null;
   router.push('/');
 }
 
@@ -49,25 +100,13 @@ function onTabChanged(tab: 'topics' | 'exercises') {
   }
 }
 
+/* Restore the selected file from the URL on mount and whenever the topic changes.
+   `immediate` runs during setup, so the selection is set synchronously and the
+   very first render shows the file view instead of flashing the knowledge map. */
 watch(
   () => route.params.slug,
-  async (newSlug) => {
-    topicSelectedFile.value = null;
-    if (newSlug && typeof newSlug === 'string') {
-      const filePath = route.query.file as string | undefined;
-      if (filePath) {
-        const content = await loadFileContent(filePath);
-        if (content) {
-          topicSelectedFile.value = {
-            path: filePath,
-            content,
-            type: filePath.endsWith('.md') ? 'markdown' : 'code',
-            sourceTab: (route.query.tab as 'topics' | 'exercises' | undefined) || 'topics',
-          };
-        }
-      }
-    }
-  },
+  () => restoreFromRoute(),
+  { immediate: true },
 );
 
 /* --- Dark mode --- */
@@ -87,11 +126,12 @@ onMounted(() => {
     const scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
 
     if (topicSelectedFile.value) {
-      const content = await loadFileContent(topicSelectedFile.value.path);
-      if (content !== null) {
+      const path = topicSelectedFile.value.path;
+      // Silent refresh: SSE reload is a background update, so it bypasses the
+      // loading overlay and just re-reads the file in place.
+      const content = await loadFileContent(path);
+      if (topicSelectedFile.value?.path === path && content !== null) {
         topicSelectedFile.value = { ...topicSelectedFile.value, content };
-      } else {
-        topicSelectedFile.value = null;
       }
     }
 
@@ -125,5 +165,9 @@ onUnmounted(() => {
         <router-view />
       </div>
     </main>
+
+    <Transition name="ld-fade">
+      <LoadingOverlay v-if="contentLoading" />
+    </Transition>
   </div>
 </template>

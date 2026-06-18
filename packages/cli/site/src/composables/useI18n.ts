@@ -31,7 +31,8 @@ export type I18nKey =
   | 'sidebar.noNotes'
   | 'sidebar.noExercises'
   | 'lang.switch'
-  | 'theme.switch';
+  | 'theme.switch'
+  | 'loading.note';
 
 type Messages = Record<I18nKey, string>;
 
@@ -66,6 +67,7 @@ const messages: Record<Locale, Messages> = {
     'sidebar.exercises': 'Exercises',
     'sidebar.noNotes': 'No sessions',
     'sidebar.noExercises': 'No exercises',
+    'loading.note': 'Opening note…',
   },
   'zh-CN': {
     'dashboard.title': '学习仪表盘',
@@ -93,6 +95,7 @@ const messages: Record<Locale, Messages> = {
     'sidebar.exercises': '练习',
     'sidebar.noNotes': '没有笔记',
     'sidebar.noExercises': '没有练习',
+    'loading.note': '正在打开笔记',
   },
 };
 

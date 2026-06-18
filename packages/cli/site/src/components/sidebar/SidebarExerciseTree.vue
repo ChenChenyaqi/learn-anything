@@ -4,7 +4,6 @@ import { useI18n } from '../../composables/useI18n';
 import {
   scanExercises,
   scanRootExercises,
-  loadFileContent,
   getDataVersion,
 } from '../../composables/useTopicData';
 import type { ExerciseGroup, ExerciseFile } from '../../composables/useTopicData';
@@ -16,7 +15,7 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  'file-selected': [file: { path: string; content: string; type: 'markdown' | 'code' }];
+  'file-selected': [file: { path: string; type: 'markdown' | 'code' }];
 }>();
 
 const { t } = useI18n();
@@ -59,11 +58,9 @@ function toggleConcept(conceptSlug: string) {
   expandedConcepts.value = s;
 }
 
-async function selectExerciseFile(file: ExerciseFile) {
-  const content = await loadFileContent(file.path);
-  if (content === null) return;
+function selectExerciseFile(file: ExerciseFile) {
   const type = isMarkdownFile(file.name) ? 'markdown' : 'code';
-  emit('file-selected', { path: file.path, content, type });
+  emit('file-selected', { path: file.path, type });
 }
 </script>
 

@@ -70,9 +70,13 @@ export interface ExerciseGroup {
 
 export interface SelectedFilePayload {
   path: string;
-  content: string;
   type: 'markdown' | 'code';
   sourceTab?: 'topics' | 'exercises';
+  /**
+   * Filled in asynchronously after the file content loads.
+   * The selection itself (path/type) is available synchronously.
+   */
+  content?: string;
 }
 
 /* ------------------------------------------------------------------ */

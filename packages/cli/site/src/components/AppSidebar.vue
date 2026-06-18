@@ -44,7 +44,7 @@ function onTopicSelected(slug: string) {
   mobileOpen.value = false;
 }
 
-function onFileSelected(payload: { path: string; content: string; type: 'markdown' | 'code' }) {
+function onFileSelected(payload: { path: string; type: 'markdown' | 'code' }) {
   emit('file-selected', { ...payload, sourceTab: tabMode.value });
   mobileOpen.value = false;
 }

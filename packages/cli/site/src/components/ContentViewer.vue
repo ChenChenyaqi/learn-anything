@@ -1,15 +1,10 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { renderMarkdown, highlightCode, getFileExtension, isMarkdownFile } from '../utils/markdown';
-
-export interface SelectedFile {
-  path: string;
-  content: string;
-  type: 'markdown' | 'code';
-}
+import { renderMarkdown, highlightCode, getFileExtension } from '../utils/markdown';
+import type { SelectedFilePayload } from '../composables/useTopicData';
 
 const props = defineProps<{
-  file: SelectedFile | null;
+  file: SelectedFilePayload | null;
 }>();
 
 const fileDisplayName = computed(() => {
@@ -19,8 +14,10 @@ const fileDisplayName = computed(() => {
 
 const fileExt = computed(() => getFileExtension(fileDisplayName.value));
 
+const hasContent = computed(() => !!props.file?.content);
+
 const renderedHtml = computed(() => {
-  if (!props.file) return '';
+  if (!props.file?.content) return '';
   if (props.file.type === 'markdown') return renderMarkdown(props.file.content);
   return highlightCode(props.file.content, fileExt.value);
 });
@@ -32,6 +29,14 @@ const isMd = computed(() => props.file?.type === 'markdown');
   <div class="h-full">
     <div v-if="!file" class="flex items-center justify-center h-full min-h-75 text-sm text-text-3">
       Select a file from the sidebar to view its content
+    </div>
+
+    <!-- Loading placeholder — normally covered by the overlay -->
+    <div v-else-if="!hasContent" class="prose-content space-y-3" aria-hidden="true">
+      <div class="h-5 w-2/3 rounded bg-(--color-divider)" />
+      <div class="h-3 w-full rounded bg-(--color-divider)" />
+      <div class="h-3 w-full rounded bg-(--color-divider)" />
+      <div class="h-3 w-4/5 rounded bg-(--color-divider)" />
     </div>
 
     <!-- Markdown: VitePress-style — no wrapper, content flows -->

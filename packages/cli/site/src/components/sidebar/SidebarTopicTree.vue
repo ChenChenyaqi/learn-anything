@@ -5,7 +5,6 @@ import {
   loadTopic,
   scanSessions,
   scanRootSessions,
-  loadFileContent,
   getDataVersion,
 } from '../../composables/useTopicData';
 import type { Domain, SessionFile } from '../../composables/useTopicData';
@@ -16,7 +15,7 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  'file-selected': [file: { path: string; content: string; type: 'markdown' }];
+  'file-selected': [file: { path: string; type: 'markdown' }];
   'knowledge-map': [];
 }>();
 
@@ -77,11 +76,8 @@ function toggleDomain(domainSlug: string) {
   expandedDomains.value = s;
 }
 
-async function selectSessionFile(file: SessionFile) {
-  const content = await loadFileContent(file.path);
-  if (content !== null) {
-    emit('file-selected', { path: file.path, content, type: 'markdown' });
-  }
+function selectSessionFile(file: SessionFile) {
+  emit('file-selected', { path: file.path, type: 'markdown' });
 }
 </script>
 

@@ -1,4 +1,7 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeAll } from 'vitest';
+import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
+import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import {
   listAllTopics,
   loadTopic,
@@ -9,25 +12,217 @@ import {
   scanRootExercises,
   loadSessionContent,
   loadExerciseContent,
+  __resetForTest,
+  __injectTestData,
 } from '../site/src/composables/useTopicData';
-import type { SessionFile, ExerciseGroup } from '../site/src/composables/useTopicData';
+import type {
+  SessionFile,
+  ExerciseGroup,
+  TopicSummary,
+  StateV1,
+  ExerciseFile,
+} from '../site/src/composables/useTopicData';
 
 /* ==================================================================== */
-/*  Fixture-based tests against packages/cli/site/topics/javascript/     */
-/*  The fixture has:                                                     */
-/*    - state.json with 6 domains, 24 concepts (all 'unexplored')       */
-/*    - knowledge-map.md                                                 */
-/*    - sessions/language-basics/2026-06-13.md                          */
-/*    - sessions/language-basics/2026-06-14.md                          */
-/*    - sessions/functions-scope/2026-06-14.md                           */
-/*    - sessions/overview.md (orphan, no domain dir)                     */
-/*    - exercises/variables-data-types/{README,starter,solution}.{md,js} */
-/*    - exercises/variables-data-types/practice-2026-06-14.json          */
-/*    - exercises/warmup.js (orphan, no concept dir)                     */
+/*  Fixture-based tests against packages/cli/test/fixtures/topics/       */
+/*  The JavaScript fixture has:                                          */
+/*    - state.json with 6 domains, 24 concepts (all 'unexplored')        */
+/*    - knowledge-map.md                                                  */
+/*    - sessions/language-basics/2026-06-13.md                            */
+/*    - sessions/language-basics/2026-06-14.md                            */
+/*    - sessions/functions-scope/2026-06-14.md                            */
+/*    - sessions/overview.md (orphan, no domain dir)                      */
+/*    - exercises/variables-data-types/{README,starter,solution}.{md,js}  */
+/*    - exercises/variables-data-types/practice-2026-06-14.json           */
+/*    - exercises/warmup.js (orphan, no concept dir)                      */
 /* ==================================================================== */
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const FIXTURE_DIR = join(__dirname, 'fixtures', 'topics');
 
 const VALID_SLUG = 'javascript';
 const NONEXISTENT_SLUG = 'zzz-nonexistent';
+
+/* ------------------------------------------------------------------ */
+/*  Fixture data loader                                                */
+/* ------------------------------------------------------------------ */
+
+function readJson(filePath: string) {
+  return JSON.parse(readFileSync(filePath, 'utf-8'));
+}
+
+function safeReadText(filePath: string): string | null {
+  try {
+    return readFileSync(filePath, 'utf-8');
+  } catch {
+    return null;
+  }
+}
+
+function scanDir(dir: string): string[] {
+  if (!existsSync(dir)) return [];
+  return readdirSync(dir);
+}
+
+function isDir(filePath: string): boolean {
+  try {
+    return statSync(filePath).isDirectory();
+  } catch {
+    return false;
+  }
+}
+
+function loadFixtureData() {
+  const summaries: TopicSummary[] = [];
+  const states: Record<string, StateV1> = {};
+  const knowledgeMaps: Record<string, string> = {};
+  const sessions: Record<string, Record<string, SessionFile[]>> = {};
+  const exerciseGroups: Record<string, ExerciseGroup[]> = {};
+  const orphanSessions: Record<string, SessionFile[]> = {};
+  const orphanExercises: Record<string, ExerciseFile[]> = {};
+  const fileContentsMap: Record<string, string> = {};
+
+  const topicDirs = scanDir(FIXTURE_DIR).filter((d) => isDir(join(FIXTURE_DIR, d)));
+
+  for (const slug of topicDirs) {
+    const topicDir = join(FIXTURE_DIR, slug);
+
+    const state: StateV1 = readJson(join(topicDir, 'state.json'));
+    states[slug] = state;
+
+    const km = safeReadText(join(topicDir, 'knowledge-map.md'));
+    if (km !== null) knowledgeMaps[slug] = km;
+
+    const allConcepts = state.domains.flatMap((d) => d.concepts);
+    const total = allConcepts.length;
+    const mastered = allConcepts.filter((c) => c.status === 'mastered').length;
+    summaries.push({
+      slug,
+      name: state.topic || slug,
+      domainCount: state.domains.length,
+      totalConcepts: total,
+      masteredCount: mastered,
+      percentage: total > 0 ? Math.round((mastered / total) * 100) : 0,
+    });
+
+    // Sessions
+    const sessionsDir = join(topicDir, 'sessions');
+    if (existsSync(sessionsDir)) {
+      const sEntries = readdirSync(sessionsDir, { withFileTypes: true });
+      for (const entry of sEntries) {
+        if (entry.isDirectory()) {
+          const domain = entry.name;
+          const domainDir = join(sessionsDir, domain);
+          const files = readdirSync(domainDir)
+            .filter((f) => f.endsWith('.md'))
+            .map(
+              (f): SessionFile => ({
+                filename: f,
+                path: `/topics/${slug}/sessions/${domain}/${f}`,
+              }),
+            )
+            .sort((a, b) => b.filename.localeCompare(a.filename));
+          if (files.length > 0) {
+            if (!sessions[slug]) sessions[slug] = {};
+            sessions[slug][domain] = files;
+          }
+          for (const f of readdirSync(domainDir)) {
+            const filePath = join(domainDir, f);
+            const content = safeReadText(filePath);
+            if (content !== null) {
+              fileContentsMap[`/topics/${slug}/sessions/${domain}/${f}`] = content;
+            }
+          }
+        } else if (entry.isFile() && entry.name.endsWith('.md')) {
+          if (!orphanSessions[slug]) orphanSessions[slug] = [];
+          orphanSessions[slug].push({
+            filename: entry.name,
+            path: `/topics/${slug}/sessions/${entry.name}`,
+          });
+          const content = safeReadText(join(sessionsDir, entry.name));
+          if (content !== null) {
+            fileContentsMap[`/topics/${slug}/sessions/${entry.name}`] = content;
+          }
+        }
+      }
+      if (orphanSessions[slug]) {
+        orphanSessions[slug].sort((a, b) => b.filename.localeCompare(a.filename));
+      }
+    }
+
+    // Exercises
+    const exercisesDir = join(topicDir, 'exercises');
+    if (existsSync(exercisesDir)) {
+      const nameMap = new Map<string, string>();
+      for (const domain of state.domains) {
+        for (const concept of domain.concepts) {
+          nameMap.set(concept.slug, concept.name);
+        }
+      }
+
+      const raw = new Map<string, ExerciseFile[]>();
+      const eEntries = readdirSync(exercisesDir, { withFileTypes: true });
+      for (const entry of eEntries) {
+        if (entry.isDirectory()) {
+          const conceptSlug = entry.name;
+          const conceptDir = join(exercisesDir, conceptSlug);
+          const files = readdirSync(conceptDir).map(
+            (f): ExerciseFile => ({
+              name: f,
+              path: `/topics/${slug}/exercises/${conceptSlug}/${f}`,
+            }),
+          );
+          raw.set(conceptSlug, files);
+          for (const f of readdirSync(conceptDir)) {
+            const content = safeReadText(join(conceptDir, f));
+            if (content !== null) {
+              fileContentsMap[`/topics/${slug}/exercises/${conceptSlug}/${f}`] = content;
+            }
+          }
+        } else if (entry.isFile()) {
+          if (!orphanExercises[slug]) orphanExercises[slug] = [];
+          orphanExercises[slug].push({
+            name: entry.name,
+            path: `/topics/${slug}/exercises/${entry.name}`,
+          });
+          const content = safeReadText(join(exercisesDir, entry.name));
+          if (content !== null) {
+            fileContentsMap[`/topics/${slug}/exercises/${entry.name}`] = content;
+          }
+        }
+      }
+
+      const groups: ExerciseGroup[] = [];
+      for (const [conceptSlug, files] of raw) {
+        groups.push({
+          conceptSlug,
+          conceptName: nameMap.get(conceptSlug) || conceptSlug,
+          files,
+        });
+      }
+      groups.sort((a, b) => a.conceptName.localeCompare(b.conceptName));
+      if (groups.length > 0) exerciseGroups[slug] = groups;
+    }
+  }
+
+  summaries.sort((a, b) => a.name.localeCompare(b.name));
+
+  return {
+    summaries,
+    states,
+    knowledgeMaps,
+    sessions,
+    exerciseGroups,
+    orphanSessions,
+    orphanExercises,
+    fileContents: fileContentsMap,
+  };
+}
+
+beforeAll(() => {
+  __resetForTest();
+  __injectTestData(loadFixtureData());
+});
 
 /* ------------------------------------------------------------------ */
 /*  listAllTopics                                                     */

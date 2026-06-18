@@ -4,7 +4,7 @@ import { useI18n } from '../../composables/useI18n';
 import {
   scanExercises,
   scanRootExercises,
-  loadExerciseContent,
+  loadFileContent,
 } from '../../composables/useTopicData';
 import type { ExerciseGroup, ExerciseFile } from '../../composables/useTopicData';
 import { isMarkdownFile } from '../../utils/markdown';
@@ -41,7 +41,7 @@ function toggleConcept(conceptSlug: string) {
 }
 
 async function selectExerciseFile(file: ExerciseFile) {
-  const content = await loadExerciseContent(file.path);
+  const content = await loadFileContent(file.path);
   if (content === null) return;
   const type = isMarkdownFile(file.name) ? 'markdown' : 'code';
   emit('file-selected', { path: file.path, content, type });

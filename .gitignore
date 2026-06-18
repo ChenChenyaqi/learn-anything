@@ -10,3 +10,6 @@ dist/
 
 # test output
 packages/cli/test/core/learn-protocol/fixtures/migrates/
+
+# build artifacts
+packages/cli/site-dist/

@@ -1,6 +1,6 @@
 ## ADDED Requirements
 
-> **Note:** This spec describes the actual implementation — a custom Vue 3 + Vite application (not VitePress). The architecture was pivoted from VitePress custom theme to a standalone Vue app with Vue Router, Tailwind CSS v4, and markdown-it + highlight.js for content rendering.
+> **Note:** This spec describes the actual implementation — a custom Vue 3 + Vite application (not VitePress). The architecture uses a fetch-based data layer (`useTopicData` composable) that communicates with a local Node.js HTTP server (`serve.mjs`) running on the same host. The server reads topic files from disk and exposes them as REST endpoints (`/api/topics`, `/api/topics/:slug`, `/api/file`).
 
 ### Requirement: Dashboard page shows all topics as cards
 
@@ -162,21 +162,23 @@ The system SHALL define CSS custom properties matching VitePress's design system
 - **WHEN** the `.dark` class is added to `<html>`
 - **THEN** all color tokens switch to their dark variants via CSS custom properties
 
-### Requirement: `import.meta.glob` loads topic data at build time
+### Requirement: Data layer loads topic data via HTTP API
 
-The system SHALL use Vite's `import.meta.glob` (eager mode) to discover topic directories, state.json files, session files, and exercise files at build time. The `useTopicData` composable SHALL expose functions (`listAllTopics`, `loadTopic`, `scanSessions`, `scanExercises`) that operate on the glob results without runtime filesystem access.
+The system SHALL use a fetch-based data layer (`useTopicData` composable) that loads topic data from the local HTTP server (`serve.mjs`) via REST endpoints. The `useTopicData` composable SHALL expose functions (`listAllTopics`, `loadTopic`, `scanSessions`, `scanExercises`, `loadSessionContent`, `loadExerciseContent`) that fetch from `/api/topics`, `/api/topics/:slug`, and `/api/file`. The server reads and caches topic files from the configured `TOPICS_DIR` on disk.
 
-#### Scenario: Topics are discovered from filesystem at build time
+In dev mode, Vite proxies `/api` requests to the `serve.mjs` server running on port 24277. In production, `serve.mjs` serves both static files and API endpoints on a single port.
 
-- **WHEN** the project builds or dev server starts with topic directories under `/topics/`
-- **THEN** `listAllTopics()` returns all topics found via `import.meta.glob('/topics/*/state.json')`
+#### Scenario: Topics are discovered from filesystem at runtime
+
+- **WHEN** the app calls `initTopicData()` and the server has topic directories under `TOPICS_DIR`
+- **THEN** `listAllTopics()` returns all topics with summaries fetched from `/api/topics`
 
 #### Scenario: Session files are filtered by domain
 
 - **WHEN** `scanSessions('javascript', 'language-basics')` is called
-- **THEN** only `.md` files matching `/topics/javascript/sessions/language-basics/*.md` are returned
+- **THEN** only `.md` files from the server response under the `language-basics` domain are returned
 
 #### Scenario: Exercise files are grouped by concept
 
-- **WHEN** `scanExercises('javascript')` is called and exercises exist under `/topics/javascript/exercises/`
+- **WHEN** `scanExercises('javascript')` is called and exercises exist under the topic's exercises directory
 - **THEN** files are grouped by their concept subdirectory, with each group containing the concept name and its files

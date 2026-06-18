@@ -1,8 +1,10 @@
-## ADDED Requirements
+## SUPERSEDED
 
-> **Status: Pending implementation.** The dev project at `packages/cli/site/` is complete and the build script generates `SITE_FILES`, but the `SiteGenerator` class that writes those files to `.learn/` has not yet been created.
+> **Status: Superseded.** The `SiteGenerator` class and `src/site/files.ts` have been removed. Site files are now pre-built via `vite build` into `site-dist/` at publish time and shipped in the npm package. The `serve` command directly spawns the pre-built HTTP server — no runtime file generation or `npm install` required.
 
-> **Note:** The original spec referenced VitePress paths (`.vitepress/config.mts`, `pages/`). The actual implementation uses Vue 3 + Vite paths (`src/components/`, `vite.config.ts`, etc.). The requirements below have been updated accordingly.
+Archived requirements follow for historical reference:
+
+---
 
 ### Requirement: SiteGenerator writes all template files on first generation
 

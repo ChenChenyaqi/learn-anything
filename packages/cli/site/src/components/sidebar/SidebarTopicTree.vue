@@ -5,7 +5,7 @@ import {
   loadTopic,
   scanSessions,
   scanRootSessions,
-  loadSessionContent,
+  loadFileContent,
 } from '../../composables/useTopicData';
 import type { Domain, SessionFile } from '../../composables/useTopicData';
 
@@ -57,7 +57,7 @@ function toggleDomain(domainSlug: string) {
 }
 
 async function selectSessionFile(file: SessionFile) {
-  const content = await loadSessionContent(file.path);
+  const content = await loadFileContent(file.path);
   if (content !== null) {
     emit('file-selected', { path: file.path, content, type: 'markdown' });
   }

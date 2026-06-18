@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch, provide } from 'vue';
+import { computed, onMounted, onUnmounted, ref, watch, provide } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import AppSidebar from './components/AppSidebar.vue';
 import ContentViewer from './components/ContentViewer.vue';
 import type { SelectedFilePayload } from './composables/useTopicData';
+import { listenForChanges } from './composables/useTopicData';
 
 const route = useRoute();
 const router = useRouter();
@@ -47,9 +48,16 @@ function applyDarkMode() {
   document.documentElement.classList.toggle('dark', isDark);
 }
 
+let stopReloadListener: (() => void) | null = null;
+
 onMounted(() => {
   applyDarkMode();
   window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyDarkMode);
+  stopReloadListener = listenForChanges(() => window.location.reload());
+});
+
+onUnmounted(() => {
+  stopReloadListener?.();
 });
 </script>
 

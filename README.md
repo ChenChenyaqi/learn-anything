@@ -62,16 +62,20 @@ During `init` or `update`, you'll be prompted to enable **Context7** for documen
 
 ### Visual Learning Dashboard
 
-Generate a full-featured web dashboard to browse your learning data:
+Start a zero-config web dashboard to browse your learning data:
 
 ```bash
-# Start the visual dashboard
+# Start the visual dashboard (no npm install needed)
 learn-anything serve
 
-# Or include site files during init/update
-learn-anything init --site
-learn-anything update --site
+# Custom port
+learn-anything serve --port 8080
+
+# Disable auto-open browser
+learn-anything serve --no-open
 ```
+
+> The dashboard is pre-built and shipped with the CLI — no extra dependencies or `npm install` required.
 
 The dashboard provides:
 
@@ -95,7 +99,6 @@ Your Project/
 │   ...                          # (30+ other tool formats)
 │
 ├── .learn/                      # 🧠 Your learning data lives here
-│   ├── site/                        # Visual learning dashboard (Vue 3 + Vite)
 │   └── topics/
 │       └── typescript/
 │           ├── state.json           # Single source of truth
@@ -113,7 +116,8 @@ Each AI tool receives **tool-appropriate file formats** via an adapter pattern �
 learn-anything/
 ├── packages/
 │   ├── cli/                     # learn-anything-cli — published to npm
-│   │   ├── site/                 # Vue 3 + Vite visual learning dashboard
+│   │   ├── site/                 # Dashboard source (Vue 3 + Vite)
+│   │   ├── scripts/              # Build scripts (bundle-site.mjs)
 │   │   ├── src/
 │   │   │   ├── cli/             # Commander.js CLI entry point
 │   │   │   ├── core/            # init, config, command generation, templates

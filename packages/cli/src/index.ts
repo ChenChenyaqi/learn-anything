@@ -8,5 +8,3 @@ export {
   generateSkillContent,
 } from './core/shared/index.js';
 export type { SkillTemplateEntry, CommandTemplateEntry } from './core/shared/index.js';
-export { SiteGenerator } from './core/site-generator.js';
-export type { SiteGeneratorOptions } from './core/site-generator.js';

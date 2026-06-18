@@ -62,16 +62,20 @@ learn-anything init
 
 ### 可视化学习仪表盘
 
-生成一个功能完整的 Web 仪表盘来浏览你的学习数据：
+一键启动零配置的 Web 仪表盘来浏览你的学习数据：
 
 ```bash
-# 启动可视化仪表盘
+# 启动可视化仪表盘（无需 npm install）
 learn-anything serve
 
-# 或在 init/update 时同步生成站点文件
-learn-anything init --site
-learn-anything update --site
+# 自定义端口
+learn-anything serve --port 8080
+
+# 禁止自动打开浏览器
+learn-anything serve --no-open
 ```
+
+> 仪表盘已在 CLI 中预构建并随包发布 — 无需额外依赖或 `npm install`。
 
 仪表盘提供：
 
@@ -95,7 +99,6 @@ learn-anything update --site
 │   ...                          # （30+ 种工具各有对应格式）
 │
 ├── .learn/                      # 🧠 你的学习数据存在这里
-│   ├── site/                        # 可视化学习仪表盘 (Vue 3 + Vite)
 │   └── topics/
 │       └── typescript/
 │           ├── state.json           # 唯一数据源
@@ -113,7 +116,8 @@ learn-anything update --site
 learn-anything/
 ├── packages/
 │   ├── cli/                     # learn-anything-cli — 发布到 npm
-│   │   ├── site/                 # Vue 3 + Vite 可视化学习仪表盘
+│   │   ├── site/                 # 仪表盘源码 (Vue 3 + Vite)
+│   │   ├── scripts/              # 构建脚本 (bundle-site.mjs)
 │   │   ├── src/
 │   │   │   ├── cli/             # Commander.js CLI 入口
 │   │   │   ├── core/            # 初始化、配置、命令生成、模板

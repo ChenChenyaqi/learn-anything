@@ -34,6 +34,7 @@
   },
   "files": [
     "dist",
+    "site-dist",
     "bin",
     "!dist/**/*.test.js",
     "!dist/**/__tests__",
@@ -41,7 +42,6 @@
   ],
   "scripts": {
     "build": "node scripts/bundle-site.mjs && tsc",
-    "site:bundle": "node scripts/bundle-site.mjs",
     "dev": "tsc --watch",
     "dev:cli": "pnpm build && node bin/learn-anything.js",
     "test": "vitest run",

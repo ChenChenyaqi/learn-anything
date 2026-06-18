@@ -15,10 +15,10 @@ export const zhCN: LocaleMessages = {
     updateComplete: 'Learn Anything 技能文件已更新。',
     forceOption: '跳过确认提示',
     langOption: '界面语言：zh-CN 或 en（默认读取系统语言设置）',
-    siteOption: '生成学习进度可视化站点文件',
-    portOption: '开发服务器端口（默认：5173）',
+    portOption: '开发服务器端口（默认：24278）',
     noOpenOption: '不自动打开浏览器',
     serveCommandDescription: '启动本地站点以可视化学习进度',
+    serveHint: '运行 npx learn-anything serve 在浏览器中查看学习进度',
   },
 
   init: {
@@ -37,22 +37,14 @@ export const zhCN: LocaleMessages = {
     context7Enabled: '  📚 已启用 Context7 文档验证引导。',
     context7SetupHint:
       '  💡 配置 Context7 MCP：运行 `npx ctx7 setup` 或访问 https://context7.com/docs/resources/all-clients',
-    sitePrompt: '是否生成本地可视化站点以查看学习进度？（使用 `learn-anything serve` 启动）',
-    siteEnabled: '  🌐 已启用站点生成。运行 `learn-anything serve` 查看。',
   },
 
   serve: {
-    commandDescription: '启动本地站点以可视化学习进度',
-    generatingSiteFiles: '正在生成站点文件...',
-    installingDependencies: '正在安装依赖...',
-    startingDevServer: '正在启动开发服务器...',
+    startingServer: '正在启动服务器...',
     siteReady: (url: string) => `站点已就绪: ${url}`,
-    npmNotFound: '未找到 npm。请安装 Node.js（包含 npm）以使用 serve 命令。',
-    installFailed: (detail: string) => `依赖安装失败: ${detail}`,
     portInUse: (port: number) => `端口 ${port} 已被占用。请使用 --port 选项指定其他端口。`,
-    noLearnDir: '未找到 .learn/ 目录。请先运行 learn-anything init --site。',
     emptyTopics: '.learn/topics/ 中未找到学习主题。使用 /learn:topic 开始学习。',
     serverStopped: '服务器已停止。',
-    siteGenerated: '站点文件已生成。',
+    siteNotBuilt: '未找到站点文件。请重新安装包或运行构建步骤。',
   },
 };

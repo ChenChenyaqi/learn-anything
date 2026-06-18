@@ -1,16 +1,12 @@
 /* ================================================================== */
-/*  useTopicData — Data access layer                                   */
+/*  useTopicData — Data access layer (fetch-based)                     */
 /*                                                                     */
-/*  Uses Vite's import.meta.glob to resolve files at build time.        */
-/*  All patterns are static string literals (required by Vite).         */
+/*  Fetches data from the local API server (serve.mjs).                */
+/*  All data is loaded eagerly on initTopicData() and cached in memory. */
+/*  Session/exercise content is loaded on demand via fetch().          */
 /*                                                                     */
-/*  Performance: module-level indexes are built once at import time,    */
-/*  providing O(1) lookup for all public API functions. Computed         */
-/*  results are cached to avoid redundant object allocation.            */
-/*                                                                     */
-/*  Lazy loading: session & exercise content use lazy globs so file     */
-/*  contents are NOT bundled eagerly. Content is loaded on-demand via   */
-/*  dynamic import() when a file is selected.                           */
+/*  In dev, vite proxies /api → serve.mjs (port 24277).                */
+/*  In prod, serve.mjs serves both static + API on a single port.      */
 /* ================================================================== */
 
 /* ------------------------------------------------------------------ */
@@ -77,99 +73,12 @@ export interface SelectedFilePayload {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Build-time glob imports                                            */
+/*  In-memory indexes (populated by initTopicData)                     */
 /* ------------------------------------------------------------------ */
 
-// Eager: state.json & knowledge-map (small, always needed)
-// Production reads from site/topics, tests read from test/fixtures/topics
-const testStateGlob =
-  import.meta.env.MODE === 'test'
-    ? import.meta.glob('../../../test/fixtures/topics/*/state.json', {
-        eager: true,
-        import: 'default',
-      })
-    : {};
-
-const stateModules = {
-  ...import.meta.glob('../../topics/*/state.json', {
-    eager: true,
-    import: 'default',
-  }),
-  ...testStateGlob,
-} as Record<string, StateV1>;
-
-const testKmGlob =
-  import.meta.env.MODE === 'test'
-    ? import.meta.glob('../../../test/fixtures/topics/*/knowledge-map.md', {
-        eager: true,
-        query: '?raw',
-        import: 'default',
-      })
-    : {};
-
-const knowledgeMapModules = {
-  ...import.meta.glob('../../topics/*/knowledge-map.md', {
-    eager: true,
-    query: '?raw',
-    import: 'default',
-  }),
-  ...testKmGlob,
-} as Record<string, string>;
-
-// Lazy: session & exercise content loaded on demand via dynamic import()
-const testSessionGlob =
-  import.meta.env.MODE === 'test'
-    ? {
-        ...import.meta.glob('../../../test/fixtures/topics/*/sessions/*/*.md', {
-          query: '?raw',
-        }),
-        ...import.meta.glob('../../../test/fixtures/topics/*/sessions/*.md', {
-          query: '?raw',
-        }),
-      }
-    : {};
-
-const sessionContentLoaders = {
-  ...import.meta.glob('../../topics/*/sessions/*/*.md', {
-    query: '?raw',
-  }),
-  ...import.meta.glob('../../topics/*/sessions/*.md', {
-    query: '?raw',
-  }),
-  ...testSessionGlob,
-} as Record<string, () => Promise<{ default: string }>>;
-
-const testExerciseGlob =
-  import.meta.env.MODE === 'test'
-    ? import.meta.glob('../../../test/fixtures/topics/*/exercises/**/*', {
-        query: '?raw',
-      })
-    : {};
-
-const exerciseContentLoaders = {
-  ...import.meta.glob('../../topics/*/exercises/**/*', {
-    query: '?raw',
-  }),
-  ...testExerciseGlob,
-} as Record<string, () => Promise<{ default: string }>>;
-
-/* ------------------------------------------------------------------ */
-/*  Path helpers                                                      */
-/* ------------------------------------------------------------------ */
-
-function slugFromStatePath(path: string): string {
-  const match = path.match(/\/topics\/([^/]+)\/state\.json$/);
-  return match?.[1] || '';
-}
-
-function filenameFromPath(path: string): string {
-  const parts = path.split('/');
-  return parts[parts.length - 1] || '';
-}
-
-/* ------------------------------------------------------------------ */
-/*  Module-level indexes (built once at import time, O(1) lookup)      */
-/* ------------------------------------------------------------------ */
+let ready = false;
+let initPromise: Promise<void> | null = null;
+let initVersion = 0;
 
 const stateBySlug = new Map<string, StateV1>();
 const knowledgeMapBySlug = new Map<string, string>();
@@ -177,128 +86,205 @@ const sessionsBySlug = new Map<string, Map<string, SessionFile[]>>();
 const exerciseGroupsBySlug = new Map<string, ExerciseGroup[]>();
 const orphanSessionsBySlug = new Map<string, SessionFile[]>();
 const orphanExercisesBySlug = new Map<string, ExerciseFile[]>();
+const fileContents = new Map<string, string>();
 
 let topicSummaryCache: TopicSummary[] | null = null;
 
-(function buildIndexes() {
-  /* --- States --- */
-  for (const [path, state] of Object.entries(stateModules)) {
-    const slug = slugFromStatePath(path);
-    if (slug) stateBySlug.set(slug, state);
-  }
+const FILE_CACHE_MAX = 200;
 
-  /* --- Knowledge maps --- */
-  for (const [path, content] of Object.entries(knowledgeMapModules)) {
-    const match = path.match(/\/topics\/([^/]+)\/knowledge-map\.md$/);
-    if (match?.[1]) knowledgeMapBySlug.set(match[1], content);
-  }
+/* ------------------------------------------------------------------ */
+/*  Helpers                                                            */
+/* ------------------------------------------------------------------ */
 
-  /* --- Sessions: pre-grouped slug → domain → files (paths only, content lazy) --- */
-  for (const path of Object.keys(sessionContentLoaders)) {
-    if (!path.endsWith('.md')) continue;
-    const domainMatch = path.match(/\/topics\/([^/]+)\/sessions\/([^/]+)\//);
-    if (domainMatch) {
-      const [, slug, domain] = domainMatch;
-      if (!sessionsBySlug.has(slug)) sessionsBySlug.set(slug, new Map());
-      const domainMap = sessionsBySlug.get(slug)!;
-      if (!domainMap.has(domain)) domainMap.set(domain, []);
-      domainMap.get(domain)!.push({
-        filename: filenameFromPath(path),
-        path,
-      });
-      continue;
-    }
-    const rootMatch = path.match(/\/topics\/([^/]+)\/sessions\/([^/]+\.md)$/);
-    if (rootMatch) {
-      const [, slug] = rootMatch;
-      if (!orphanSessionsBySlug.has(slug)) orphanSessionsBySlug.set(slug, []);
-      orphanSessionsBySlug.get(slug)!.push({
-        filename: filenameFromPath(path),
-        path,
-      });
-    }
-  }
-  for (const domainMap of sessionsBySlug.values()) {
-    for (const files of domainMap.values()) {
-      files.sort((a, b) => b.filename.localeCompare(a.filename));
-    }
-  }
-  for (const files of orphanSessionsBySlug.values()) {
-    files.sort((a, b) => b.filename.localeCompare(a.filename));
-  }
+function clearIndexes() {
+  initPromise = null;
+  ready = false;
+  initVersion++;
+  stateBySlug.clear();
+  knowledgeMapBySlug.clear();
+  sessionsBySlug.clear();
+  exerciseGroupsBySlug.clear();
+  orphanSessionsBySlug.clear();
+  orphanExercisesBySlug.clear();
+  fileContents.clear();
+  topicSummaryCache = null;
+}
 
-  /* --- Exercises: pre-grouped slug → concept (paths only, content lazy) --- */
-  const namesBySlug = new Map<string, Map<string, string>>();
-  for (const [slug, state] of stateBySlug) {
-    const nameMap = new Map<string, string>();
-    for (const domain of state.domains) {
-      for (const concept of domain.concepts) {
-        nameMap.set(concept.slug, concept.name);
-      }
-    }
-    namesBySlug.set(slug, nameMap);
-  }
+/* ------------------------------------------------------------------ */
+/*  Test-only injection API                                            */
+/* ------------------------------------------------------------------ */
 
-  const raw: Record<string, Map<string, ExerciseFile[]>> = {};
-  for (const path of Object.keys(exerciseContentLoaders)) {
-    const conceptMatch = path.match(/\/topics\/([^/]+)\/exercises\/([^/]+)\//);
-    if (conceptMatch) {
-      const [, slug, concept] = conceptMatch;
-      if (!raw[slug]) raw[slug] = new Map();
-      const conceptMap = raw[slug];
-      if (!conceptMap.has(concept)) conceptMap.set(concept, []);
-      conceptMap.get(concept)!.push({ name: filenameFromPath(path), path });
-      continue;
-    }
-    const rootMatch = path.match(/\/topics\/([^/]+)\/exercises\/([^/]+)$/);
-    if (rootMatch) {
-      const [, slug] = rootMatch;
-      if (!orphanExercisesBySlug.has(slug)) orphanExercisesBySlug.set(slug, []);
-      orphanExercisesBySlug.get(slug)!.push({ name: filenameFromPath(path), path });
-    }
-  }
+export function __resetForTest(): void {
+  clearIndexes();
+}
 
-  for (const [slug, conceptMap] of Object.entries(raw)) {
-    const names = namesBySlug.get(slug);
-    const groups: ExerciseGroup[] = [];
-    for (const [conceptSlug, files] of conceptMap) {
-      groups.push({
-        conceptSlug,
-        conceptName: names?.get(conceptSlug) || conceptSlug,
-        files,
-      });
-    }
-    groups.sort((a, b) => a.conceptName.localeCompare(b.conceptName));
+export function __injectTestData(data: {
+  summaries: TopicSummary[];
+  states: Record<string, StateV1>;
+  knowledgeMaps: Record<string, string>;
+  sessions: Record<string, Record<string, SessionFile[]>>;
+  exerciseGroups: Record<string, ExerciseGroup[]>;
+  orphanSessions: Record<string, SessionFile[]>;
+  orphanExercises: Record<string, ExerciseFile[]>;
+  fileContents: Record<string, string>;
+}): void {
+  topicSummaryCache = data.summaries;
+  for (const [slug, state] of Object.entries(data.states)) stateBySlug.set(slug, state);
+  for (const [slug, md] of Object.entries(data.knowledgeMaps)) knowledgeMapBySlug.set(slug, md);
+  for (const [slug, domainMap] of Object.entries(data.sessions)) {
+    sessionsBySlug.set(slug, new Map(Object.entries(domainMap)));
+  }
+  for (const [slug, groups] of Object.entries(data.exerciseGroups))
     exerciseGroupsBySlug.set(slug, groups);
+  for (const [slug, files] of Object.entries(data.orphanSessions))
+    orphanSessionsBySlug.set(slug, files);
+  for (const [slug, files] of Object.entries(data.orphanExercises))
+    orphanExercisesBySlug.set(slug, files);
+  for (const [path, content] of Object.entries(data.fileContents)) fileContents.set(path, content);
+  ready = true;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Build indexes from API response                                    */
+/* ------------------------------------------------------------------ */
+
+function buildIndexes(
+  summaries: TopicSummary[],
+  topicDataMap: Map<
+    string,
+    {
+      state: StateV1;
+      knowledgeMap: string;
+      sessions: Record<string, SessionFile[]>;
+      rootSessions: SessionFile[];
+      exercises: ExerciseGroup[];
+      rootExercises: ExerciseFile[];
+    }
+  >,
+) {
+  topicSummaryCache = summaries;
+
+  for (const [slug, data] of topicDataMap) {
+    stateBySlug.set(slug, data.state);
+    knowledgeMapBySlug.set(slug, data.knowledgeMap || '');
+
+    if (data.sessions) {
+      const domainMap = new Map<string, SessionFile[]>();
+      for (const [domain, files] of Object.entries(data.sessions)) {
+        domainMap.set(domain, files);
+      }
+      if (domainMap.size > 0) sessionsBySlug.set(slug, domainMap);
+    }
+
+    if (data.exercises && data.exercises.length > 0) {
+      exerciseGroupsBySlug.set(slug, data.exercises);
+    }
+
+    if (data.rootSessions && data.rootSessions.length > 0) {
+      orphanSessionsBySlug.set(slug, data.rootSessions);
+    }
+
+    if (data.rootExercises && data.rootExercises.length > 0) {
+      orphanExercisesBySlug.set(slug, data.rootExercises);
+    }
   }
-})();
+}
+
+/* ------------------------------------------------------------------ */
+/*  Initialization (called once on app mount)                          */
+/* ------------------------------------------------------------------ */
+
+export async function initTopicData(): Promise<void> {
+  if (ready) return;
+  if (initPromise) return initPromise;
+
+  const version = initVersion;
+
+  initPromise = (async () => {
+    const resp = await fetch('/api/topics');
+    if (!resp.ok || version !== initVersion) {
+      initPromise = null;
+      return;
+    }
+    const summaries: TopicSummary[] = await resp.json();
+
+    const topicDataMap = new Map();
+    await Promise.all(
+      summaries.map(async (s) => {
+        const r = await fetch(`/api/topics/${s.slug}`);
+        if (r.ok && version === initVersion) {
+          topicDataMap.set(s.slug, await r.json());
+        }
+      }),
+    );
+
+    if (version !== initVersion) {
+      initPromise = null;
+      return;
+    }
+    buildIndexes(summaries, topicDataMap);
+    ready = true;
+  })();
+
+  return initPromise;
+}
+
+/* ------------------------------------------------------------------ */
+/*  SSE file change listener                                           */
+/* ------------------------------------------------------------------ */
+
+export function listenForChanges(callback: () => void): () => void {
+  let src: EventSource | null = null;
+  let stopped = false;
+  let retryDelay = 1000;
+  let reconnecting = false;
+  const MAX_RETRY_DELAY = 30000;
+
+  function handleReload() {
+    clearIndexes();
+    initTopicData().then(() => callback());
+  }
+
+  function connect() {
+    if (stopped) return;
+    src = new EventSource('/api/events');
+    src.addEventListener('message', (e) => {
+      if (e.data === 'reload') {
+        retryDelay = 1000;
+        handleReload();
+      }
+    });
+    src.addEventListener('open', () => {
+      retryDelay = 1000;
+      if (reconnecting) {
+        reconnecting = false;
+        handleReload();
+      }
+    });
+    src.onerror = () => {
+      reconnecting = true;
+      src?.close();
+      src = null;
+      if (!stopped) {
+        setTimeout(connect, retryDelay);
+        retryDelay = Math.min(retryDelay * 2, MAX_RETRY_DELAY);
+      }
+    };
+  }
+
+  connect();
+  return () => {
+    stopped = true;
+    src?.close();
+  };
+}
 
 /* ------------------------------------------------------------------ */
 /*  Public API                                                        */
 /* ------------------------------------------------------------------ */
 
 export function listAllTopics(): TopicSummary[] {
-  if (topicSummaryCache) return topicSummaryCache;
-
-  const summaries: TopicSummary[] = [];
-  for (const [slug, state] of stateBySlug) {
-    const allConcepts = state.domains.flatMap((d) => d.concepts);
-    const total = allConcepts.length;
-    const mastered = allConcepts.filter((c) => c.status === 'mastered').length;
-
-    summaries.push({
-      slug,
-      name: state.topic || slug,
-      domainCount: state.domains.length,
-      totalConcepts: total,
-      masteredCount: mastered,
-      percentage: total > 0 ? Math.round((mastered / total) * 100) : 0,
-    } satisfies TopicSummary);
-  }
-
-  summaries.sort((a, b) => a.name.localeCompare(b.name));
-  topicSummaryCache = summaries;
-  return topicSummaryCache;
+  return topicSummaryCache ?? [];
 }
 
 export function loadTopic(slug: string): StateV1 | null {
@@ -325,16 +311,22 @@ export function scanRootExercises(slug: string): ExerciseFile[] {
   return orphanExercisesBySlug.get(slug) ?? [];
 }
 
-export async function loadSessionContent(path: string): Promise<string | null> {
-  const loader = sessionContentLoaders[path];
-  if (!loader) return null;
-  const mod = await loader();
-  return (mod as { default: string }).default;
+export async function loadFileContent(path: string): Promise<string | null> {
+  if (fileContents.has(path)) return fileContents.get(path)!;
+  try {
+    const resp = await fetch(`/api/file?path=${encodeURIComponent(path)}`);
+    if (!resp.ok) return null;
+    const text = await resp.text();
+    if (fileContents.size >= FILE_CACHE_MAX) {
+      const oldest = fileContents.keys().next().value;
+      if (oldest) fileContents.delete(oldest);
+    }
+    fileContents.set(path, text);
+    return text;
+  } catch {
+    return null;
+  }
 }
 
-export async function loadExerciseContent(path: string): Promise<string | null> {
-  const loader = exerciseContentLoaders[path];
-  if (!loader) return null;
-  const mod = await loader();
-  return (mod as { default: string }).default;
-}
+export const loadSessionContent = loadFileContent;
+export const loadExerciseContent = loadFileContent;

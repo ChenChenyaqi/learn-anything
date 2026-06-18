@@ -1,45 +1,92 @@
 import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
 import tailwindcss from '@tailwindcss/vite';
+import { spawn, type ChildProcess } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-export default defineConfig(({ mode }) => {
-  const topicsDir =
-    mode === 'test' ? resolve(__dirname, '../test/fixtures/topics') : resolve(__dirname, 'topics');
+export default defineConfig(() => {
+  // In dev, points to test fixtures by default. Override via TOPICS_DIR env var for real data.
+  const topicsDir = process.env.TOPICS_DIR || resolve(__dirname, '../test/fixtures/topics');
+
+  let apiProcess: ChildProcess | null = null;
+
+  function cleanup() {
+    if (apiProcess && apiProcess.exitCode === null) {
+      apiProcess.kill('SIGTERM');
+      apiProcess = null;
+    }
+  }
+
+  function removeProcessListeners(fn: () => void) {
+    process.removeListener('SIGINT', fn);
+    process.removeListener('SIGTERM', fn);
+  }
+
+  let boundCleanup: (() => void) | null = null;
 
   return {
     plugins: [
       vue(),
       tailwindcss(),
       {
-        name: 'topics-full-reload',
+        name: 'serve-api',
         apply: 'serve',
         configureServer(server) {
-          server.watcher.add(topicsDir);
-          const onAddUnlink = (file: string) => {
-            const normalized = file.replace(/\\/g, '/');
-            if (normalized.startsWith(topicsDir)) {
-              server.ws.send({ type: 'full-reload' });
+          function startApiProcess() {
+            if (apiProcess && apiProcess.exitCode === null) {
+              apiProcess.kill('SIGTERM');
+              apiProcess = null;
             }
-          };
-          server.watcher.on('add', onAddUnlink);
-          server.watcher.on('unlink', onAddUnlink);
+            apiProcess = spawn('node', ['serve.mjs'], {
+              cwd: __dirname,
+              stdio: 'inherit',
+              env: {
+                ...process.env,
+                PORT: '24277',
+                TOPICS_DIR: topicsDir,
+              },
+            });
+
+            apiProcess.on('error', (err) => {
+              console.error(`[serve-api] Failed to start API server: ${err.message}`);
+            });
+
+            apiProcess.on('exit', (code) => {
+              if (code !== 0 && code !== null) {
+                console.error(`[serve-api] API server exited with code ${code}`);
+              }
+              apiProcess = null;
+            });
+          }
+
+          if (boundCleanup) {
+            removeProcessListeners(boundCleanup);
+          }
+
+          startApiProcess();
+
+          boundCleanup = cleanup;
+          server.httpServer?.on('close', cleanup);
+          process.on('SIGINT', cleanup);
+          process.on('SIGTERM', cleanup);
         },
       },
     ],
-    resolve: {
-      alias: {
-        '@data': resolve(__dirname, 'topics'),
-      },
+    build: {
+      outDir: 'dist',
+      assetsDir: 'assets',
     },
     server: {
       host: true,
-      port: 5173,
-      fs: {
-        allow: [resolve(__dirname, '../..'), resolve(__dirname, '../topics')],
+      port: 24278,
+      proxy: {
+        '/api': {
+          target: 'http://localhost:24277',
+          changeOrigin: true,
+        },
       },
     },
   };

@@ -1,10 +1,11 @@
 import MarkdownIt from 'markdown-it';
 import emphasisRule from 'markdown-it/lib/rules_inline/emphasis.mjs';
 import hljs from 'highlight.js';
+import DOMPurify from 'dompurify';
 import '../styles/code.css';
 
 const md = new MarkdownIt({
-  html: false,
+  html: true,
   linkify: true,
   typographer: true,
   breaks: false,
@@ -42,9 +43,15 @@ md.inline.ruler.at('emphasis', (state, silent) => {
 
 /**
  * Renders a Markdown string to HTML.
+ *
+ * Output is sanitized via DOMPurify so safe HTML passes through (e.g. the
+ * `<details>/<summary>` collapsible blocks used for answers) while dangerous
+ * constructs — `<script>`, `on*` event handlers, `javascript:` URIs — are
+ * stripped. The default allow-list keeps standard HTML, tables, code spans,
+ * and the `<span class="hljs-…">` markup emitted by highlight.js.
  */
 export function renderMarkdown(src: string): string {
-  return md.render(src);
+  return DOMPurify.sanitize(md.render(src));
 }
 
 /**

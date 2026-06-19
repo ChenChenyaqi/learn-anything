@@ -10,3 +10,12 @@ declare module '*.md' {
   const content: string;
   export default content;
 }
+
+declare module 'markdown-it/lib/rules_inline/emphasis.mjs' {
+  const emphasis: {
+    tokenize: (state: any, silent: boolean) => boolean;
+
+    postProcess: (state: any) => void;
+  };
+  export default emphasis;
+}

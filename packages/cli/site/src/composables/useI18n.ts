@@ -38,7 +38,8 @@ export type I18nKey =
   | 'search.shortcutNonMac'
   | 'lang.switch'
   | 'theme.switch'
-  | 'loading.note';
+  | 'loading.note'
+  | 'toc.title';
 
 type Messages = Record<I18nKey, string>;
 
@@ -80,6 +81,7 @@ const messages: Record<Locale, Messages> = {
     'search.shortcutMac': '⌘K',
     'search.shortcutNonMac': 'Ctrl K',
     'loading.note': 'Opening note…',
+    'toc.title': 'On this page',
   },
   'zh-CN': {
     'dashboard.title': '学习仪表盘',
@@ -114,6 +116,7 @@ const messages: Record<Locale, Messages> = {
     'search.shortcutMac': '⌘K',
     'search.shortcutNonMac': 'Ctrl K',
     'loading.note': '正在打开笔记',
+    'toc.title': '本页内容',
   },
 };
 

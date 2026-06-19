@@ -2,6 +2,7 @@
 import { computed } from 'vue';
 import { renderMarkdown, highlightCode, getFileExtension } from '../utils/markdown';
 import type { SelectedFilePayload } from '../composables/useTopicData';
+import TocLayout from './TocLayout.vue';
 
 const props = defineProps<{
   file: SelectedFilePayload | null;
@@ -39,8 +40,8 @@ const isMd = computed(() => props.file?.type === 'markdown');
       <div class="h-3 w-4/5 rounded bg-(--color-divider)" />
     </div>
 
-    <!-- Markdown: VitePress-style — no wrapper, content flows -->
-    <div v-else-if="isMd" class="prose-content" v-html="renderedHtml" />
+    <!-- Markdown: VitePress-style prose + right-side TOC outline -->
+    <TocLayout v-else-if="isMd" :html="renderedHtml" />
 
     <!-- Code: VitePress code block style -->
     <div v-else class="prose-content rounded-lg overflow-hidden bg-(--color-bg-alt)">

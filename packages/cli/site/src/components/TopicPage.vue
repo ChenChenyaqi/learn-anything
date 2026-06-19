@@ -3,6 +3,7 @@ import { computed, ref, inject, type Ref } from 'vue';
 import { useI18n } from '../composables/useI18n';
 import { loadTopic, loadKnowledgeMap, getDataVersion } from '../composables/useTopicData';
 import ContentViewer from './ContentViewer.vue';
+import TocLayout from './TocLayout.vue';
 import type { SelectedFilePayload } from '../composables/useTopicData';
 import { renderMarkdown } from '../utils/markdown';
 
@@ -42,7 +43,7 @@ const showKnowledgeMap = computed(() => !selectedFile.value);
   <div v-else>
     <!-- Knowledge Map (default) — VitePress style: h1 outside prose, content flows naturally -->
     <template v-if="showKnowledgeMap">
-      <div class="prose-content" v-html="knowledgeMapHtml" />
+      <TocLayout :html="knowledgeMapHtml" />
     </template>
 
     <!-- File content -->

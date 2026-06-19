@@ -272,6 +272,26 @@ a:not([class]):hover {
   }
 }
 
+/* ---- Heading anchor permalink (VitePress-style `#`) ---- */
+
+.prose-content :is(h1, h2, h3, h4, h5, h6) {
+  scroll-margin-top: 2rem;
+}
+
+.prose-content .header-anchor {
+  position: absolute;
+  left: 0;
+  margin-left: -0.87em;
+  font-weight: 500;
+  text-decoration: none;
+  opacity: 0;
+  transition: opacity 0.25s;
+}
+
+.prose-content :is(h1, h2, h3, h4, h5, h6):hover .header-anchor {
+  opacity: 1;
+}
+
 /* ---- Paragraph & inline ---- */
 
 .prose-content p,

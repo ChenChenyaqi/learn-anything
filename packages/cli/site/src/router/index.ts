@@ -15,7 +15,13 @@ const router = createRouter({
       props: true,
     },
   ],
-  scrollBehavior() {
+  scrollBehavior(to) {
+    if (to.hash) {
+      if (document.querySelector(to.hash)) {
+        return { el: to.hash, behavior: 'smooth' };
+      }
+      return false;
+    }
     return { top: 0 };
   },
 });

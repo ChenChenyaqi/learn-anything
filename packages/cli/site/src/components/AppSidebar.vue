@@ -2,6 +2,7 @@
 import { ref, watch } from 'vue';
 import { useI18n } from '../composables/useI18n';
 import type { SelectedFilePayload } from '../composables/useTopicData';
+import SearchTrigger from './SearchTrigger.vue';
 import SidebarMobileToggle from './sidebar/SidebarMobileToggle.vue';
 import SidebarDashboard from './sidebar/SidebarDashboard.vue';
 import SidebarTopicTree from './sidebar/SidebarTopicTree.vue';
@@ -19,6 +20,7 @@ const emit = defineEmits<{
   'file-selected': [file: SelectedFilePayload | null];
   'topic-selected': [slug: string];
   'back-to-dashboard': [];
+  'search-open': [];
 }>();
 
 const { t } = useI18n();
@@ -77,13 +79,14 @@ function switchTab(tab: 'topics' | 'exercises') {
       </button>
     </div>
 
+    <div class="px-6 pb-3">
+      <SearchTrigger @open="emit('search-open')" />
+    </div>
+
     <div class="mx-6 border-t border-(--color-divider)" />
 
     <!-- Dashboard: topic list -->
-    <SidebarDashboard
-      v-if="context === 'dashboard'"
-      @topic-selected="onTopicSelected"
-    />
+    <SidebarDashboard v-if="context === 'dashboard'" @topic-selected="onTopicSelected" />
 
     <!-- Topic mode: tabs + trees -->
     <template v-else>

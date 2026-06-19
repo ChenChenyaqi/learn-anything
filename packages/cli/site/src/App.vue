@@ -3,9 +3,12 @@ import { computed, nextTick, onMounted, onUnmounted, ref, watch, provide } from 
 import { useRoute, useRouter } from 'vue-router';
 import AppSidebar from './components/AppSidebar.vue';
 import LoadingOverlay from './components/LoadingOverlay.vue';
+import SearchModal from './components/SearchModal.vue';
 import type { SelectedFilePayload } from './composables/useTopicData';
 import { listenForChanges, loadFileContent } from './composables/useTopicData';
 import { useContentLoader } from './composables/useContentLoader';
+import type { SearchEntry } from './composables/useSearch';
+import { headingSlug } from './utils/markdown';
 
 const route = useRoute();
 const router = useRouter();
@@ -52,6 +55,16 @@ function selectFile(
     (content) => {
       if (topicSelectedFile.value?.path === path) {
         topicSelectedFile.value = { ...topicSelectedFile.value, content };
+
+        // Content was just rendered — if the URL has a hash that
+        // router scrollBehavior couldn't resolve yet (element didn't
+        // exist), scroll to it now.
+        if (route.hash) {
+          nextTick(() => {
+            const el = document.querySelector(route.hash);
+            if (el) el.scrollIntoView({ behavior: 'smooth' });
+          });
+        }
       }
     },
     () => {
@@ -111,6 +124,52 @@ watch(
   { immediate: true },
 );
 
+/* ------------------------------------------------------------------ */
+/*  Search modal                                                        */
+/* ------------------------------------------------------------------ */
+
+const searchOpen = ref(false);
+
+function onGlobalKeydown(e: KeyboardEvent) {
+  if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+    if (searchOpen.value) return;
+
+    const el = document.activeElement;
+    const tag = el?.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || (el as HTMLElement)?.isContentEditable) {
+      return;
+    }
+
+    e.preventDefault();
+    searchOpen.value = true;
+  }
+}
+
+function onSearchSelect(entry: SearchEntry) {
+  searchOpen.value = false;
+  const hash = entry.level > 0 ? `#${headingSlug(entry.title)}` : '';
+
+  if (entry.kind === 'knowledge-map') {
+    resetLoader();
+    topicSelectedFile.value = null;
+    router.push({ path: `/topics/${entry.topicSlug}`, hash });
+    return;
+  }
+
+  const sourceTab = inferTabFromPath(entry.path);
+
+  if (currentTopicSlug.value === entry.topicSlug) {
+    router.replace({ query: { file: entry.path }, hash });
+    selectFile(entry.path, 'markdown', sourceTab, false);
+  } else {
+    router.push({
+      path: `/topics/${entry.topicSlug}`,
+      query: { file: entry.path },
+      hash,
+    });
+  }
+}
+
 /* --- Dark mode --- */
 function applyDarkMode() {
   const stored = localStorage.getItem('learn-anything-theme');
@@ -124,6 +183,7 @@ let stopReloadListener: (() => void) | null = null;
 onMounted(() => {
   applyDarkMode();
   window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyDarkMode);
+  window.addEventListener('keydown', onGlobalKeydown);
   stopReloadListener = listenForChanges(async () => {
     const scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
 
@@ -146,6 +206,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   stopReloadListener?.();
+  window.removeEventListener('keydown', onGlobalKeydown);
 });
 </script>
 
@@ -159,6 +220,7 @@ onUnmounted(() => {
       @file-selected="onFileSelected"
       @topic-selected="onTopicSelected"
       @back-to-dashboard="onBackToDashboard"
+      @search-open="searchOpen = true"
     />
 
     <main class="flex-1 min-w-0 lg:pl-68">
@@ -170,5 +232,7 @@ onUnmounted(() => {
     <Transition name="ld-fade">
       <LoadingOverlay v-if="contentLoading" />
     </Transition>
+
+    <SearchModal :open="searchOpen" @close="searchOpen = false" @select="onSearchSelect" />
   </div>
 </template>

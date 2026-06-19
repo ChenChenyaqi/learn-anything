@@ -1,5 +1,6 @@
 import MarkdownIt from 'markdown-it';
 import emphasisRule from 'markdown-it/lib/rules_inline/emphasis.mjs';
+import anchor from 'markdown-it-anchor';
 import hljs from 'highlight.js';
 import DOMPurify from 'dompurify';
 import '../styles/code.css';
@@ -39,6 +40,36 @@ const tokenizeEmphasis = emphasisRule.tokenize;
 md.inline.ruler.at('emphasis', (state, silent) => {
   if (state.src.charCodeAt(state.pos) === 0x5f /* _ */) return false;
   return tokenizeEmphasis(state, silent);
+});
+
+/**
+ * Unicode-aware slugify that preserves CJK characters.
+ * Prefixes every id with `h-` to mitigate DOM clobbering from user-controlled
+ * heading text (per markdown-it security guidance).
+ */
+export function headingSlug(str: string): string {
+  return (
+    'h-' +
+    str
+      .toLowerCase()
+      .replace(/[^\p{L}\p{N}\s-]/gu, '')
+      .trim()
+      .replace(/\s+/g, '-')
+  );
+}
+
+md.use(anchor, {
+  level: [1, 2, 3, 4, 5, 6],
+  slugify: headingSlug,
+  permalink: anchor.permalink.linkInsideHeader({
+    symbol: '#',
+    placement: 'before',
+    class: 'header-anchor',
+    renderAttrs: () => ({
+      'aria-label': 'Permalink to heading',
+      tabindex: '-1',
+    }),
+  }),
 });
 
 /**

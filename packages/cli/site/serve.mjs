@@ -88,6 +88,7 @@ function safeReadText(filePath) {
 const sseClients = new Set();
 
 function broadcastReload() {
+  searchIndexCache = null;
   for (const res of sseClients) {
     try {
       res.write('data: reload\n\n');
@@ -238,6 +239,146 @@ function buildTopicData(slug) {
 }
 
 /* ------------------------------------------------------------------ */
+/*  API: search index                                                  */
+/* ------------------------------------------------------------------ */
+
+let searchIndexCache = null;
+
+/** Map both domain and concept slugs → display names from a topic's state. */
+function buildSlugNameMap(state) {
+  const map = new Map();
+  for (const domain of (state && state.domains) || []) {
+    map.set(domain.slug, domain.name);
+    for (const concept of domain.concepts || []) {
+      map.set(concept.slug, concept.name);
+    }
+  }
+  return map;
+}
+
+/** Collect `.md` files at root or exactly one subdirectory deep — matching the
+    sidebar's two-level navigation tree (deeper nesting is not displayed, so not indexed). */
+function collectMarkdownFiles(dir) {
+  const out = [];
+  if (!existsSync(dir)) return out;
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    if (entry.isDirectory()) {
+      const subDir = join(dir, entry.name);
+      for (const f of readdirSync(subDir, { withFileTypes: true })) {
+        if (f.isFile() && f.name.endsWith('.md')) out.push(`${entry.name}/${f.name}`);
+      }
+    } else if (entry.isFile() && entry.name.endsWith('.md')) {
+      out.push(entry.name);
+    }
+  }
+  return out;
+}
+
+const HEADING_RE = /^(#{1,6})\s+(.+)$/;
+
+/** Extract ATX headings (level 1–6), skipping fenced code blocks. */
+function extractHeadings(content) {
+  const out = [];
+  let inFence = false;
+  for (const line of content.split('\n')) {
+    if (/^\s*(`{3,}|~{3,})/.test(line)) {
+      inFence = !inFence;
+      continue;
+    }
+    if (inFence) continue;
+    const m = line.match(HEADING_RE);
+    if (!m) continue;
+    const level = m[1].length;
+    const title = m[2].replace(/\s+#+$/, '').trim();
+    if (title) out.push({ title, level });
+  }
+  return out;
+}
+
+/** Build entries for one in-scope file: a filename pseudo-entry plus its headings. */
+function buildFileEntries({ filePath, apiPath, topicSlug, topicName, section, kind }) {
+  const entries = [];
+  const baseName = filePath.split('/').pop().replace(/\.md$/, '');
+  entries.push({ title: baseName, level: 0, path: apiPath, topicSlug, topicName, section, kind });
+  const content = safeReadText(filePath);
+  if (content) {
+    for (const { title, level } of extractHeadings(content)) {
+      entries.push({ title, level, path: apiPath, topicSlug, topicName, section, kind });
+    }
+  }
+  return entries;
+}
+
+/** Build the full flat search index across all topics. */
+function buildSearchIndex() {
+  const index = [];
+  if (!existsSync(TOPICS_DIR)) return index;
+  for (const entry of readdirSync(TOPICS_DIR, { withFileTypes: true })) {
+    if (!entry.isDirectory()) continue;
+    const slug = entry.name;
+    const topicDir = join(TOPICS_DIR, slug);
+    const state = safeReadJson(join(topicDir, 'state.json'));
+    const topicName = (state && state.topic) || slug;
+    const slugName = buildSlugNameMap(state);
+
+    // Session notes: sessions/**/*.md
+    const sessionsDir = join(topicDir, 'sessions');
+    for (const rel of collectMarkdownFiles(sessionsDir)) {
+      const dirName = rel.includes('/') ? rel.slice(0, rel.indexOf('/')) : '';
+      const section = dirName ? slugName.get(dirName) || dirName : topicName;
+      index.push(
+        ...buildFileEntries({
+          filePath: join(sessionsDir, rel),
+          apiPath: `/topics/${slug}/sessions/${rel}`,
+          topicSlug: slug,
+          topicName,
+          section,
+          kind: 'note',
+        }),
+      );
+    }
+
+    // Knowledge map: knowledge-map.md
+    const kmPath = join(topicDir, 'knowledge-map.md');
+    if (existsSync(kmPath)) {
+      index.push(
+        ...buildFileEntries({
+          filePath: kmPath,
+          apiPath: `/topics/${slug}/knowledge-map.md`,
+          topicSlug: slug,
+          topicName,
+          section: 'Knowledge Map',
+          kind: 'knowledge-map',
+        }),
+      );
+    }
+
+    // Exercise docs: exercises/**/*.md
+    const exercisesDir = join(topicDir, 'exercises');
+    for (const rel of collectMarkdownFiles(exercisesDir)) {
+      const dirName = rel.includes('/') ? rel.slice(0, rel.indexOf('/')) : '';
+      const section = dirName ? slugName.get(dirName) || dirName : topicName;
+      index.push(
+        ...buildFileEntries({
+          filePath: join(exercisesDir, rel),
+          apiPath: `/topics/${slug}/exercises/${rel}`,
+          topicSlug: slug,
+          topicName,
+          section,
+          kind: 'exercise',
+        }),
+      );
+    }
+  }
+  return index;
+}
+
+function getSearchIndex() {
+  if (!searchIndexCache) searchIndexCache = buildSearchIndex();
+  return searchIndexCache;
+}
+
+/* ------------------------------------------------------------------ */
 /*  API: file content                                                  */
 /* ------------------------------------------------------------------ */
 
@@ -313,6 +454,10 @@ function handler(req, res) {
   const fileMatch = pathname.match(/^\/api\/file$/);
   if (fileMatch) {
     return serveFileContent(res, req.url);
+  }
+
+  if (pathname === '/api/search-index') {
+    return json(res, getSearchIndex());
   }
 
   // SSE

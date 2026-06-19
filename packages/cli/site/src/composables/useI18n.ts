@@ -31,6 +31,11 @@ export type I18nKey =
   | 'sidebar.noNotes'
   | 'sidebar.noExercises'
   | 'sidebar.orphanTip'
+  | 'search.placeholder'
+  | 'search.noResults'
+  | 'search.open'
+  | 'search.shortcutMac'
+  | 'search.shortcutNonMac'
   | 'lang.switch'
   | 'theme.switch'
   | 'loading.note';
@@ -69,6 +74,11 @@ const messages: Record<Locale, Messages> = {
     'sidebar.noNotes': 'No sessions',
     'sidebar.noExercises': 'No exercises',
     'sidebar.orphanTip': 'This folder is not part of the knowledge map',
+    'search.placeholder': 'Search notes…',
+    'search.noResults': 'No matching notes',
+    'search.open': 'Open search',
+    'search.shortcutMac': '⌘K',
+    'search.shortcutNonMac': 'Ctrl K',
     'loading.note': 'Opening note…',
   },
   'zh-CN': {
@@ -98,6 +108,11 @@ const messages: Record<Locale, Messages> = {
     'sidebar.noNotes': '没有笔记',
     'sidebar.noExercises': '没有练习',
     'sidebar.orphanTip': '此目录不在知识地图中',
+    'search.placeholder': '搜索笔记…',
+    'search.noResults': '没有匹配的笔记',
+    'search.open': '打开搜索',
+    'search.shortcutMac': '⌘K',
+    'search.shortcutNonMac': 'Ctrl K',
     'loading.note': '正在打开笔记',
   },
 };

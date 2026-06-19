@@ -146,6 +146,30 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* ---- Custom scrollbar (adapts to dark mode via CSS variables) ---- */
+
+/* Firefox + Chrome 121+ */
+* {
+  scrollbar-color: var(--color-border) transparent;
+  scrollbar-width: thin;
+}
+
+/* Safari + older Chrome */
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+  background-color: var(--color-border);
+  border-radius: 3px;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-text-3);
+}
+
 /* Headings — VitePress uses 600 weight, not 700 */
 h1,
 h2,

@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="./logo.png" alt="Learn Anything Logo" width="120" />
+</p>
+
 <h1 align="center">Learn Anything</h1>
 
 <p align="center">

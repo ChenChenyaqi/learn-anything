@@ -1,0 +1,49 @@
+{
+  "version": 1,
+  "topic": "JavaScript",
+  "topic_slug": "javascript",
+  "concept_slug": "scope-closures",
+  "concept_name": "作用域与闭包",
+  "created": "2026-06-25 10:00:00",
+  "questions": [
+    {
+      "id": "q1",
+      "type": "multiple_choice",
+      "gradeable": "exact",
+      "prompt": "What does a closure capture?",
+      "explanation": "A closure captures variables from its enclosing lexical scope, even after that function has returned.",
+      "options": [
+        "Variables from the enclosing lexical scope",
+        "Only global variables",
+        "Only the `this` binding",
+        "Nothing — it is self-contained"
+      ],
+      "answer": "Variables from the enclosing lexical scope"
+    },
+    {
+      "id": "q2",
+      "type": "true_false",
+      "gradeable": "exact",
+      "prompt": "`var` declarations have block-level scope in JavaScript.",
+      "explanation": "`var` has function scope, not block scope. `let` and `const` introduced block scope in ES6.",
+      "answer": false
+    },
+    {
+      "id": "q3",
+      "type": "fill_in_blank",
+      "gradeable": "accepted",
+      "prompt": "What keyword creates a block-scoped constant that cannot be reassigned?",
+      "explanation": "`const` creates a binding that cannot be reassigned, though objects assigned to it are still mutable.",
+      "answer": "const",
+      "accepted_answers": ["const", "const keyword"]
+    },
+    {
+      "id": "q4",
+      "type": "error_correction",
+      "gradeable": "ai_only",
+      "prompt": "Fix the bug: the counter should increment but always returns 0.\n\nfunction counter() {\n  let count = 0;\n  return function() {\n    let count = 0;\n    return count;\n  };\n}",
+      "explanation": "The inner function re-declares `count` with `let`, shadowing the outer variable. Remove the inner declaration and use `count++`.",
+      "answer": "function counter() {\n  let count = 0;\n  return function() {\n    count++;\n    return count;\n  };\n}"
+    }
+  ]
+}

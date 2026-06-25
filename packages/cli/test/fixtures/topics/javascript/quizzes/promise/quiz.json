@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "topic": "JavaScript",
+  "topic_slug": "javascript",
+  "concept_slug": "promise",
+  "concept_name": "Promise",
+  "created": "2026-06-24 09:00:00",
+  "questions": [
+    {
+      "id": "q1",
+      "type": "multiple_choice",
+      "gradeable": "exact",
+      "prompt": "Which method handles a rejected Promise?",
+      "explanation": ".catch() is shorthand for .then(null, onRejected) and handles rejections.",
+      "options": [".then()", ".catch()", ".finally()", ".error()"],
+      "answer": ".catch()"
+    },
+    {
+      "id": "q2",
+      "type": "true_false",
+      "gradeable": "exact",
+      "prompt": "Promise.all() rejects as soon as any input promise rejects.",
+      "explanation": "Promise.all() fails fast — the first rejection causes the entire aggregate to reject.",
+      "answer": true
+    },
+    {
+      "id": "q3",
+      "type": "multiple_choice",
+      "gradeable": "exact",
+      "prompt": "What does Promise.allSettled() return?",
+      "explanation": "Unlike Promise.all(), allSettled waits for all promises and never rejects — each result has {status, value/reason}.",
+      "options": [
+        "Rejects if any promise rejects",
+        "An array of {status, value/reason} for every promise",
+        "Only the first fulfilled promise's value",
+        "A single resolved value combining all results"
+      ],
+      "answer": "An array of {status, value/reason} for every promise"
+    }
+  ]
+}

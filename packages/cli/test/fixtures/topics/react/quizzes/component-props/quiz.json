@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "topic": "React",
+  "topic_slug": "react",
+  "concept_slug": "component-props",
+  "concept_name": "组件与 Props",
+  "created": "2026-06-20 14:00:00",
+  "questions": [
+    {
+      "id": "q1",
+      "type": "multiple_choice",
+      "gradeable": "exact",
+      "prompt": "How do you pass data from a parent component to a child component?",
+      "explanation": "Props are the standard mechanism for parent-to-child data flow in React.",
+      "options": ["Via props", "Via context only", "Via DOM attributes", "Via global variables"],
+      "answer": "Via props"
+    },
+    {
+      "id": "q2",
+      "type": "true_false",
+      "gradeable": "exact",
+      "prompt": "Props are mutable — child components can modify the props they receive.",
+      "explanation": "Props are read-only. To respond to changes, use state and pass new props from the parent.",
+      "answer": false
+    },
+    {
+      "id": "q3",
+      "type": "fill_in_blank",
+      "gradeable": "accepted",
+      "prompt": "What special prop represents the nested elements between a component's opening and closing tags?",
+      "explanation": "The `children` prop automatically receives any nested JSX.",
+      "answer": "children",
+      "accepted_answers": ["children", "children prop", "props.children"]
+    }
+  ]
+}

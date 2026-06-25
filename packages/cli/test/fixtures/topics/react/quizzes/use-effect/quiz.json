@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "topic": "React",
+  "topic_slug": "react",
+  "concept_slug": "use-effect",
+  "concept_name": "useEffect 与生命周期",
+  "created": "2026-06-22 16:00:00",
+  "questions": [
+    {
+      "id": "q1",
+      "type": "multiple_choice",
+      "gradeable": "exact",
+      "prompt": "What does the cleanup function returned by useEffect do?",
+      "explanation": "The cleanup function runs before the component unmounts and before each re-run of the effect.",
+      "options": [
+        "Runs before the component unmounts and before each re-run",
+        "Runs only when the component unmounts",
+        "Runs immediately after the effect setup",
+        "It is optional and never executes"
+      ],
+      "answer": "Runs before the component unmounts and before each re-run"
+    },
+    {
+      "id": "q2",
+      "type": "true_false",
+      "gradeable": "exact",
+      "prompt": "Passing an empty dependency array [] to useEffect makes it run only once after mount.",
+      "explanation": "An empty deps array means the effect has no reactive dependencies, so it only runs after the initial mount.",
+      "answer": true
+    },
+    {
+      "id": "q3",
+      "type": "error_correction",
+      "gradeable": "ai_only",
+      "prompt": "Fix the infinite loop: the effect keeps triggering re-renders.\n\nuseEffect(() => {\n  setData(fetchData());\n});",
+      "explanation": "Omitting the dependency array causes the effect to run after every render. Add a dependency array or use a guard condition.",
+      "answer": "useEffect(() => {\n  setData(fetchData());\n}, []);"
+    }
+  ]
+}

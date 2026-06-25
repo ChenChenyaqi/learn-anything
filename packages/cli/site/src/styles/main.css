@@ -72,11 +72,13 @@
   /* --- Accent: the red pen (replaces VitePress indigo) --- */
   --color-brand-1: #cc4428;
   --color-brand-2: #d94e34;
+  --color-brand-2-rgb: 217 78 52;
   --color-brand-3: #e0604a;
   --color-brand-soft: rgba(217 78 52 / 0.14);
 
   /* --- Status colors --- */
   --color-mastered: #18794e;
+  --color-mastered-rgb: 24 121 78;
   --color-progress: #915930;
 
   /* --- Code --- */
@@ -108,10 +110,12 @@
 
   --color-brand-1: #f0705a;
   --color-brand-2: #e85d44;
+  --color-brand-2-rgb: 232 93 68;
   --color-brand-3: #d94e34;
   --color-brand-soft: rgba(232 93 68 / 0.16);
 
   --color-mastered: #3dd68c;
+  --color-mastered-rgb: 61 214 140;
   --color-progress: #f9b44e;
 }
 

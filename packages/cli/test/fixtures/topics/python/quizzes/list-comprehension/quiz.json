@@ -1,0 +1,35 @@
+{
+  "version": 1,
+  "topic": "Python",
+  "topic_slug": "python",
+  "concept_slug": "list-comprehension",
+  "concept_name": "列表与元组",
+  "created": "2026-06-19 11:00:00",
+  "questions": [
+    {
+      "id": "q1",
+      "type": "multiple_choice",
+      "gradeable": "exact",
+      "prompt": "What does [x*2 for x in range(3)] produce?",
+      "explanation": "List comprehension iterates over range(3) = [0, 1, 2] and doubles each value.",
+      "options": ["[0, 2, 4]", "[2, 4, 6]", "[0, 1, 2]", "[1, 2, 3]"],
+      "answer": "[0, 2, 4]"
+    },
+    {
+      "id": "q2",
+      "type": "true_false",
+      "gradeable": "exact",
+      "prompt": "Tuples in Python are immutable — you cannot change their elements after creation.",
+      "explanation": "Tuples are immutable sequences. Once created, their size and contents cannot be changed.",
+      "answer": true
+    },
+    {
+      "id": "q3",
+      "type": "error_correction",
+      "gradeable": "ai_only",
+      "prompt": "Fix the error: the list comprehension should filter even numbers but returns all numbers.\n\n[x for x in range(10) if x % 2]",
+      "explanation": "`x % 2` is truthy for odd numbers, not even. Change the condition to `if x % 2 == 0`.",
+      "answer": "[x for x in range(10) if x % 2 == 0]"
+    }
+  ]
+}

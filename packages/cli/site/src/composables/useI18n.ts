@@ -49,6 +49,28 @@ export type I18nKey =
   | 'quiz.false'
   | 'quiz.typeAnswer'
   | 'quiz.fixError'
+  | 'quiz.typeMultipleChoice'
+  | 'quiz.typeTrueFalse'
+  | 'quiz.typeFillBlank'
+  | 'quiz.typeErrorCorrection'
+  | 'quiz.yourAnswer'
+  | 'quiz.correctAnswer'
+  | 'quiz.manualEvaluation'
+  | 'quiz.helpTitle'
+  | 'quiz.hintChoice'
+  | 'quiz.hintTrueFalse'
+  | 'quiz.hintNav'
+  | 'quiz.hintSubmit'
+  | 'quiz.allQuizzes'
+  | 'quiz.groupProgress'
+  | 'quiz.sequential'
+  | 'quiz.random'
+  | 'quiz.retryGroup'
+  | 'quiz.nextGroup'
+  | 'quiz.viewSummary'
+  | 'quiz.allComplete'
+  | 'quiz.totalScore'
+  | 'quiz.loadError'
   | 'search.placeholder'
   | 'search.noResults'
   | 'search.open'
@@ -111,6 +133,28 @@ const messages: Record<Locale, Messages> = {
     'quiz.false': 'False',
     'quiz.typeAnswer': 'Type your answer…',
     'quiz.fixError': 'Identify and fix the error…',
+    'quiz.typeMultipleChoice': 'Multiple Choice',
+    'quiz.typeTrueFalse': 'True / False',
+    'quiz.typeFillBlank': 'Fill in the Blank',
+    'quiz.typeErrorCorrection': 'Error Correction',
+    'quiz.yourAnswer': 'Your answer',
+    'quiz.correctAnswer': 'Correct answer',
+    'quiz.manualEvaluation': 'Requires manual evaluation',
+    'quiz.helpTitle': 'Keyboard Shortcuts',
+    'quiz.hintChoice': 'Press A / B / C / D to select an option',
+    'quiz.hintTrueFalse': 'Press 1 / 2 for True / False',
+    'quiz.hintNav': '← / → to switch questions',
+    'quiz.hintSubmit': 'Press {key} + Enter to submit',
+    'quiz.allQuizzes': 'All Quizzes',
+    'quiz.groupProgress': 'Group {current} / {total}',
+    'quiz.sequential': 'Practice in order',
+    'quiz.random': 'Practice shuffled',
+    'quiz.retryGroup': 'Retry this group',
+    'quiz.nextGroup': 'Next group',
+    'quiz.viewSummary': 'View all results',
+    'quiz.allComplete': 'All Complete',
+    'quiz.totalScore': 'Total Score',
+    'quiz.loadError': 'Failed to load quiz. Please try again.',
     'search.placeholder': 'Search notes…',
     'search.noResults': 'No matching notes',
     'search.open': 'Open search',
@@ -164,6 +208,28 @@ const messages: Record<Locale, Messages> = {
     'quiz.false': '错误',
     'quiz.typeAnswer': '输入你的答案…',
     'quiz.fixError': '找出并修正错误…',
+    'quiz.typeMultipleChoice': '选择题',
+    'quiz.typeTrueFalse': '判断题',
+    'quiz.typeFillBlank': '填空题',
+    'quiz.typeErrorCorrection': '纠错题',
+    'quiz.yourAnswer': '你的答案',
+    'quiz.correctAnswer': '正确答案',
+    'quiz.manualEvaluation': '需要人工评估',
+    'quiz.helpTitle': '键盘快捷键',
+    'quiz.hintChoice': '按 A / B / C / D 选择选项',
+    'quiz.hintTrueFalse': '按 1 / 2 选择对错',
+    'quiz.hintNav': '← / → 切换题目',
+    'quiz.hintSubmit': '按 {key} + Enter 提交',
+    'quiz.allQuizzes': '全部测验',
+    'quiz.groupProgress': '第 {current} / {total} 组',
+    'quiz.sequential': '顺序练习',
+    'quiz.random': '随机练习',
+    'quiz.retryGroup': '重做本组',
+    'quiz.nextGroup': '下一组',
+    'quiz.viewSummary': '查看总成绩',
+    'quiz.allComplete': '全部完成',
+    'quiz.totalScore': '总得分',
+    'quiz.loadError': '加载测验失败，请重试。',
     'search.placeholder': '搜索笔记…',
     'search.noResults': '没有匹配的笔记',
     'search.open': '打开搜索',

@@ -7,12 +7,13 @@ import SidebarMobileToggle from './sidebar/SidebarMobileToggle.vue';
 import SidebarDashboard from './sidebar/SidebarDashboard.vue';
 import SidebarTopicTree from './sidebar/SidebarTopicTree.vue';
 import SidebarExerciseTree from './sidebar/SidebarExerciseTree.vue';
+import SidebarQuizTree from './sidebar/SidebarQuizTree.vue';
 import SidebarFooter from './sidebar/SidebarFooter.vue';
 
 const props = defineProps<{
   context: 'dashboard' | 'topic';
   topicSlug?: string;
-  initialTab?: 'topics' | 'exercises';
+  initialTab?: 'topics' | 'exercises' | 'quizzes';
   selectedFilePath?: string | null;
 }>();
 
@@ -21,17 +22,19 @@ const emit = defineEmits<{
   'topic-selected': [slug: string];
   'back-to-dashboard': [];
   'search-open': [];
+  'quiz-selected': [quiz: { path: string }];
+  'quiz-batch-selected': [batch: { items: import('../composables/useQuiz').QueueItem[]; mode: 'sequential' | 'random' }];
 }>();
 
 const { t } = useI18n();
 
 const mobileOpen = ref(false);
-const tabMode = ref<'topics' | 'exercises'>('topics');
+const tabMode = ref<'topics' | 'exercises' | 'quizzes'>('topics');
 
 watch(
   () => props.initialTab,
   (tab) => {
-    if (tab === 'exercises') tabMode.value = 'exercises';
+    if (tab === 'exercises' || tab === 'quizzes') tabMode.value = tab;
   },
   { immediate: true },
 );
@@ -54,8 +57,18 @@ function onKnowledgeMap() {
   emit('file-selected', null);
 }
 
-function switchTab(tab: 'topics' | 'exercises') {
+function switchTab(tab: 'topics' | 'exercises' | 'quizzes') {
   tabMode.value = tab;
+}
+
+function onQuizSelected(quiz: { path: string }) {
+  emit('quiz-selected', quiz);
+  mobileOpen.value = false;
+}
+
+function onQuizBatchSelected(batch: { items: import('../composables/useQuiz').QueueItem[]; mode: 'sequential' | 'random' }) {
+  emit('quiz-batch-selected', batch);
+  mobileOpen.value = false;
 }
 </script>
 
@@ -114,6 +127,17 @@ function switchTab(tab: 'topics' | 'exercises') {
           >
             {{ t('sidebar.exercises') }}
           </button>
+          <button
+            class="pb-2 text-xs font-medium transition-colors cursor-pointer border-b-2 -mb-px"
+            :class="
+              tabMode === 'quizzes'
+                ? 'border-brand-2 text-brand-2'
+                : 'border-transparent text-text-2 hover:text-text-1'
+            "
+            @click="switchTab('quizzes')"
+          >
+            {{ t('sidebar.quizzes') }}
+          </button>
         </div>
       </div>
 
@@ -132,6 +156,13 @@ function switchTab(tab: 'topics' | 'exercises') {
         :topic-slug="topicSlug"
         :selected-file-path="selectedFilePath"
         @file-selected="onFileSelected"
+      />
+
+      <SidebarQuizTree
+        v-if="tabMode === 'quizzes' && topicSlug"
+        :topic-slug="topicSlug"
+        @quiz-selected="onQuizSelected"
+        @quiz-batch-selected="onQuizBatchSelected"
       />
     </template>
 

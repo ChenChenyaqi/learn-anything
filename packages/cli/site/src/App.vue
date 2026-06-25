@@ -4,9 +4,11 @@ import { useRoute, useRouter } from 'vue-router';
 import AppSidebar from './components/AppSidebar.vue';
 import LoadingOverlay from './components/LoadingOverlay.vue';
 import SearchModal from './components/SearchModal.vue';
+import QuizModal from './components/quiz/QuizModal.vue';
 import type { SelectedFilePayload } from './composables/useTopicData';
 import { listenForChanges, loadFileContent } from './composables/useTopicData';
 import { useContentLoader } from './composables/useContentLoader';
+import { fetchQuizDeck, type QuizDeck, type QueueItem } from './composables/useQuiz';
 import type { SearchEntry } from './composables/useSearch';
 import { headingSlug } from './utils/markdown';
 
@@ -42,7 +44,7 @@ const { isLoading: contentLoading, load: loadContent, reset: resetLoader } = use
 function selectFile(
   path: string,
   type: 'markdown' | 'code',
-  sourceTab: 'topics' | 'exercises',
+  sourceTab: 'topics' | 'exercises' | 'quizzes',
   syncUrl = true,
 ) {
   // Selection is synchronous → first render already shows the file view,
@@ -170,6 +172,35 @@ function onSearchSelect(entry: SearchEntry) {
   }
 }
 
+/* ------------------------------------------------------------------ */
+/*  Quiz modal                                                          */
+/* ------------------------------------------------------------------ */
+
+const quizOpen = ref(false);
+const quizDeck = ref<QuizDeck | null>(null);
+const quizQueue = ref<{ items: QueueItem[]; mode: 'sequential' | 'random' } | null>(null);
+const quizSessionKey = ref(0);
+
+async function onQuizSelected(quiz: { path: string }) {
+  if (!currentTopicSlug.value) return;
+  try {
+    quizQueue.value = null;
+    quizDeck.value = await fetchQuizDeck(currentTopicSlug.value, quiz.path);
+    quizSessionKey.value++;
+    quizOpen.value = true;
+  } catch (e) {
+    console.error('Failed to load quiz:', e);
+  }
+}
+
+function onQuizBatchSelected(batch: { items: QueueItem[]; mode: 'sequential' | 'random' }) {
+  if (!currentTopicSlug.value) return;
+  quizDeck.value = null;
+  quizQueue.value = batch;
+  quizSessionKey.value++;
+  quizOpen.value = true;
+}
+
 /* --- Dark mode --- */
 function applyDarkMode() {
   const stored = localStorage.getItem('learn-anything-theme');
@@ -221,6 +252,8 @@ onUnmounted(() => {
       @topic-selected="onTopicSelected"
       @back-to-dashboard="onBackToDashboard"
       @search-open="searchOpen = true"
+      @quiz-selected="onQuizSelected"
+      @quiz-batch-selected="onQuizBatchSelected"
     />
 
     <main class="flex-1 min-w-0 lg:pl-68">
@@ -234,5 +267,14 @@ onUnmounted(() => {
     </Transition>
 
     <SearchModal :open="searchOpen" @close="searchOpen = false" @select="onSearchSelect" />
+
+    <QuizModal
+      :key="quizSessionKey"
+      :open="quizOpen"
+      :quiz-deck="quizDeck"
+      :quiz-queue="quizQueue"
+      :topic-slug="currentTopicSlug ?? ''"
+      @close="quizOpen = false"
+    />
   </div>
 </template>

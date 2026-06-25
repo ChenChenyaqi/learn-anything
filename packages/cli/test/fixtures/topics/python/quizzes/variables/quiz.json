@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "topic": "Python",
+  "topic_slug": "python",
+  "concept_slug": "variables",
+  "concept_name": "变量与赋值",
+  "created": "2026-06-18 10:00:00",
+  "questions": [
+    {
+      "id": "q1",
+      "type": "multiple_choice",
+      "gradeable": "exact",
+      "prompt": "Which of the following is a valid variable name in Python?",
+      "explanation": "Python variable names can contain letters, digits, and underscores but cannot start with a digit.",
+      "options": ["my_var", "2nd_value", "class", "my-var"],
+      "answer": "my_var"
+    },
+    {
+      "id": "q2",
+      "type": "true_false",
+      "gradeable": "exact",
+      "prompt": "In Python, variables are dynamically typed — you can reassign a variable to a different type.",
+      "explanation": "Python is dynamically typed. `x = 5` then `x = 'hello'` is perfectly valid.",
+      "answer": true
+    },
+    {
+      "id": "q3",
+      "type": "fill_in_blank",
+      "gradeable": "accepted",
+      "prompt": "What built-in constant represents the absence of a value in Python?",
+      "explanation": "`None` is Python's null equivalent, an instance of NoneType.",
+      "answer": "None",
+      "accepted_answers": ["None", "none", "null"]
+    }
+  ]
+}

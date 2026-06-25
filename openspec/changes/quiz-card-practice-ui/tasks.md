@@ -19,41 +19,41 @@
 
 ## 4. Sidebar Quiz Tab & Tree
 
-- [ ] 4.1 Extend `AppSidebar.vue` `tabMode` type to include `'quizzes'` and add the third tab button
-- [ ] 4.2 Create `SidebarQuizTree.vue` component: fetches quiz list via `fetchQuizList`, renders concept groups with play icons (▶), handles empty state, emits `quiz-selected` event
-- [ ] 4.3 Wire `SidebarQuizTree` into `AppSidebar.vue` template, emit events up to `App.vue`
+- [x] 4.1 Extend `AppSidebar.vue` `tabMode` type to include `'quizzes'` and add the third tab button
+- [x] 4.2 Create `SidebarQuizTree.vue` component: fetches quiz list via `fetchQuizList`, renders concept groups with play icons (▶), handles empty state, emits `quiz-selected` event
+- [x] 4.3 Wire `SidebarQuizTree` into `AppSidebar.vue` template, emit events up to `App.vue`
 
 ## 5. Quiz Card Component (`QuizCard.vue`)
 
-- [ ] 5.1 Create `QuizCard.vue` with props `question: QuizQuestion` and `modelValue: string | boolean | null`
-- [ ] 5.2 Render multiple choice: radio inputs from `question.options[]`, bind to `modelValue`
-- [ ] 5.3 Render true/false: two toggle-style buttons for True/False
-- [ ] 5.4 Render fill-in-blank: single-line text input with placeholder
-- [ ] 5.5 Render error correction: multi-line textarea with placeholder
-- [ ] 5.6 Add keyboard shortcuts: A/B/C/D or 1-4 for multiple choice (emit on keydown)
+- [x] 5.1 Create `QuizCard.vue` with props `question: QuizQuestion` and `modelValue: string | boolean | null`
+- [x] 5.2 Render multiple choice: radio inputs from `question.options[]`, bind to `modelValue`
+- [x] 5.3 Render true/false: two toggle-style buttons for True/False
+- [x] 5.4 Render fill-in-blank: single-line text input with placeholder
+- [x] 5.5 Render error correction: multi-line textarea with placeholder
+- [x] 5.6 Add keyboard shortcuts: A/B/C/D or 1-4 for multiple choice (emit on keydown)
 
 ## 6. Quiz Modal (`QuizModal.vue`)
 
-- [ ] 6.1 Create `QuizModal.vue` with `open` prop and `close` event, `<Teleport to="body">`, backdrop with blur, body scroll lock, Escape-to-close (follow `SearchModal.vue` pattern)
-- [ ] 6.2 Accept `quizDeck` prop; on open, initialize `useQuizSession` and show first question
-- [ ] 6.3 Render header bar: "Back to list" button (left), question progress indicator "Question X / Y" (right)
-- [ ] 6.4 Render `<QuizCard>` for current question with `v-model` bound to session answers
-- [ ] 6.5 Render navigation footer: "Previous" button (disabled on first question), "Next" / "Submit" button (shows "Submit" on last question)
-- [ ] 6.6 Implement `<Transition>` with CSS translateX/scale/rotateY animation for card slide (forwards: left-exit/right-enter; backwards: right-exit/left-enter), respect `prefers-reduced-motion`
-- [ ] 6.7 Add Arrow Left/Right keyboard navigation for the modal
+- [x] 6.1 Create `QuizModal.vue` with `open` prop and `close` event, `<Teleport to="body">`, backdrop with blur, body scroll lock, Escape-to-close (follow `SearchModal.vue` pattern)
+- [x] 6.2 Accept `quizDeck` prop; on open, initialize `useQuizSession` and show first question
+- [x] 6.3 Render header bar: "Back to list" button (left), question progress indicator "Question X / Y" (right)
+- [x] 6.4 Render `<QuizCard>` for current question with `v-model` bound to session answers
+- [x] 6.5 Render navigation footer: "Previous" button (disabled on first question), "Next" / "Submit" button (shows "Submit" on last question)
+- [x] 6.6 Implement `<Transition>` with CSS translateX/scale/rotateY animation for card slide (forwards: left-exit/right-enter; backwards: right-exit/left-enter), respect `prefers-reduced-motion`
+- [x] 6.7 Add Arrow Left/Right keyboard navigation for the modal
 
 ## 7. Quiz Results Component (`QuizResults.vue`)
 
-- [ ] 7.1 Create `QuizResults.vue` with props `results: QuizResults` (computed from `useQuizSession`)
-- [ ] 7.2 Render large score indicator: "X / Y" + percentage, styled with brand colors
-- [ ] 7.3 Render per-question result rows: prompt text, user answer vs correct answer, ✓/✗ icon, explanation
-- [ ] 7.4 For `ai_only` questions: show "Reference Answer" label with `question.answer`, no ✓/✗
-- [ ] 7.5 Add "Retry Quiz" button (clears answers, resets to question 1) and close handler
+- [x] 7.1 Create `QuizResults.vue` with props `results: QuizResults` (computed from `useQuizSession`)
+- [x] 7.2 Render large score indicator: "X / Y" + percentage, styled with brand colors
+- [x] 7.3 Render per-question result rows: prompt text, user answer vs correct answer, ✓/✗ icon, explanation
+- [x] 7.4 For `ai_only` questions: show "Reference Answer" label with `question.answer`, no ✓/✗
+- [x] 7.5 Add "Retry Quiz" button (clears answers, resets to question 1) and close handler
 
 ## 8. Integration & Wiring
 
-- [ ] 8.1 In `App.vue`, wire `quiz-selected` event from sidebar → open `QuizModal` with the selected quiz deck
-- [ ] 8.2 Close modal on Escape or backdrop click, restore body scroll
-- [ ] 8.3 Verify dark mode: all new components use CSS custom properties from design tokens
-- [ ] 8.4 Test with sample quiz JSON files (create test fixtures) for all four question types
-- [ ] 8.5 Verify keyboard navigation and reduced-motion behavior
+- [x] 8.1 In `App.vue`, wire `quiz-selected` event from sidebar → open `QuizModal` with the selected quiz deck
+- [x] 8.2 Close modal on Escape or backdrop click, restore body scroll
+- [x] 8.3 Verify dark mode: all new components use CSS custom properties from design tokens
+- [x] 8.4 Test with sample quiz JSON files (create test fixtures) for all four question types
+- [x] 8.5 Verify keyboard navigation and reduced-motion behavior

@@ -317,11 +317,11 @@ onBeforeUnmount(() => {
         role="dialog"
         aria-modal="true"
         tabindex="-1"
-        class="relative w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden rounded-xl border border-(--color-divider) bg-(--color-bg-elv) shadow-2xl outline-none"
+        class="relative w-full max-w-2xl max-h-[85vh] grid grid-rows-[auto_1fr_auto] overflow-hidden rounded-xl border border-(--color-divider) bg-(--color-bg-elv) shadow-2xl outline-none"
       >
         <!-- Header -->
         <div
-          class="flex shrink-0 items-center justify-between border-b border-(--color-divider) px-6 py-3"
+          class="flex items-center justify-between border-b border-(--color-divider) px-6 py-3"
         >
           <button
             class="text-xs text-text-3 hover:text-brand-2 transition-colors cursor-pointer"
@@ -372,7 +372,7 @@ onBeforeUnmount(() => {
         </div>
 
         <!-- Quiz card area -->
-        <div class="min-h-0 overflow-y-auto">
+        <div class="overflow-y-auto min-h-0">
           <div
             v-if="!session.isComplete"
             class="px-6 py-8 min-h-75 flex items-center perspective-[1000px]"
@@ -390,46 +390,46 @@ onBeforeUnmount(() => {
               </div>
             </Transition>
           </div>
+        </div>
 
-          <!-- Footer navigation -->
-          <div
-            v-if="!session.isComplete"
-            class="flex shrink-0 items-center justify-between border-t border-(--color-divider) px-6 py-3"
+        <!-- Footer navigation -->
+        <div
+          v-if="!session.isComplete"
+          class="flex items-center justify-between border-t border-(--color-divider) px-6 py-3"
+        >
+          <button
+            class="flex items-center gap-1.5 px-4 py-2 text-sm text-text-2 hover:text-text-1 transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+            :disabled="session.isFirst"
+            @click="onPrev"
           >
-            <button
-              class="flex items-center gap-1.5 px-4 py-2 text-sm text-text-2 hover:text-text-1 transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
-              :disabled="session.isFirst"
-              @click="onPrev"
+            <kbd
+              class="rounded border border-(--color-divider) px-1.5 py-0.5 font-mono text-xs text-text-3"
+              >←</kbd
             >
-              <kbd
-                class="rounded border border-(--color-divider) px-1.5 py-0.5 font-mono text-xs text-text-3"
-                >←</kbd
-              >
-              {{ t('quiz.previous') }}
-            </button>
-            <button
-              v-if="session.isLast"
-              class="flex items-center gap-1.5 px-6 py-2 text-sm font-medium text-white bg-brand-2 rounded-lg hover:bg-brand-1 transition-colors cursor-pointer"
-              @click="onSubmit"
+            {{ t('quiz.previous') }}
+          </button>
+          <button
+            v-if="session.isLast"
+            class="flex items-center gap-1.5 px-6 py-2 text-sm font-medium text-white bg-brand-2 rounded-lg hover:bg-brand-1 transition-colors cursor-pointer"
+            @click="onSubmit"
+          >
+            {{ t('quiz.submit') }}
+            <kbd
+              class="rounded border border-white/30 px-1.5 py-0.5 font-mono text-xs text-white/80"
+              >{{ isMac ? '⌘' : 'Ctrl' }} ↵</kbd
             >
-              {{ t('quiz.submit') }}
-              <kbd
-                class="rounded border border-white/30 px-1.5 py-0.5 font-mono text-xs text-white/80"
-                >{{ isMac ? '⌘' : 'Ctrl' }} ↵</kbd
-              >
-            </button>
-            <button
-              v-else
-              class="flex items-center gap-1.5 px-6 py-2 text-sm font-medium text-white bg-brand-2 rounded-lg hover:bg-brand-1 transition-colors cursor-pointer"
-              @click="onNext"
+          </button>
+          <button
+            v-else
+            class="flex items-center gap-1.5 px-6 py-2 text-sm font-medium text-white bg-brand-2 rounded-lg hover:bg-brand-1 transition-colors cursor-pointer"
+            @click="onNext"
+          >
+            {{ t('quiz.next') }}
+            <kbd
+              class="rounded border border-white/30 px-1.5 py-0.5 font-mono text-xs text-white/80"
+              >→</kbd
             >
-              {{ t('quiz.next') }}
-              <kbd
-                class="rounded border border-white/30 px-1.5 py-0.5 font-mono text-xs text-white/80"
-                >→</kbd
-              >
-            </button>
-          </div>
+          </button>
         </div>
       </div>
 
@@ -440,11 +440,11 @@ onBeforeUnmount(() => {
         role="dialog"
         aria-modal="true"
         tabindex="-1"
-        class="relative w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden rounded-xl border border-(--color-divider) bg-(--color-bg-elv) shadow-2xl outline-none"
+        class="relative w-full max-w-2xl max-h-[85vh] grid grid-rows-[auto_1fr_auto] overflow-hidden rounded-xl border border-(--color-divider) bg-(--color-bg-elv) shadow-2xl outline-none"
       >
         <div
           v-if="!session.isComplete"
-          class="flex shrink-0 items-center justify-between border-b border-(--color-divider) px-6 py-3"
+          class="flex items-center justify-between border-b border-(--color-divider) px-6 py-3"
         >
           <button
             class="text-xs text-text-3 hover:text-brand-2 transition-colors cursor-pointer"
@@ -488,7 +488,7 @@ onBeforeUnmount(() => {
           </div>
         </div>
 
-        <div class="min-h-0 overflow-y-auto">
+        <div class="overflow-y-auto min-h-0">
           <div
             v-if="!session.isComplete"
             class="px-6 py-8 min-h-75 flex items-center perspective-[1000px]"
@@ -513,45 +513,45 @@ onBeforeUnmount(() => {
             @retry="onRetry"
             @close="close"
           />
+        </div>
 
-          <div
-            v-if="!session.isComplete"
-            class="flex shrink-0 items-center justify-between border-t border-(--color-divider) px-6 py-3"
+        <div
+          v-if="!session.isComplete"
+          class="flex items-center justify-between border-t border-(--color-divider) px-6 py-3"
+        >
+          <button
+            class="flex items-center gap-1.5 px-4 py-2 text-sm text-text-2 hover:text-text-1 transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+            :disabled="session.isFirst"
+            @click="onPrev"
           >
-            <button
-              class="flex items-center gap-1.5 px-4 py-2 text-sm text-text-2 hover:text-text-1 transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
-              :disabled="session.isFirst"
-              @click="onPrev"
+            <kbd
+              class="rounded border border-(--color-divider) px-1.5 py-0.5 font-mono text-xs text-text-3"
+              >←</kbd
             >
-              <kbd
-                class="rounded border border-(--color-divider) px-1.5 py-0.5 font-mono text-xs text-text-3"
-                >←</kbd
-              >
-              {{ t('quiz.previous') }}
-            </button>
-            <button
-              v-if="session.isLast"
-              class="flex items-center gap-1.5 px-6 py-2 text-sm font-medium text-white bg-brand-2 rounded-lg hover:bg-brand-1 transition-colors cursor-pointer"
-              @click="onSubmit"
+            {{ t('quiz.previous') }}
+          </button>
+          <button
+            v-if="session.isLast"
+            class="flex items-center gap-1.5 px-6 py-2 text-sm font-medium text-white bg-brand-2 rounded-lg hover:bg-brand-1 transition-colors cursor-pointer"
+            @click="onSubmit"
+          >
+            {{ t('quiz.submit') }}
+            <kbd
+              class="rounded border border-white/30 px-1.5 py-0.5 font-mono text-xs text-white/80"
+              >{{ isMac ? '⌘' : 'Ctrl' }} ↵</kbd
             >
-              {{ t('quiz.submit') }}
-              <kbd
-                class="rounded border border-white/30 px-1.5 py-0.5 font-mono text-xs text-white/80"
-                >{{ isMac ? '⌘' : 'Ctrl' }} ↵</kbd
-              >
-            </button>
-            <button
-              v-else
-              class="flex items-center gap-1.5 px-6 py-2 text-sm font-medium text-white bg-brand-2 rounded-lg hover:bg-brand-1 transition-colors cursor-pointer"
-              @click="onNext"
+          </button>
+          <button
+            v-else
+            class="flex items-center gap-1.5 px-6 py-2 text-sm font-medium text-white bg-brand-2 rounded-lg hover:bg-brand-1 transition-colors cursor-pointer"
+            @click="onNext"
+          >
+            {{ t('quiz.next') }}
+            <kbd
+              class="rounded border border-white/30 px-1.5 py-0.5 font-mono text-xs text-white/80"
+              >→</kbd
             >
-              {{ t('quiz.next') }}
-              <kbd
-                class="rounded border border-white/30 px-1.5 py-0.5 font-mono text-xs text-white/80"
-                >→</kbd
-              >
-            </button>
-          </div>
+          </button>
         </div>
       </div>
 
@@ -562,7 +562,7 @@ onBeforeUnmount(() => {
         role="dialog"
         aria-modal="true"
         tabindex="-1"
-        class="relative w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden rounded-xl border border-(--color-divider) bg-(--color-bg-elv) shadow-2xl outline-none"
+        class="relative w-full max-w-2xl max-h-[85vh] grid grid-rows-[minmax(0,1fr)] overflow-hidden rounded-xl border border-(--color-divider) bg-(--color-bg-elv) shadow-2xl outline-none"
       >
         <button
           class="absolute top-3 right-3 z-10 flex h-7 w-7 items-center justify-center rounded-full text-text-3 hover:text-text-1 hover:bg-(--color-bg-soft) transition-colors cursor-pointer"
@@ -592,7 +592,7 @@ onBeforeUnmount(() => {
         role="dialog"
         aria-modal="true"
         tabindex="-1"
-        class="relative w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden rounded-xl border border-(--color-divider) bg-(--color-bg-elv) shadow-2xl outline-none"
+        class="relative w-full max-w-2xl max-h-[85vh] grid grid-rows-[minmax(0,1fr)] overflow-hidden rounded-xl border border-(--color-divider) bg-(--color-bg-elv) shadow-2xl outline-none"
       >
         <button
           class="absolute top-3 right-3 z-10 flex h-7 w-7 items-center justify-center rounded-full text-text-3 hover:text-text-1 hover:bg-(--color-bg-soft) transition-colors cursor-pointer"

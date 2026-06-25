@@ -28,9 +28,27 @@ export type I18nKey =
   | 'status.unexplored'
   | 'sidebar.topics'
   | 'sidebar.exercises'
+  | 'sidebar.quizzes'
   | 'sidebar.noNotes'
   | 'sidebar.noExercises'
   | 'sidebar.orphanTip'
+  | 'quiz.empty'
+  | 'quiz.start'
+  | 'quiz.previous'
+  | 'quiz.next'
+  | 'quiz.submit'
+  | 'quiz.retry'
+  | 'quiz.complete'
+  | 'quiz.score'
+  | 'quiz.correct'
+  | 'quiz.incorrect'
+  | 'quiz.referenceAnswer'
+  | 'quiz.backToList'
+  | 'quiz.questionProgress'
+  | 'quiz.true'
+  | 'quiz.false'
+  | 'quiz.typeAnswer'
+  | 'quiz.fixError'
   | 'search.placeholder'
   | 'search.noResults'
   | 'search.open'
@@ -72,9 +90,27 @@ const messages: Record<Locale, Messages> = {
     'theme.switch': 'Toggle theme',
     'sidebar.topics': 'Topics',
     'sidebar.exercises': 'Exercises',
+    'sidebar.quizzes': 'Quizzes',
     'sidebar.noNotes': 'No sessions',
     'sidebar.noExercises': 'No exercises',
     'sidebar.orphanTip': 'This folder is not part of the knowledge map',
+    'quiz.empty': 'No quizzes yet',
+    'quiz.start': 'Start quiz',
+    'quiz.previous': 'Previous',
+    'quiz.next': 'Next',
+    'quiz.submit': 'Submit',
+    'quiz.retry': 'Retry Quiz',
+    'quiz.complete': 'Quiz Complete',
+    'quiz.score': 'Score',
+    'quiz.correct': 'Correct',
+    'quiz.incorrect': 'Incorrect',
+    'quiz.referenceAnswer': 'Reference Answer',
+    'quiz.backToList': 'Back to list',
+    'quiz.questionProgress': 'Question {current} / {total}',
+    'quiz.true': 'True',
+    'quiz.false': 'False',
+    'quiz.typeAnswer': 'Type your answer…',
+    'quiz.fixError': 'Identify and fix the error…',
     'search.placeholder': 'Search notes…',
     'search.noResults': 'No matching notes',
     'search.open': 'Open search',
@@ -107,9 +143,27 @@ const messages: Record<Locale, Messages> = {
     'theme.switch': '切换主题',
     'sidebar.topics': '笔记',
     'sidebar.exercises': '练习',
+    'sidebar.quizzes': '测验',
     'sidebar.noNotes': '没有笔记',
     'sidebar.noExercises': '没有练习',
     'sidebar.orphanTip': '此目录不在知识地图中',
+    'quiz.empty': '暂无测验',
+    'quiz.start': '开始测验',
+    'quiz.previous': '上一题',
+    'quiz.next': '下一题',
+    'quiz.submit': '提交',
+    'quiz.retry': '重新测验',
+    'quiz.complete': '测验完成',
+    'quiz.score': '得分',
+    'quiz.correct': '正确',
+    'quiz.incorrect': '错误',
+    'quiz.referenceAnswer': '参考答案',
+    'quiz.backToList': '返回列表',
+    'quiz.questionProgress': '第 {current} / {total} 题',
+    'quiz.true': '正确',
+    'quiz.false': '错误',
+    'quiz.typeAnswer': '输入你的答案…',
+    'quiz.fixError': '找出并修正错误…',
     'search.placeholder': '搜索笔记…',
     'search.noResults': '没有匹配的笔记',
     'search.open': '打开搜索',

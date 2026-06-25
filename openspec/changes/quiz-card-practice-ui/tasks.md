@@ -1,21 +1,21 @@
 ## 1. Backend API (`serve.mjs`)
 
-- [ ] 1.1 Add `GET /api/quizzes?topic=<slug>` endpoint that scans `.learn/topics/<slug>/quizzes/` directory and returns `{ groups: [{ concept_slug, concept_name, files: [{ filename, path }] }] }`
-- [ ] 1.2 Add `GET /api/quizzes/<topic>/<filename>` endpoint that reads and returns a single quiz JSON file, with path traversal protection
-- [ ] 1.3 Handle edge cases: missing `quizzes/` directory (return empty groups), missing topic (404), invalid paths (403)
+- [x] 1.1 Add `GET /api/quizzes?topic=<slug>` endpoint that scans `.learn/topics/<slug>/quizzes/` directory and returns `{ groups: [{ concept_slug, concept_name, files: [{ filename, path }] }] }`
+- [x] 1.2 Add `GET /api/quizzes/<topic>/<filename>` endpoint that reads and returns a single quiz JSON file, with path traversal protection
+- [x] 1.3 Handle edge cases: missing `quizzes/` directory (return empty groups), missing topic (404), invalid paths (403)
 
 ## 2. i18n Keys
 
-- [ ] 2.1 Add `quiz.*` and `sidebar.quizzes` i18n keys to `useI18n.ts` for both English and Chinese locales (Quizzes/测验, No quizzes yet/暂无测验, Start quiz/开始测验, Previous/上一题, Next/下一题, Submit/提交, Retry Quiz/重新测验, Quiz Complete/测验完成, Score/得分, Correct/正确, Incorrect/错误, Reference Answer/参考答案, Back to list/返回列表)
+- [x] 2.1 Add `quiz.*` and `sidebar.quizzes` i18n keys to `useI18n.ts` for both English and Chinese locales (Quizzes/测验, No quizzes yet/暂无测验, Start quiz/开始测验, Previous/上一题, Next/下一题, Submit/提交, Retry Quiz/重新测验, Quiz Complete/测验完成, Score/得分, Correct/正确, Incorrect/错误, Reference Answer/参考答案, Back to list/返回列表)
 
 ## 3. Data Layer (`useQuiz.ts` composable)
 
-- [ ] 3.1 Define TypeScript types matching `QuizDeck`, `QuizQuestion`, `QuestionType`, `QuestionGradeable` for the frontend
-- [ ] 3.2 Implement `fetchQuizList(topicSlug)` composable that calls `/api/quizzes?topic=<slug>` and returns reactive grouped quiz list
-- [ ] 3.3 Implement `fetchQuizDeck(topicSlug, filename)` composable that calls `/api/quizzes/<topic>/<filename>` and returns the `QuizDeck`
-- [ ] 3.4 Implement `useQuizSession(quizDeck)` composable: manages `currentIndex`, `answers` map (question ID → user answer), `isComplete` state, navigation methods (`goNext`, `goPrev`), `submitAll()` trigger
-- [ ] 3.5 Implement `gradeQuestion(question, userAnswer)` function: `exact` → strict string/boolean comparison; `accepted` → case-insensitive match against `accepted_answers[]`; `ai_only` → returns null (ungradable)
-- [ ] 3.6 Implement `computeResults(quizDeck, answers)` that grades all questions and returns `{ score, total, results[] }` excluding `ai_only` from scoring
+- [x] 3.1 Define TypeScript types matching `QuizDeck`, `QuizQuestion`, `QuestionType`, `QuestionGradeable` for the frontend
+- [x] 3.2 Implement `fetchQuizList(topicSlug)` composable that calls `/api/quizzes?topic=<slug>` and returns reactive grouped quiz list
+- [x] 3.3 Implement `fetchQuizDeck(topicSlug, filename)` composable that calls `/api/quizzes/<topic>/<filename>` and returns the `QuizDeck`
+- [x] 3.4 Implement `useQuizSession(quizDeck)` composable: manages `currentIndex`, `answers` map (question ID → user answer), `isComplete` state, navigation methods (`goNext`, `goPrev`), `submitAll()` trigger
+- [x] 3.5 Implement `gradeQuestion(question, userAnswer)` function: `exact` → strict string/boolean comparison; `accepted` → case-insensitive match against `accepted_answers[]`; `ai_only` → returns null (ungradable)
+- [x] 3.6 Implement `computeResults(quizDeck, answers)` that grades all questions and returns `{ score, total, results[] }` excluding `ai_only` from scoring
 
 ## 4. Sidebar Quiz Tab & Tree
 

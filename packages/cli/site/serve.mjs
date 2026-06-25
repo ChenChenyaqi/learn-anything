@@ -239,6 +239,82 @@ function buildTopicData(slug) {
 }
 
 /* ------------------------------------------------------------------ */
+/*  API: quizzes                                                       */
+/* ------------------------------------------------------------------ */
+
+/** Scan a topic's `quizzes/` directory and return quiz files grouped by concept. */
+function buildQuizList(slug) {
+  const topicDir = join(TOPICS_DIR, slug);
+  if (!existsSync(topicDir)) return null;
+
+  const state = safeReadJson(join(topicDir, 'state.json'));
+  const nameMap = new Map();
+  if (state) {
+    for (const domain of state.domains || []) {
+      for (const concept of domain.concepts || []) {
+        nameMap.set(concept.slug, concept.name);
+      }
+    }
+  }
+
+  const groups = [];
+  const quizzesDir = join(topicDir, 'quizzes');
+  if (existsSync(quizzesDir)) {
+    const raw = new Map();
+    const qEntries = readdirSync(quizzesDir, { withFileTypes: true });
+    for (const entry of qEntries) {
+      if (entry.isDirectory()) {
+        const conceptDir = join(quizzesDir, entry.name);
+        const files = readdirSync(conceptDir)
+          .filter((f) => f.endsWith('.json'))
+          .map((f) => ({
+            filename: f,
+            path: `/topics/${slug}/quizzes/${entry.name}/${f}`,
+          }))
+          .sort((a, b) => b.filename.localeCompare(a.filename));
+        if (files.length > 0) {
+          raw.set(entry.name, files);
+        }
+      }
+    }
+    for (const [conceptSlug, files] of raw) {
+      groups.push({
+        concept_slug: conceptSlug,
+        concept_name: nameMap.get(conceptSlug) || conceptSlug,
+        files,
+      });
+    }
+    groups.sort((a, b) => a.concept_name.localeCompare(b.concept_name));
+  }
+
+  return { groups };
+}
+
+/** Read and return a single quiz deck JSON file with path traversal protection. */
+function serveQuizDeck(res, topic, restPath) {
+  const topicDir = join(TOPICS_DIR, topic);
+  if (!existsSync(topicDir)) {
+    return json(res, { error: 'Topic not found' }, 404);
+  }
+  if (restPath.includes('..')) {
+    return json(res, { error: 'Forbidden' }, 403);
+  }
+  const quizzesRoot = resolve(join(topicDir, 'quizzes'));
+  const filePath = resolve(join(quizzesRoot, restPath));
+  if (!filePath.startsWith(quizzesRoot)) {
+    return json(res, { error: 'Forbidden' }, 403);
+  }
+  if (!existsSync(filePath)) {
+    return json(res, { error: 'Quiz not found' }, 404);
+  }
+  const data = safeReadJson(filePath);
+  if (!data) {
+    return json(res, { error: 'Quiz not found' }, 404);
+  }
+  return json(res, data);
+}
+
+/* ------------------------------------------------------------------ */
 /*  API: search index                                                  */
 /* ------------------------------------------------------------------ */
 
@@ -454,6 +530,23 @@ function handler(req, res) {
   const fileMatch = pathname.match(/^\/api\/file$/);
   if (fileMatch) {
     return serveFileContent(res, req.url);
+  }
+
+  if (pathname === '/api/quizzes') {
+    const topic = url.searchParams.get('topic');
+    if (!topic) {
+      return json(res, { error: 'Missing topic parameter' }, 400);
+    }
+    const data = buildQuizList(topic);
+    if (!data) {
+      return json(res, { error: 'Topic not found' }, 404);
+    }
+    return json(res, data);
+  }
+
+  const quizDeckMatch = pathname.match(/^\/api\/quizzes\/([^/]+)\/(.+)$/);
+  if (quizDeckMatch) {
+    return serveQuizDeck(res, quizDeckMatch[1], quizDeckMatch[2]);
   }
 
   if (pathname === '/api/search-index') {

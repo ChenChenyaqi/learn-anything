@@ -14,7 +14,6 @@
     "module": "ESNext",
     "moduleResolution": "bundler",
     "jsx": "preserve",
-    "rootDir": ".",
     "paths": {
       "@data/*": ["./topics/*"]
     },

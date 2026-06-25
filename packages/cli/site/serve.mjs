@@ -520,7 +520,7 @@ function handler(req, res) {
 
   const topicMatch = pathname.match(/^\/api\/topics\/([^/]+)$/);
   if (topicMatch) {
-    const data = buildTopicData(topicMatch[1]);
+    const data = buildTopicData(decodeURIComponent(topicMatch[1]));
     if (!data) {
       return json(res, { error: 'Topic not found' }, 404);
     }
@@ -546,7 +546,11 @@ function handler(req, res) {
 
   const quizDeckMatch = pathname.match(/^\/api\/quizzes\/([^/]+)\/(.+)$/);
   if (quizDeckMatch) {
-    return serveQuizDeck(res, quizDeckMatch[1], decodeURIComponent(quizDeckMatch[2]));
+    return serveQuizDeck(
+      res,
+      decodeURIComponent(quizDeckMatch[1]),
+      decodeURIComponent(quizDeckMatch[2]),
+    );
   }
 
   if (pathname === '/api/search-index') {
@@ -582,7 +586,7 @@ function handler(req, res) {
   }
 
   // Static files
-  const cleanPath = pathname === '/' ? '/index.html' : pathname;
+  const cleanPath = pathname === '/' ? '/index.html' : decodeURIComponent(pathname);
   serveStatic(res, cleanPath);
 }
 

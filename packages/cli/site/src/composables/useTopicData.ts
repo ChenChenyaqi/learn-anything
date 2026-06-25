@@ -224,7 +224,7 @@ export async function initTopicData(): Promise<void> {
     const topicDataMap = new Map();
     await Promise.all(
       summaries.map(async (s) => {
-        const r = await fetch(`/api/topics/${s.slug}`);
+        const r = await fetch(`/api/topics/${encodeURIComponent(s.slug)}`);
         if (r.ok && version === initVersion) {
           topicDataMap.set(s.slug, await r.json());
         }

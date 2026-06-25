@@ -115,10 +115,14 @@ export function fetchQuizList(topicSlug: string): {
 
 /**
  * Fetch a single quiz deck JSON file.
- * `filename` may include a concept-slug subdirectory, e.g. `closures/quiz-2026-06-24.json`.
+ * `filename` can be either:
+ *   - A restPath like `closures/quiz-2026-06-24.json`
+ *   - A full API path like `/topics/javascript/quizzes/closures/quiz.json`
  */
 export async function fetchQuizDeck(topicSlug: string, filename: string): Promise<QuizDeck> {
-  const safeFilename = filename.split('/').map(encodeURIComponent).join('/');
+  const prefix = `/topics/${topicSlug}/quizzes/`;
+  const restPath = filename.startsWith(prefix) ? filename.slice(prefix.length) : filename;
+  const safeFilename = restPath.split('/').map(encodeURIComponent).join('/');
   const resp = await fetch(`/api/quizzes/${encodeURIComponent(topicSlug)}/${safeFilename}`);
   if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
   return resp.json();

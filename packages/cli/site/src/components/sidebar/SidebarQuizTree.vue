@@ -34,7 +34,7 @@ const allItems = computed<QueueItem[]>(() => {
         concept_slug: group.concept_slug,
         concept_name: group.concept_name,
         filename: file.filename,
-        path: `${group.concept_slug}/${file.filename}`,
+        path: file.path,
       });
     }
   }
@@ -56,8 +56,7 @@ function toggleConcept(conceptSlug: string) {
 }
 
 function selectQuiz(file: QuizFile, conceptSlug: string) {
-  const path = `${conceptSlug}/${file.filename}`;
-  emit('quiz-selected', { path });
+  emit('quiz-selected', { path: file.path });
 }
 
 function buildConceptItems(conceptSlug: string, conceptName: string, files: QuizFile[]): QueueItem[] {
@@ -65,7 +64,7 @@ function buildConceptItems(conceptSlug: string, conceptName: string, files: Quiz
     concept_slug: conceptSlug,
     concept_name: conceptName,
     filename: f.filename,
-    path: `${conceptSlug}/${f.filename}`,
+    path: f.path,
   }));
 }
 

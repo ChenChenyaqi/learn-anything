@@ -164,8 +164,8 @@
       "slug": "async-programming",
       "concepts": [
         {
-          "name": "Promise",
-          "slug": "promise",
+          "name": "异步Promise",
+          "slug": "异步Promise",
           "status": "unexplored",
           "confidence": 0,
           "practice_count": 0,

@@ -2,8 +2,8 @@
   "version": 1,
   "topic": "JavaScript",
   "topic_slug": "javascript",
-  "concept_slug": "promise",
-  "concept_name": "Promise",
+  "concept_slug": "异步Promise",
+  "concept_name": "异步Promise",
   "created": "2026-06-24 09:00:00",
   "questions": [
     {

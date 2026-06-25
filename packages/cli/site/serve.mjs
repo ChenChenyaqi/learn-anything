@@ -546,7 +546,7 @@ function handler(req, res) {
 
   const quizDeckMatch = pathname.match(/^\/api\/quizzes\/([^/]+)\/(.+)$/);
   if (quizDeckMatch) {
-    return serveQuizDeck(res, quizDeckMatch[1], quizDeckMatch[2]);
+    return serveQuizDeck(res, quizDeckMatch[1], decodeURIComponent(quizDeckMatch[2]));
   }
 
   if (pathname === '/api/search-index') {

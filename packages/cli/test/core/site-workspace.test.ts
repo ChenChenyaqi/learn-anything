@@ -15,7 +15,7 @@ describe('SiteWorkspaceGenerator', () => {
     rmSync(TEST_WORKSPACE, { recursive: true, force: true });
   });
 
-  it('should generate a minimal site project with package.json, build.mjs, .gitignore', async () => {
+  it('should generate a minimal site project with package.json', async () => {
     const result = await generateSiteWorkspace({
       targetPath: TEST_WORKSPACE,
       cliVersion: '1.5.3',
@@ -26,27 +26,14 @@ describe('SiteWorkspaceGenerator', () => {
     // Verify files
     expect(existsSync(siteDir)).toBe(true);
     expect(existsSync(path.join(siteDir, 'package.json'))).toBe(true);
-    expect(existsSync(path.join(siteDir, 'build.mjs'))).toBe(true);
-    expect(existsSync(path.join(siteDir, '.gitignore'))).toBe(true);
 
     // Verify package.json contents
     const packageJson = JSON.parse(readFileSync(path.join(siteDir, 'package.json'), 'utf-8'));
     expect(packageJson.name).toBe('learn-anything-site');
     expect(packageJson.scripts.server).toBe('learn-anything serve');
-    expect(packageJson.scripts.build).toBe('node build.mjs');
-    expect(packageJson.dependencies['learn-anything-cli']).toBe('^1.5.3');
+    expect(packageJson.scripts.build).toBe('learn-anything build');
 
-    // Verify build.mjs contents
-    const buildScript = readFileSync(path.join(siteDir, 'build.mjs'), 'utf-8');
-    expect(buildScript).toContain("require.resolve('learn-anything-cli/package.json')");
-    expect(buildScript).toContain("cpSync(siteDist, 'dist'");
-
-    // Verify .gitignore
-    const gitignore = readFileSync(path.join(siteDir, '.gitignore'), 'utf-8');
-    expect(gitignore).toContain('node_modules');
-    expect(gitignore).toContain('dist');
-
-    // Verify file count (3 files)
-    expect(result.fileCount).toBe(3);
+    // Verify file count (1 files)
+    expect(result.fileCount).toBe(1);
   });
 });

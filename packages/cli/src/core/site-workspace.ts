@@ -1,5 +1,5 @@
 import path from 'path';
-import { writeFileSync, mkdirSync, readdirSync, statSync } from 'node:fs';
+import { writeFileSync, mkdirSync } from 'node:fs';
 
 export interface SiteWorkspaceOptions {
   targetPath: string;
@@ -7,24 +7,12 @@ export interface SiteWorkspaceOptions {
   cliVersion: string;
 }
 
-const BUILD_SCRIPT = `import { execSync } from 'node:child_process';
-
-try {
-  execSync('npx learn-anything build', { stdio: 'inherit' });
-} catch {
-  console.error('Build failed. Make sure learn-anything-cli is installed.');
-  process.exit(1);
-}
-`;
-
 /**
  * Generates a minimal site project that delegates to the pre-built
  * learn-anything-cli npm package.
  *
  * The generated project contains only:
  * - package.json (depends on learn-anything-cli)
- * - build.mjs (copies site-dist/ to dist/)
- * - .gitignore
  */
 export async function generateSiteWorkspace(options: SiteWorkspaceOptions): Promise<{
   outputDir: string;
@@ -54,26 +42,5 @@ export async function generateSiteWorkspace(options: SiteWorkspaceOptions): Prom
     JSON.stringify(packageJson, null, 2) + '\n',
     'utf-8',
   );
-
-  // build.mjs
-  writeFileSync(path.join(siteDir, 'build.mjs'), BUILD_SCRIPT, 'utf-8');
-
-  // .gitignore
-  writeFileSync(path.join(siteDir, '.gitignore'), 'node_modules/\ndist/\n', 'utf-8');
-
-  const fileCount = countFiles(siteDir);
-  return { outputDir: siteDir, fileCount };
-}
-
-function countFiles(dir: string): number {
-  let count = 0;
-  for (const entry of readdirSync(dir, { recursive: true })) {
-    const fullPath = path.join(dir, entry as string);
-    try {
-      if (statSync(fullPath).isFile()) count++;
-    } catch {
-      // skip
-    }
-  }
-  return count;
+  return { outputDir: siteDir, fileCount: 1 };
 }

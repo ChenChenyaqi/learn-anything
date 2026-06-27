@@ -11,6 +11,13 @@ export interface ServeMessages {
   siteNotBuilt: string;
 }
 
+export interface SiteMessages {
+  generating: string;
+  generationComplete: (dir: string, fileCount: number) => string;
+  dirExists: string;
+  nextSteps: string;
+}
+
 export interface CLIMessages {
   programDescription: string;
   initCommandDescription: string;
@@ -28,6 +35,8 @@ export interface CLIMessages {
   noOpenOption: string;
   serveCommandDescription: string;
   serveHint: string;
+  siteCommandDescription: string;
+  siteForceOption: string;
 }
 
 export interface InitMessages {
@@ -51,4 +60,5 @@ export interface LocaleMessages {
   cli: CLIMessages;
   init: InitMessages;
   serve: ServeMessages;
+  site: SiteMessages;
 }

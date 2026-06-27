@@ -150,6 +150,12 @@ export class InitCommand {
         chalk.dim('   — Quick text Q&A quiz (saved for re-practice)'),
       ),
     );
+    console.log(
+      cmd(
+        chalk.cyan('/learn:site'),
+        chalk.dim('              — Generate a deployable site project from your learning data'),
+      ),
+    );
     console.log('');
 
     if (this.context7Enabled) {
@@ -267,7 +273,7 @@ export class InitCommand {
         );
       }
 
-      // review → no scripts needed
+      // review / site → no scripts needed
     }
   }
 

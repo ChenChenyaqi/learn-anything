@@ -197,4 +197,47 @@ program
     }
   });
 
+program
+  .command('build [path]')
+  .description(m.cli.buildCommandDescription)
+  .option('--lang <locale>', m.cli.langOption)
+  .action(async (targetPath = '.', options?: { lang?: string }) => {
+    const cliLocale = resolveLocale(options?.lang);
+    const mc = cliLocale !== earlyLocale ? getMessages(cliLocale).cli : m.cli;
+    try {
+      const resolvedPath = path.resolve(targetPath);
+
+      try {
+        const stats = await fs.stat(resolvedPath);
+        if (!stats.isDirectory()) {
+          throw new Error(mc.notDirectory(targetPath));
+        }
+      } catch (error: any) {
+        if (error.code === 'ENOENT') {
+          console.log(chalk.yellow(mc.dirNotExist(targetPath)));
+        } else if (error.message && error.message.includes('not a directory')) {
+          throw error;
+        } else {
+          throw new Error(mc.cannotAccess(targetPath, error.message), { cause: error });
+        }
+      }
+
+      const mb = cliLocale !== earlyLocale ? getMessages(cliLocale).build : m.build;
+      console.log(chalk.cyan(mb.building));
+
+      const { executeBuild } = await import('../core/build.js');
+      executeBuild({ targetPath: resolvedPath });
+
+      console.log(
+        chalk.green(
+          mb.buildComplete(path.relative(process.cwd(), path.join(resolvedPath, 'dist'))),
+        ),
+      );
+    } catch (error) {
+      console.log();
+      console.error(chalk.red(mc.errorPrefix((error as Error).message)));
+      process.exit(1);
+    }
+  });
+
 program.parse();

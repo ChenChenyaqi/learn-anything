@@ -18,10 +18,17 @@ export interface SiteMessages {
   nextSteps: string;
 }
 
+export interface BuildMessages {
+  building: string;
+  buildComplete: (dir: string) => string;
+  siteNotBuilt: string;
+}
+
 export interface CLIMessages {
   programDescription: string;
   initCommandDescription: string;
   updateCommandDescription: string;
+  buildCommandDescription: string;
   toolsOptionDescription: (ids: string) => string;
   notDirectory: (path: string) => string;
   dirNotExist: (path: string) => string;
@@ -61,4 +68,5 @@ export interface LocaleMessages {
   init: InitMessages;
   serve: ServeMessages;
   site: SiteMessages;
+  build: BuildMessages;
 }

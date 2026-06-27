@@ -22,6 +22,7 @@ export const zhCN: LocaleMessages = {
     serveHint: '运行 npx learn-anything serve 在浏览器中查看学习进度',
     siteCommandDescription: '生成独立的站点项目，用于静态部署',
     siteForceOption: '覆盖已有的 site 目录，不提示确认',
+    buildCommandDescription: '构建站点静态文件到 dist/ 目录用于部署',
   },
 
   init: {
@@ -60,6 +61,12 @@ export const zhCN: LocaleMessages = {
       `站点项目已生成: ${dir}（${fileCount} 个文件）。`,
     dirExists: '站点文件已存在。使用 --force 覆盖。',
     nextSteps:
-      '\n下一步：\n  npm install\n  npm run server    # 本地预览\n  npm run build     # 静态部署（→ dist/）\n',
+      '\n下一步：\n  npm install\n  npx learn-anything serve  # 本地预览\n  npx learn-anything build  # 静态部署（→ dist/）\n',
+  },
+
+  build: {
+    building: '正在构建静态站点...',
+    buildComplete: (dir: string) => `构建完成: ${dir}`,
+    siteNotBuilt: '未找到站点文件。请重新安装 learn-anything-cli。',
   },
 };

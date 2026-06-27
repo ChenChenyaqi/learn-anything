@@ -7,25 +7,14 @@ export interface SiteWorkspaceOptions {
   cliVersion: string;
 }
 
-const BUILD_SCRIPT = `import { cpSync, mkdirSync, rmSync, existsSync } from 'node:fs';
-import { createRequire } from 'module';
-import { dirname, join } from 'node:path';
+const BUILD_SCRIPT = `import { execSync } from 'node:child_process';
 
-
-const require = createRequire(import.meta.url);
-// Resolve the package root, then find site-dist/ via its filesystem location
-const pkgJson = require.resolve('learn-anything-cli/package.json');
-const siteDist = join(dirname(pkgJson), 'site-dist');
-
-if (!existsSync(siteDist)) {
-  console.error('Error: site-dist/ not found in learn-anything-cli. Please reinstall.');
+try {
+  execSync('npx learn-anything build', { stdio: 'inherit' });
+} catch {
+  console.error('Build failed. Make sure learn-anything-cli is installed.');
   process.exit(1);
 }
-
-rmSync('dist', { recursive: true, force: true });
-mkdirSync('dist', { recursive: true });
-cpSync(siteDist, 'dist', { recursive: true });
-console.log('Build complete: dist/');
 `;
 
 /**
@@ -54,7 +43,7 @@ export async function generateSiteWorkspace(options: SiteWorkspaceOptions): Prom
     type: 'module',
     scripts: {
       server: 'learn-anything serve',
-      build: 'node build.mjs',
+      build: 'learn-anything build',
     },
     dependencies: {
       'learn-anything-cli': `^${cliVersion}`,

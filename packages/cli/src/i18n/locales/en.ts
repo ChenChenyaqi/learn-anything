@@ -23,6 +23,7 @@ export const en: LocaleMessages = {
     serveHint: 'Run npx learn-anything serve to view your learning progress in browser',
     siteCommandDescription: 'Generate a self-contained site project for static deployment',
     siteForceOption: 'Overwrite existing site directory without confirmation',
+    buildCommandDescription: 'Build static site files into dist/ for deployment',
   },
 
   init: {
@@ -67,6 +68,12 @@ export const en: LocaleMessages = {
       `Site project generated at ${dir} (${fileCount} files).`,
     dirExists: 'Site files already exist here. Use --force to overwrite.',
     nextSteps:
-      '\nNext steps:\n  npm install\n  npm run server    # local preview\n  npm run build     # static deployment (→ dist/)\n',
+      '\nNext steps:\n  npm install\n  npx learn-anything serve  # local preview\n  npx learn-anything build  # static deployment (→ dist/)\n',
+  },
+
+  build: {
+    building: 'Building static site...',
+    buildComplete: (dir: string) => `Build complete: ${dir}`,
+    siteNotBuilt: 'Site files not found. Please reinstall learn-anything-cli.',
   },
 };

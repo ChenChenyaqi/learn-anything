@@ -20,13 +20,16 @@ export const zhCN: LocaleMessages = {
     noOpenOption: '不自动打开浏览器',
     serveCommandDescription: '启动本地站点以可视化学习进度',
     serveHint: '运行 npx learn-anything serve 在浏览器中查看学习进度',
+    siteCommandDescription: '生成独立的站点项目，用于静态部署',
+    siteForceOption: '覆盖已有的 site 目录，不提示确认',
+    buildCommandDescription: '构建站点静态文件到 dist/ 目录用于部署',
   },
 
   init: {
     header: '\n🧠 Learn Anything — AI 驱动的递归学习系统\n',
     noToolsSelected: '未选择任何 AI 工具。使用 --tools 参数指定，或在交互模式中选择。',
     availableTools: (tools: string) => `可用的工具：${tools}`,
-    skillGenerated: (toolName: string) => `  ✓ ${toolName} — 6 个技能文件已生成`,
+    skillGenerated: (toolName: string) => `  ✓ ${toolName} — 7 个技能文件已生成`,
     initComplete: '🎉 Learn Anything 初始化完成！\n',
     globalDataPath: (dir: string) => `  学习数据存储在 ${dir}/`,
     startLearning: (example: string) => `  运行 ${example} 开始你的第一个学习主题\n`,
@@ -47,8 +50,23 @@ export const zhCN: LocaleMessages = {
     portSwitched: (from: number, to: number) => `端口 ${from} 已被占用 —— 自动切换到端口 ${to}。`,
     portRangeExhausted: (start: number, end: number) =>
       `在 ${start}-${end} 范围内未找到可用端口。请使用 --port 手动指定。`,
-    emptyTopics: '.learn/topics/ 中未找到学习主题。使用 /learn:topic 开始学习。',
+    emptyTopics: 'topics/ 中未找到学习主题。使用 /learn:topic 开始学习。',
     serverStopped: '服务器已停止。',
     siteNotBuilt: '未找到站点文件。请重新安装包或运行构建步骤。',
+  },
+
+  site: {
+    generating: '正在生成站点项目...',
+    generationComplete: (dir: string, fileCount: number) =>
+      `站点项目已生成: ${dir}（${fileCount} 个文件）。`,
+    dirExists: '站点文件已存在。使用 --force 覆盖。',
+    nextSteps:
+      '\n下一步：\n  npm install\n  npx learn-anything serve  # 本地预览\n  npx learn-anything build  # 静态部署（→ dist/）\n',
+  },
+
+  build: {
+    building: '正在构建静态站点...',
+    buildComplete: (dir: string) => `构建完成: ${dir}`,
+    siteNotBuilt: '未找到站点文件。请重新安装 learn-anything-cli。',
   },
 };

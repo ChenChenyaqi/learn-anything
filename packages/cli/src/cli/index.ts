@@ -137,4 +137,107 @@ program
     },
   );
 
+program
+  .command('site [path]')
+  .description(m.cli.siteCommandDescription)
+  .option('--force', m.cli.siteForceOption)
+  .option('--lang <locale>', m.cli.langOption)
+  .action(async (targetPath = '.', options?: { force?: boolean; lang?: string }) => {
+    const cliLocale = resolveLocale(options?.lang);
+    const mc = cliLocale !== earlyLocale ? getMessages(cliLocale).cli : m.cli;
+    const ms = cliLocale !== earlyLocale ? getMessages(cliLocale).site : m.site;
+    try {
+      const resolvedPath = path.resolve(targetPath);
+
+      try {
+        const stats = await fs.stat(resolvedPath);
+        if (!stats.isDirectory()) {
+          throw new Error(mc.notDirectory(targetPath));
+        }
+      } catch (error: any) {
+        if (error.code === 'ENOENT') {
+          console.log(chalk.yellow(mc.dirNotExist(targetPath)));
+        } else if (error.message && error.message.includes('not a directory')) {
+          throw error;
+        } else {
+          throw new Error(mc.cannotAccess(targetPath, error.message), { cause: error });
+        }
+      }
+
+      const siteDir = path.join(resolvedPath);
+      const siteExists = await fs
+        .stat(path.join(siteDir, 'package.json'))
+        .then((s) => s.isFile())
+        .catch(() => false);
+
+      if (siteExists && !options?.force) {
+        console.log(chalk.yellow(ms.dirExists));
+        return;
+      }
+
+      console.log(chalk.cyan(ms.generating));
+
+      const { generateSiteWorkspace } = await import('../core/site-workspace.js');
+      const cliVersion = require('../../package.json').version as string;
+      const result = await generateSiteWorkspace({
+        targetPath: resolvedPath,
+        cliVersion,
+      });
+
+      console.log(
+        chalk.green(
+          ms.generationComplete(path.relative(process.cwd(), result.outputDir), result.fileCount),
+        ),
+      );
+      console.log(ms.nextSteps);
+    } catch (error) {
+      console.log();
+      console.error(chalk.red(mc.errorPrefix((error as Error).message)));
+      process.exit(1);
+    }
+  });
+
+program
+  .command('build [path]')
+  .description(m.cli.buildCommandDescription)
+  .option('--lang <locale>', m.cli.langOption)
+  .action(async (targetPath = '.', options?: { lang?: string }) => {
+    const cliLocale = resolveLocale(options?.lang);
+    const mc = cliLocale !== earlyLocale ? getMessages(cliLocale).cli : m.cli;
+    try {
+      const resolvedPath = path.resolve(targetPath);
+
+      try {
+        const stats = await fs.stat(resolvedPath);
+        if (!stats.isDirectory()) {
+          throw new Error(mc.notDirectory(targetPath));
+        }
+      } catch (error: any) {
+        if (error.code === 'ENOENT') {
+          console.log(chalk.yellow(mc.dirNotExist(targetPath)));
+        } else if (error.message && error.message.includes('not a directory')) {
+          throw error;
+        } else {
+          throw new Error(mc.cannotAccess(targetPath, error.message), { cause: error });
+        }
+      }
+
+      const mb = cliLocale !== earlyLocale ? getMessages(cliLocale).build : m.build;
+      console.log(chalk.cyan(mb.building));
+
+      const { executeBuild } = await import('../core/build.js');
+      executeBuild({ targetPath: resolvedPath });
+
+      console.log(
+        chalk.green(
+          mb.buildComplete(path.relative(process.cwd(), path.join(resolvedPath, 'dist'))),
+        ),
+      );
+    } catch (error) {
+      console.log();
+      console.error(chalk.red(mc.errorPrefix((error as Error).message)));
+      process.exit(1);
+    }
+  });
+
 program.parse();

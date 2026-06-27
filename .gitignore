@@ -16,3 +16,5 @@ packages/cli/site-dist/
 
 # local release notes (consumed by scripts/release.sh)
 release-notes.md
+
+.opencode

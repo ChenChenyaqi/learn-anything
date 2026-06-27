@@ -21,3 +21,4 @@ export {
   getLearnStatusCommandTemplate,
 } from './workflows/learn-status.js';
 export { getLearnQuizSkillTemplate, getLearnQuizCommandTemplate } from './workflows/learn-quiz.js';
+export { getLearnSiteSkillTemplate, getLearnSiteCommandTemplate } from './workflows/learn-site.js';

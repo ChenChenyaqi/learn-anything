@@ -5,12 +5,14 @@ import {
   getLearnReviewSkillTemplate,
   getLearnStatusSkillTemplate,
   getLearnQuizSkillTemplate,
+  getLearnSiteSkillTemplate,
   getLearnTopicCommandTemplate,
   getLearnExplainCommandTemplate,
   getLearnPracticeCommandTemplate,
   getLearnReviewCommandTemplate,
   getLearnStatusCommandTemplate,
   getLearnQuizCommandTemplate,
+  getLearnSiteCommandTemplate,
   type SkillTemplate,
 } from '../templates/skill-templates.js';
 import type { CommandContent } from '../command-generation/index.js';
@@ -58,6 +60,11 @@ export function getSkillTemplates(): SkillTemplateEntry[] {
       dirName: 'learn-anything-quiz',
       workflowId: 'quiz',
     },
+    {
+      template: getLearnSiteSkillTemplate(),
+      dirName: 'learn-anything-site',
+      workflowId: 'site',
+    },
   ];
 }
 
@@ -69,6 +76,7 @@ export function getCommandTemplates(): CommandTemplateEntry[] {
     { template: getLearnReviewCommandTemplate(), id: 'review' },
     { template: getLearnStatusCommandTemplate(), id: 'status' },
     { template: getLearnQuizCommandTemplate(), id: 'quiz' },
+    { template: getLearnSiteCommandTemplate(), id: 'site' },
   ];
 }
 

@@ -21,6 +21,9 @@ export const en: LocaleMessages = {
     noOpenOption: 'Do not open browser automatically',
     serveCommandDescription: 'Start a local site to visualize learning progress',
     serveHint: 'Run npx learn-anything serve to view your learning progress in browser',
+    siteCommandDescription: 'Generate a self-contained site project for static deployment',
+    siteForceOption: 'Overwrite existing site directory without confirmation',
+    buildCommandDescription: 'Build static site files into dist/ for deployment',
   },
 
   init: {
@@ -28,7 +31,7 @@ export const en: LocaleMessages = {
     noToolsSelected:
       'No AI tools selected. Use --tools option to specify, or select in interactive mode.',
     availableTools: (tools: string) => `Available tools: ${tools}`,
-    skillGenerated: (toolName: string) => `  ✓ ${toolName} — 6 skill files generated`,
+    skillGenerated: (toolName: string) => `  ✓ ${toolName} — 7 skill files generated`,
     initComplete: '🎉 Learn Anything initialization complete!\n',
     globalDataPath: (dir: string) => `  Learning data stored at ${dir}/`,
     startLearning: (example: string) => `  Run ${example} to start your first learning topic\n`,
@@ -54,8 +57,23 @@ export const en: LocaleMessages = {
       `Port ${from} is already in use — switching to port ${to}.`,
     portRangeExhausted: (start: number, end: number) =>
       `No free port found in range ${start}-${end}. Specify one manually with --port.`,
-    emptyTopics: 'No learning topics found in .learn/topics/. Start learning with /learn:topic.',
+    emptyTopics: 'No learning topics found in topics/. Start learning with /learn:topic.',
     serverStopped: 'Server stopped.',
     siteNotBuilt: 'Site files not found. Please reinstall the package or run the build step.',
+  },
+
+  site: {
+    generating: 'Generating site project...',
+    generationComplete: (dir: string, fileCount: number) =>
+      `Site project generated at ${dir} (${fileCount} files).`,
+    dirExists: 'Site files already exist here. Use --force to overwrite.',
+    nextSteps:
+      '\nNext steps:\n  npm install\n  npx learn-anything serve  # local preview\n  npx learn-anything build  # static deployment (→ dist/)\n',
+  },
+
+  build: {
+    building: 'Building static site...',
+    buildComplete: (dir: string) => `Build complete: ${dir}`,
+    siteNotBuilt: 'Site files not found. Please reinstall learn-anything-cli.',
   },
 };

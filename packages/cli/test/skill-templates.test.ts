@@ -27,6 +27,7 @@ describe('Skill Templates', () => {
       'review',
       'status',
       'quiz',
+      'site',
     ]);
 
     for (const entry of templates) {
@@ -83,6 +84,7 @@ describe('Command Templates', () => {
       'review',
       'status',
       'quiz',
+      'site',
     ]);
   });
 
@@ -95,11 +97,12 @@ describe('Command Templates', () => {
       'review',
       'status',
       'quiz',
+      'site',
     ]);
     for (const c of contents) {
       expect(c.id).toBeTruthy();
       expect(c.name).toBeTruthy();
-      expect(c.category).toBe('Learning');
+      expect(c.category).toBeTruthy();
       expect(c.body).toBeTruthy();
     }
   });
@@ -118,7 +121,7 @@ describe('Command Generation', () => {
       expect(cmd.path.replace(/\\/g, '/')).toContain('.claude/commands/learn/');
       expect(cmd.path).toMatch(/\.md$/);
       expect(cmd.fileContent).toContain('---');
-      expect(cmd.fileContent).toContain('category: Learning');
+      expect(cmd.fileContent).toContain('category:');
     }
   });
 

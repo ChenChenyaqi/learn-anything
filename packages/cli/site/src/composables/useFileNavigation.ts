@@ -32,7 +32,7 @@ export function useFileNavigation() {
   function selectFile(
     path: string,
     type: SelectedFilePayload['type'],
-    sourceTab: OmitQuizSourceType,
+    sourceTab: NonNullable<SelectedFilePayload['sourceTab']>,
     syncUrl = true,
   ) {
     // Selection is synchronous → first render already shows the file view,
@@ -40,7 +40,7 @@ export function useFileNavigation() {
     topicSelectedFile.value = {
       path,
       type,
-      sourceTab: sourceTab as SelectedFilePayload['sourceTab'],
+      sourceTab,
     };
     if (syncUrl) router.replace({ query: { file: path } });
 

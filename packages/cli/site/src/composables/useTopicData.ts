@@ -250,7 +250,14 @@ export function scanRootExercises(slug: string): ExerciseFile[] {
 }
 
 export async function loadFileContent(path: string): Promise<string | null> {
-  if (fileContents.has(path)) return fileContents.get(path)!;
+  if (fileContents.has(path)) {
+    // Re-insert on hit so the entry becomes most-recently-used; eviction
+    // then removes the genuinely least-recently-used key (true LRU).
+    const cached = fileContents.get(path)!;
+    fileContents.delete(path);
+    fileContents.set(path, cached);
+    return cached;
+  }
   try {
     const resp = await fetch(`/api/file?path=${encodeURIComponent(path)}`);
     if (!resp.ok) return null;

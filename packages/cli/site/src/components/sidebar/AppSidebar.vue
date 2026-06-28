@@ -1,13 +1,10 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue';
-import { useI18n } from '../../composables/useI18n';
+import { ref } from 'vue';
 import type { SelectedFilePayload } from '../../composables/useTopicData';
 import SearchTrigger from './SearchTrigger.vue';
 import SidebarMobileToggle from './SidebarMobileToggle.vue';
 import SidebarDashboard from './SidebarDashboard.vue';
-import SidebarTopicTree from './SidebarTopicTree.vue';
-import SidebarExerciseTree from './SidebarExerciseTree.vue';
-import SidebarQuizTree from './SidebarQuizTree.vue';
+import SidebarTabs from './tabs/SidebarTabs.vue';
 import SidebarFooter from './footer/SidebarFooter.vue';
 import { OmitQuizSourceType } from '../../composables/topicDataTypes';
 
@@ -29,18 +26,7 @@ const emit = defineEmits<{
   ];
 }>();
 
-const { t } = useI18n();
-
 const mobileOpen = ref(false);
-const tabMode = ref<SelectedFilePayload['sourceTab']>('topics');
-
-watch(
-  () => props.initialTab,
-  (tab) => {
-    if (tab === 'exercises') tabMode.value = tab;
-  },
-  { immediate: true },
-);
 
 function onMobileClose() {
   mobileOpen.value = false;
@@ -51,20 +37,9 @@ function onTopicSelected(slug: string) {
   mobileOpen.value = false;
 }
 
-function onFileSelected(payload: { path: string; type: 'markdown' | 'code' }) {
-  emit('file-selected', {
-    ...payload,
-    sourceTab: tabMode.value as SelectedFilePayload['sourceTab'],
-  });
-  mobileOpen.value = false;
-}
-
-function onKnowledgeMap() {
-  emit('file-selected', null);
-}
-
-function switchTab(tab: 'topics' | 'exercises' | 'quizzes') {
-  tabMode.value = tab;
+function onFileSelected(file: SelectedFilePayload | null) {
+  emit('file-selected', file);
+  if (file) mobileOpen.value = false;
 }
 
 function onQuizSelected(quiz: { path: string }) {
@@ -111,69 +86,15 @@ function onQuizBatchSelected(batch: {
     <SidebarDashboard v-if="context === 'dashboard'" @topic-selected="onTopicSelected" />
 
     <!-- Topic mode: tabs + trees -->
-    <template v-else>
-      <div class="px-6 pt-3">
-        <div class="flex gap-6">
-          <button
-            class="pb-2 text-xs font-medium transition-colors cursor-pointer border-b-2 -mb-px"
-            :class="
-              tabMode === 'topics'
-                ? 'border-brand-2 text-brand-2'
-                : 'border-transparent text-text-2 hover:text-text-1'
-            "
-            @click="switchTab('topics')"
-          >
-            {{ t('sidebar.topics') }}
-          </button>
-          <button
-            class="pb-2 text-xs font-medium transition-colors cursor-pointer border-b-2 -mb-px"
-            :class="
-              tabMode === 'exercises'
-                ? 'border-brand-2 text-brand-2'
-                : 'border-transparent text-text-2 hover:text-text-1'
-            "
-            @click="switchTab('exercises')"
-          >
-            {{ t('sidebar.exercises') }}
-          </button>
-          <button
-            class="pb-2 text-xs font-medium transition-colors cursor-pointer border-b-2 -mb-px"
-            :class="
-              tabMode === 'quizzes'
-                ? 'border-brand-2 text-brand-2'
-                : 'border-transparent text-text-2 hover:text-text-1'
-            "
-            @click="switchTab('quizzes')"
-          >
-            {{ t('sidebar.quizzes') }}
-          </button>
-        </div>
-      </div>
-
-      <div class="mx-6 border-t border-(--color-divider)" />
-
-      <SidebarTopicTree
-        v-if="tabMode === 'topics' && topicSlug"
-        :topic-slug="topicSlug"
-        :selected-file-path="selectedFilePath"
-        @file-selected="onFileSelected"
-        @knowledge-map="onKnowledgeMap"
-      />
-
-      <SidebarExerciseTree
-        v-if="tabMode === 'exercises' && topicSlug"
-        :topic-slug="topicSlug"
-        :selected-file-path="selectedFilePath"
-        @file-selected="onFileSelected"
-      />
-
-      <SidebarQuizTree
-        v-if="tabMode === 'quizzes' && topicSlug"
-        :topic-slug="topicSlug"
-        @quiz-selected="onQuizSelected"
-        @quiz-batch-selected="onQuizBatchSelected"
-      />
-    </template>
+    <SidebarTabs
+      v-else
+      :topic-slug="topicSlug"
+      :selected-file-path="selectedFilePath"
+      :initial-tab="initialTab"
+      @file-selected="onFileSelected"
+      @quiz-selected="onQuizSelected"
+      @quiz-batch-selected="onQuizBatchSelected"
+    />
 
     <SidebarFooter />
   </aside>

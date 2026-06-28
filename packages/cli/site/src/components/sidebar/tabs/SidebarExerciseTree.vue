@@ -1,16 +1,16 @@
 <script setup lang="ts">
 import { computed, watch } from 'vue';
-import { useI18n } from '../../composables/useI18n';
-import { useAutoExpand } from '../../composables/useAutoExpand';
+import { useI18n } from '../../../composables/useI18n';
+import { useAutoExpand } from '../../../composables/useAutoExpand';
 import {
   loadTopic,
   scanExercises,
   scanRootExercises,
   getDataVersion,
-} from '../../composables/useTopicData';
-import type { ExerciseGroup, ExerciseFile } from '../../composables/useTopicData';
-import { isMarkdownFile } from '../../utils/markdown';
-import SidebarTreeNode from './SidebarTreeNode.vue';
+} from '../../../composables/useTopicData';
+import type { ExerciseGroup, ExerciseFile } from '../../../composables/useTopicData';
+import { isMarkdownFile } from '../../../utils/markdown';
+import SidebarTreeNode from '../SidebarTreeNode.vue';
 
 const props = defineProps<{
   topicSlug: string;

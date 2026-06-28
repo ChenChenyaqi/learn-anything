@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { useI18n } from '../../composables/useI18n';
-import { useAutoExpand } from '../../composables/useAutoExpand';
-import { fetchQuizList, type QuizFile, type QueueItem } from '../quiz/useQuiz';
-import QuizIcons from '../quiz/QuizIcons.vue';
-import SidebarTreeNode from './SidebarTreeNode.vue';
+import { useI18n } from '../../../composables/useI18n';
+import { useAutoExpand } from '../../../composables/useAutoExpand';
+import { fetchQuizList, type QuizFile, type QueueItem } from '../../quiz/useQuiz';
+import QuizIcons from '../../quiz/QuizIcons.vue';
+import SidebarTreeNode from '../SidebarTreeNode.vue';
 
 const props = defineProps<{
   topicSlug: string;

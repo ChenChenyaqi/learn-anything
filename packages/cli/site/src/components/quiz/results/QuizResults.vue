@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { useI18n } from '../../../composables/useI18n';
-import type { QuizResults, QuizAnswer } from '../useQuiz';
+import { useI18n } from '@/composables/useI18n';
+import type { QuizResults, QuizAnswer } from '@/components/quiz/useQuiz';
 import QuizResultsFooter from './QuizResultsFooter.vue';
 
 const props = defineProps<{

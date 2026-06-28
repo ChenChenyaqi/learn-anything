@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { useI18n } from '../../composables/useI18n';
-import { usePlatform } from '../../composables/usePlatform';
+import { useI18n } from '@/composables/useI18n';
+import { usePlatform } from '@/composables/usePlatform';
 
 const { t } = useI18n();
 

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useI18n } from '../../../composables/useI18n';
+import { useI18n } from '@/composables/useI18n';
 import LanguageSwitch from './LanguageSwitch.vue';
 
 const { t, isDark, toggleDarkMode } = useI18n();

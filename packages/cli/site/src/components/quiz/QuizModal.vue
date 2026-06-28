@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { shallowRef, watch, computed, ref, nextTick } from 'vue';
-import { useI18n } from '../../composables/useI18n';
+import { useI18n } from '@/composables/useI18n';
 import {
   useQuizSession,
   useQuizQueue,
@@ -8,7 +8,7 @@ import {
   type QuizResults as QuizResultsData,
   type QueueItem,
 } from './useQuiz';
-import { useModalA11y } from '../../composables/useModalA11y';
+import { useModalA11y } from '@/composables/useModalA11y';
 import { resolveQuizKey } from './useQuizKeyboard';
 import {
   useQuizProgress,

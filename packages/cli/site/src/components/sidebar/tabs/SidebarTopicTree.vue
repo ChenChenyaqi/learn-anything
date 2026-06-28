@@ -1,16 +1,16 @@
 <script setup lang="ts">
 import { computed, watch } from 'vue';
-import { useI18n } from '../../../composables/useI18n';
-import { useAutoExpand } from '../../../composables/useAutoExpand';
+import { useI18n } from '@/composables/useI18n';
+import { useAutoExpand } from '@/composables/useAutoExpand';
 import {
   loadTopic,
   scanSessions,
   scanDomainDirs,
   scanRootSessions,
   getDataVersion,
-} from '../../../composables/useTopicData';
-import type { Domain, SessionFile } from '../../../composables/useTopicData';
-import SidebarTreeNode from '../SidebarTreeNode.vue';
+} from '@/composables/useTopicData';
+import type { Domain, SessionFile } from '@/composables/useTopicData';
+import SidebarTreeNode from '@/components/sidebar/SidebarTreeNode.vue';
 
 const props = defineProps<{
   topicSlug: string;

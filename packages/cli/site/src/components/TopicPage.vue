@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { computed, ref, inject, type Ref } from 'vue';
-import { useI18n } from '../composables/useI18n';
-import { loadTopic, loadKnowledgeMap, getDataVersion } from '../composables/useTopicData';
+import { useI18n } from '@/composables/useI18n';
+import { loadTopic, loadKnowledgeMap, getDataVersion } from '@/composables/useTopicData';
 import ContentViewer from './ContentViewer.vue';
 import TocLayout from './TocLayout.vue';
-import type { SelectedFilePayload } from '../composables/useTopicData';
-import { renderMarkdown } from '../utils/markdown';
+import type { SelectedFilePayload } from '@/composables/useTopicData';
+import { renderMarkdown } from '@/utils/markdown';
 
 const props = defineProps<{ slug: string }>();
 

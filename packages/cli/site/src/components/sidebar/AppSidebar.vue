@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import type { SelectedFilePayload } from '../../composables/useTopicData';
+import type { SelectedFilePayload } from '@/composables/useTopicData';
 import SearchTrigger from './SearchTrigger.vue';
 import SidebarMobileToggle from './SidebarMobileToggle.vue';
 import SidebarDashboard from './SidebarDashboard.vue';
 import SidebarTabs from './tabs/SidebarTabs.vue';
 import SidebarFooter from './footer/SidebarFooter.vue';
-import { OmitQuizSourceType } from '../../composables/topicDataTypes';
+import { OmitQuizSourceType } from '@/composables/topicDataTypes';
 
 const props = defineProps<{
   context: 'dashboard' | 'topic';
@@ -22,7 +22,10 @@ const emit = defineEmits<{
   'search-open': [];
   'quiz-selected': [quiz: { path: string }];
   'quiz-batch-selected': [
-    batch: { items: import('../quiz/useQuiz').QueueItem[]; mode: 'sequential' | 'random' },
+    batch: {
+      items: import('@/components/quiz/useQuiz').QueueItem[];
+      mode: 'sequential' | 'random';
+    },
   ];
 }>();
 
@@ -48,7 +51,7 @@ function onQuizSelected(quiz: { path: string }) {
 }
 
 function onQuizBatchSelected(batch: {
-  items: import('../quiz/useQuiz').QueueItem[];
+  items: import('@/components/quiz/useQuiz').QueueItem[];
   mode: 'sequential' | 'random';
 }) {
   emit('quiz-batch-selected', batch);

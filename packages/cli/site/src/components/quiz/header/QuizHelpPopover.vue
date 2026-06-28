@@ -2,8 +2,8 @@
 /* "?" help popover with its own open/close state and click-outside-to-close.
  * Fully self-contained — the parent just drops it in. */
 import { ref, watch, onBeforeUnmount } from 'vue';
-import { useI18n } from '../../../composables/useI18n';
-import { usePlatform } from '../../../composables/usePlatform';
+import { useI18n } from '@/composables/useI18n';
+import { usePlatform } from '@/composables/usePlatform';
 
 const { t } = useI18n();
 const { isMac } = usePlatform();

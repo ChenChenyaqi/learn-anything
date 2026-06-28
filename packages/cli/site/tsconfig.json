@@ -15,7 +15,7 @@
     "moduleResolution": "bundler",
     "jsx": "preserve",
     "paths": {
-      "@data/*": ["./topics/*"]
+      "@/*": ["./src/*"]
     },
     "allowImportingTsExtensions": true,
     "noEmit": true

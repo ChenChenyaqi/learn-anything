@@ -11,7 +11,7 @@
 /* ================================================================== */
 
 import { computed, type ComputedRef, type Ref } from 'vue';
-import { useI18n } from '../../composables/useI18n';
+import { useI18n } from '@/composables/useI18n';
 
 /* ------------------------------------------------------------------ */
 /*  Minimal structural input types                                     */

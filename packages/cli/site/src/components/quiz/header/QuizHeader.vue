@@ -1,9 +1,9 @@
 <script setup lang="ts">
 /* Quiz modal top bar: back link + progress text + help popover + close.
  * Renders group progress (queue mode) or single-deck question progress. */
-import { useI18n } from '../../../composables/useI18n';
+import { useI18n } from '@/composables/useI18n';
 import QuizHelpPopover from './QuizHelpPopover.vue';
-import QuizCloseButton from '../QuizCloseButton.vue';
+import QuizCloseButton from '@/components/quiz/QuizCloseButton.vue';
 
 defineProps<{
   progressText: string;

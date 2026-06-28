@@ -1,8 +1,8 @@
 <script setup lang="ts">
 /* Quiz modal bottom bar: previous / next / submit with keyboard hints.
  * The parent decides whether to render it (e.g. hidden on completion). */
-import { useI18n } from '../../composables/useI18n';
-import { usePlatform } from '../../composables/usePlatform';
+import { useI18n } from '@/composables/useI18n';
+import { usePlatform } from '@/composables/usePlatform';
 
 defineProps<{
   isFirst: boolean;

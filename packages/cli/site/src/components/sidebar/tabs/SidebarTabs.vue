@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue';
-import { useI18n } from '../../../composables/useI18n';
-import type { SelectedFilePayload } from '../../../composables/useTopicData';
-import { OmitQuizSourceType } from '../../../composables/topicDataTypes';
-import type { QueueItem } from '../../quiz/useQuiz';
+import { useI18n } from '@/composables/useI18n';
+import type { SelectedFilePayload } from '@/composables/useTopicData';
+import { OmitQuizSourceType } from '@/composables/topicDataTypes';
+import type { QueueItem } from '@/components/quiz/useQuiz';
 import SidebarTopicTree from './SidebarTopicTree.vue';
 import SidebarExerciseTree from './SidebarExerciseTree.vue';
 import SidebarQuizTree from './SidebarQuizTree.vue';

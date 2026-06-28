@@ -1,5 +1,5 @@
 import { ref, type ComputedRef } from 'vue';
-import { fetchQuizDeck, type QuizDeck, type QueueItem } from '../components/quiz/useQuiz';
+import { fetchQuizDeck, type QuizDeck, type QueueItem } from '@/components/quiz/useQuiz';
 
 export function useQuizLauncher(currentTopicSlug: ComputedRef<string | undefined>) {
   const quizOpen = ref(false);

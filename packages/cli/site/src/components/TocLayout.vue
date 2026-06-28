@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, watch, nextTick } from 'vue';
 import TableOfContents from './TableOfContents.vue';
-import { useToc } from '../composables/useToc';
+import { useToc } from '@/composables/useToc';
 
 const props = defineProps<{ html: string }>();
 

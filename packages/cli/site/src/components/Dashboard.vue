@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useRouter } from 'vue-router';
-import { useI18n } from '../composables/useI18n';
-import { listAllTopics } from '../composables/useTopicData';
+import { useI18n } from '@/composables/useI18n';
+import { listAllTopics } from '@/composables/useTopicData';
 
 const router = useRouter();
 const { t } = useI18n();

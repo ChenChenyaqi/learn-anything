@@ -6,12 +6,12 @@ const router = createRouter({
     {
       path: '/',
       name: 'dashboard',
-      component: () => import('../components/Dashboard.vue'),
+      component: () => import('@/components/Dashboard.vue'),
     },
     {
       path: '/topics/:slug',
       name: 'topic',
-      component: () => import('../components/TopicPage.vue'),
+      component: () => import('@/components/TopicPage.vue'),
       props: true,
     },
   ],

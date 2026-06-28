@@ -150,8 +150,11 @@ function onModalKeydown(e: KeyboardEvent) {
     close();
     return;
   }
+  const isText =
+    (e.target as HTMLElement)?.tagName === 'INPUT' ||
+    (e.target as HTMLElement)?.tagName === 'TEXTAREA';
   // prevent space keydown, it can refresh quiz cards
-  if (e.code === 'Space') {
+  if (e.code === 'Space' && !isText) {
     e.preventDefault();
     return;
   }

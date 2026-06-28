@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect } from 'vitest';
-import { renderMarkdown } from '../../site/src/utils/markdown';
+import { renderMarkdown } from '@/utils/markdown';
 
 /* ==================================================================== */
 /*  Tests for the markdown-it-anchor integration in utils/markdown.ts.  */

@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { createApp, defineComponent, h, ref } from 'vue';
-import { useToc, type TocItem } from '../../site/src/composables/useToc';
+import { useToc, type TocItem } from '@/components/content/useToc';
 
 /* ------------------------------------------------------------------ */
 /*  Helpers — run composable inside a real component lifecycle        */

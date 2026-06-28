@@ -1,11 +1,8 @@
 // @vitest-environment jsdom
 import { describe, it, expect } from 'vitest';
 import { ref, computed, shallowRef } from 'vue';
-import { useQuizProgress } from '../../site/src/components/quiz/useQuizProgress';
-import type {
-  ProgressSession,
-  ProgressQueue,
-} from '../../site/src/components/quiz/useQuizProgress';
+import { useQuizProgress } from '@/components/quiz/useQuizProgress';
+import type { ProgressSession, ProgressQueue } from '@/components/quiz/useQuizProgress';
 
 /* ------------------------------------------------------------------ */
 /*  Fixtures                                                            */

@@ -14,14 +14,14 @@ import {
   loadExerciseContent,
   __resetForTest,
   __injectTestData,
-} from '../../site/src/composables/useTopicData';
+} from '@/composables/useTopicData';
 import type {
   SessionFile,
   ExerciseGroup,
   TopicSummary,
   StateV1,
   ExerciseFile,
-} from '../../site/src/composables/useTopicData';
+} from '@/composables/useTopicData';
 
 /* ==================================================================== */
 /*  Fixture-based tests against packages/cli/test/fixtures/topics/       */
@@ -38,7 +38,7 @@ import type {
 /* ==================================================================== */
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const FIXTURE_DIR = join(__dirname, '..', 'fixtures', 'topics');
+const FIXTURE_DIR = join(__dirname, '..', '..', 'test', 'fixtures', 'topics');
 
 const VALID_SLUG = 'javascript';
 const NONEXISTENT_SLUG = 'zzz-nonexistent';

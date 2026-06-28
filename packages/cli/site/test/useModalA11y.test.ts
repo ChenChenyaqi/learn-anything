@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { createApp, defineComponent, h, ref, nextTick, type Ref } from 'vue';
-import { useModalA11y } from '../../site/src/composables/useModalA11y';
+import { useModalA11y } from '@/composables/useModalA11y';
 
 /* ------------------------------------------------------------------ */
 /*  Mount helper — exposes the `open` ref and unmount control           */

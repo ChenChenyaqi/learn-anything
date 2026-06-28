@@ -1,9 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import type { QuizQuestion } from '../../site/src/components/quiz/useQuiz';
-import {
-  resolveQuizKey,
-  type ResolveQuizKeyCtx,
-} from '../../site/src/components/quiz/useQuizKeyboard';
+import type { QuizQuestion } from '@/components/quiz/types';
+import { resolveQuizKey, type ResolveQuizKeyCtx } from '@/components/quiz/useQuizKeyboard';
 
 /* ------------------------------------------------------------------ */
 /*  Helpers                                                            */

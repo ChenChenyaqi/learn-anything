@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite",
     "dev:test": "vite --mode test",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.1",

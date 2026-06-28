@@ -1,16 +1,10 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { createApp, defineComponent, h, nextTick } from 'vue';
-import {
-  gradeQuestion,
-  computeResults,
-  useQuizSession,
-  fetchQuizList,
-  fetchQuizDeck,
-  type QuizDeck,
-  type QuizQuestion,
-  type QuizAnswers,
-} from '../../site/src/components/quiz/useQuiz';
+import { gradeQuestion, computeResults } from '@/components/quiz/grading';
+import { useQuizSession } from '@/components/quiz/useQuizSession';
+import { fetchQuizList, fetchQuizDeck } from '@/components/quiz/quizApi';
+import type { QuizDeck, QuizQuestion, QuizAnswers } from '@/components/quiz/types';
 
 /* ------------------------------------------------------------------ */
 /*  Helpers — run composable inside a real component lifecycle        */

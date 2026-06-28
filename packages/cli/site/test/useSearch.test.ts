@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import type { SearchEntry } from '../../site/src/composables/useSearch';
+import type { SearchEntry } from '@/components/search/useSearch';
 
 /* ------------------------------------------------------------------ */
 /*  Mocks                                                              */
@@ -12,7 +12,7 @@ import type { SearchEntry } from '../../site/src/composables/useSearch';
 
 const mockGetDataVersion = vi.fn(() => 0);
 
-vi.mock('../../site/src/composables/useTopicData', () => ({
+vi.mock('@/composables/useTopicData', () => ({
   getDataVersion: () => mockGetDataVersion(),
 }));
 
@@ -95,8 +95,8 @@ function mockResponse(data: unknown) {
 /* ------------------------------------------------------------------ */
 
 describe('useSearch', () => {
-  let loadSearchIndex: typeof import('../../site/src/composables/useSearch').loadSearchIndex;
-  let search: typeof import('../../site/src/composables/useSearch').search;
+  let loadSearchIndex: typeof import('@/components/search/useSearch').loadSearchIndex;
+  let search: typeof import('@/components/search/useSearch').search;
   const mockFetch = vi.fn();
 
   beforeEach(async () => {
@@ -105,7 +105,7 @@ describe('useSearch', () => {
     mockFetch.mockReset();
     mockGetDataVersion.mockReturnValue(0);
 
-    const mod = await import('../../site/src/composables/useSearch');
+    const mod = await import('@/components/search/useSearch');
     loadSearchIndex = mod.loadSearchIndex;
     search = mod.search;
   });

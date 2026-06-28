@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import type { SearchEntry } from '../../site/src/composables/useSearch';
+import type { SearchEntry } from '@/components/search/useSearch';
 
 /* ------------------------------------------------------------------ */
 /*  Mocks                                                              */
@@ -13,7 +13,7 @@ import type { SearchEntry } from '../../site/src/composables/useSearch';
 const mockLoadSearchIndex = vi.fn();
 const mockSearch = vi.fn();
 
-vi.mock('../../site/src/composables/useSearch', () => ({
+vi.mock('@/components/search/useSearch', () => ({
   loadSearchIndex: (...a: unknown[]) => mockLoadSearchIndex(...a),
   search: (...a: unknown[]) => mockSearch(...a),
 }));
@@ -23,7 +23,7 @@ import {
   breadcrumb,
   resolveNavKey,
   useSearchModal,
-} from '../../site/src/composables/useSearchModal';
+} from '@/components/search/useSearchModal';
 
 /* ------------------------------------------------------------------ */
 /*  Fixtures                                                            */

@@ -11,7 +11,7 @@ const router = createRouter({
     {
       path: '/topics/:slug',
       name: 'topic',
-      component: () => import('@/components/TopicPage.vue'),
+      component: () => import('@/components/content/TopicPage.vue'),
       props: true,
     },
   ],

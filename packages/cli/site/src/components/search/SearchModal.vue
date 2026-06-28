@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from 'vue';
 import { useI18n } from '@/composables/useI18n';
-import type { SearchEntry } from '@/composables/useSearch';
-import { breadcrumb, resolveNavKey, useSearchModal } from '@/composables/useSearchModal';
+import type { SearchEntry } from './useSearch';
+import { breadcrumb, resolveNavKey, useSearchModal } from './useSearchModal';
 import { useModalA11y } from '@/composables/useModalA11y';
 
 /* ------------------------------------------------------------------ */

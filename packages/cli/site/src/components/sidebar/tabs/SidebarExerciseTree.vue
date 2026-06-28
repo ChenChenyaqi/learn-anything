@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, watch } from 'vue';
 import { useI18n } from '@/composables/useI18n';
-import { useAutoExpand } from '@/composables/useAutoExpand';
+import { useAutoExpand } from './useAutoExpand';
 import {
   loadTopic,
   scanExercises,
@@ -56,12 +56,15 @@ const rootExercises = computed<ExerciseFile[]>(() => {
   return scanRootExercises(props.topicSlug);
 });
 
-const { expanded: expandedConcepts, toggle: toggleExpansion, add: addExpansion } =
-  useAutoExpand(
-    'exercises',
-    () => props.topicSlug,
-    () => exerciseGroups.value[0]?.conceptSlug,
-  );
+const {
+  expanded: expandedConcepts,
+  toggle: toggleExpansion,
+  add: addExpansion,
+} = useAutoExpand(
+  'exercises',
+  () => props.topicSlug,
+  () => exerciseGroups.value[0]?.conceptSlug,
+);
 
 /* Selecting a file: expand its parent concept without collapsing others. */
 watch(
@@ -126,7 +129,10 @@ function selectExerciseFile(file: ExerciseFile) {
       </button>
     </div>
 
-    <div v-if="exerciseGroups.length === 0 && rootExercises.length === 0" class="py-2 text-xs text-text-3">
+    <div
+      v-if="exerciseGroups.length === 0 && rootExercises.length === 0"
+      class="py-2 text-xs text-text-3"
+    >
       {{ t('sidebar.noExercises') }}
     </div>
   </nav>

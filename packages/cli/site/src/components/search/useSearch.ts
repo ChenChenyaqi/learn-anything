@@ -1,4 +1,4 @@
-import { getDataVersion } from './useTopicData';
+import { getDataVersion } from '@/composables/useTopicData';
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */

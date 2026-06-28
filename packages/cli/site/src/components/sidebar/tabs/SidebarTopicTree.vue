@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, watch } from 'vue';
 import { useI18n } from '@/composables/useI18n';
-import { useAutoExpand } from '@/composables/useAutoExpand';
+import { useAutoExpand } from './useAutoExpand';
 import {
   loadTopic,
   scanSessions,
@@ -67,12 +67,15 @@ const rootSessions = computed<SessionFile[]>(() => {
   return scanRootSessions(props.topicSlug);
 });
 
-const { expanded: expandedDomains, toggle: toggleExpansion, add: addExpansion } =
-  useAutoExpand(
-    'topics',
-    () => props.topicSlug,
-    () => domainSessions.value[0]?.domain.slug,
-  );
+const {
+  expanded: expandedDomains,
+  toggle: toggleExpansion,
+  add: addExpansion,
+} = useAutoExpand(
+  'topics',
+  () => props.topicSlug,
+  () => domainSessions.value[0]?.domain.slug,
+);
 
 /* Selecting a file: expand its parent folder (incl. orphans) without collapsing others. */
 watch(
@@ -143,7 +146,10 @@ function selectSessionFile(file: SessionFile) {
       </button>
     </div>
 
-    <div v-if="domainSessions.length === 0 && rootSessions.length === 0" class="py-2 text-xs text-text-3">
+    <div
+      v-if="domainSessions.length === 0 && rootSessions.length === 0"
+      class="py-2 text-xs text-text-3"
+    >
       {{ t('sidebar.noNotes') }}
     </div>
   </nav>

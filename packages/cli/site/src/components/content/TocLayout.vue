@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, watch, nextTick } from 'vue';
 import TableOfContents from './TableOfContents.vue';
-import { useToc } from '@/composables/useToc';
+import { useToc } from './useToc';
 
 const props = defineProps<{ html: string }>();
 
@@ -17,18 +17,10 @@ watch(
 
 <template>
   <div class="xl:flex xl:justify-center xl:gap-8">
-    <article
-      ref="contentRef"
-      class="prose-content xl:mx-0! xl:min-w-0 xl:flex-1"
-      v-html="html"
-    />
+    <article ref="contentRef" class="prose-content xl:mx-0! xl:min-w-0 xl:flex-1" v-html="html" />
     <aside class="hidden shrink-0 xl:block w-48 2xl:w-64">
       <div class="sticky top-20 max-h-[calc(100vh-6rem)] overflow-y-auto">
-        <TableOfContents
-          :headings="headings"
-          :active-id="activeId"
-          @navigate="scrollTo"
-        />
+        <TableOfContents :headings="headings" :active-id="activeId" @navigate="scrollTo" />
       </div>
     </aside>
   </div>

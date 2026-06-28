@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from '@/composables/useI18n';
-import type { TocItem } from '@/composables/useToc';
+import type { TocItem } from './useToc';
 
 defineProps<{
   headings: TocItem[];

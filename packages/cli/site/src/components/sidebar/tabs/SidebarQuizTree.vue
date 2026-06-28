@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useI18n } from '@/composables/useI18n';
-import { useAutoExpand } from '@/composables/useAutoExpand';
+import { useAutoExpand } from './useAutoExpand';
 import { fetchQuizList, type QuizFile, type QueueItem } from '@/components/quiz/useQuiz';
 import QuizIcons from '@/components/quiz/QuizIcons.vue';
 import SidebarTreeNode from '@/components/sidebar/SidebarTreeNode.vue';

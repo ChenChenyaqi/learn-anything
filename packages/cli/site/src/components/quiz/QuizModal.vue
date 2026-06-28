@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { shallowRef, watch, computed, ref, nextTick } from 'vue';
-import { useI18n } from '@/composables/useI18n';
 import {
   useQuizSession,
   useQuizQueue,
@@ -10,17 +9,12 @@ import {
 } from './useQuiz';
 import { useModalA11y } from '@/composables/useModalA11y';
 import { resolveQuizKey } from './useQuizKeyboard';
-import {
-  useQuizProgress,
-  type ProgressSession,
-  type ProgressQueue,
-} from './useQuizProgress';
-import QuizCard from './QuizCard.vue';
+import { useQuizProgress, type ProgressSession, type ProgressQueue } from './useQuizProgress';
 import QuizResults from './results/QuizResults.vue';
 import QuizSummary from './QuizSummary.vue';
-import QuizHeader from './header/QuizHeader.vue';
-import QuizFooter from './QuizFooter.vue';
 import QuizDialogShell from './QuizDialogShell.vue';
+import QuizLoadingView from './QuizLoadingView.vue';
+import QuizPlayView from './QuizPlayView.vue';
 
 const props = defineProps<{
   open: boolean;
@@ -32,8 +26,6 @@ const props = defineProps<{
 const emit = defineEmits<{
   close: [];
 }>();
-
-const { t } = useI18n();
 
 /* ---- Session / queue ---- */
 
@@ -143,10 +135,10 @@ async function onNextGroup() {
 
 /* ---- Template refs ---- */
 
-const loadingShellRef = ref<InstanceType<typeof QuizDialogShell> | null>(null);
-const quizShellRef = ref<InstanceType<typeof QuizDialogShell> | null>(null);
-const resultsShellRef = ref<InstanceType<typeof QuizDialogShell> | null>(null);
-const summaryShellRef = ref<InstanceType<typeof QuizDialogShell> | null>(null);
+/* Single ref shared across the mutually-exclusive dialog views. Each view's
+   root (QuizDialogShell or the *View wrappers) exposes `dialogEl`, so this
+   always points at the one currently-mounted dialog. */
+const viewRef = ref<{ dialogEl: HTMLElement | null } | null>(null);
 
 /* ---- Modal a11y ---- */
 
@@ -160,11 +152,7 @@ function onModalKeydown(e: KeyboardEvent) {
   }
 
   if (e.key === 'Enter' && !e.metaKey && !e.ctrlKey) {
-    const anyDialog =
-      loadingShellRef.value?.dialogEl ??
-      quizShellRef.value?.dialogEl ??
-      resultsShellRef.value?.dialogEl ??
-      summaryShellRef.value?.dialogEl;
+    const anyDialog = viewRef.value?.dialogEl ?? null;
     if (anyDialog && !anyDialog.contains(e.target as Node)) {
       e.preventDefault();
     }
@@ -208,12 +196,7 @@ watch(isOpen, async (open) => {
   if (!open) return;
   await nextTick();
   await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
-  (
-    loadingShellRef.value?.dialogEl ??
-    quizShellRef.value?.dialogEl ??
-    resultsShellRef.value?.dialogEl ??
-    summaryShellRef.value?.dialogEl
-  )?.focus();
+  viewRef.value?.dialogEl?.focus();
 });
 </script>
 
@@ -223,79 +206,34 @@ watch(isOpen, async (open) => {
       <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" />
 
       <!-- Loading / error -->
-      <QuizDialogShell
+      <QuizLoadingView
         v-if="queue?.phase.value === 'loading' || queue?.phase.value === 'error'"
-        ref="loadingShellRef"
-        layout-class="flex flex-col min-h-50 items-center justify-center"
-        closeable
+        ref="viewRef"
+        :phase="queue?.phase.value === 'error' ? 'error' : 'loading'"
         @close="close"
-      >
-        <template v-if="queue?.phase.value === 'loading'">
-          <p class="text-sm text-text-3">...</p>
-        </template>
-        <template v-else>
-          <p class="text-sm text-text-3 mb-4">{{ t('quiz.loadError') }}</p>
-          <button
-            class="px-4 py-2 text-sm font-medium text-white bg-brand-2 rounded-lg hover:bg-brand-1 transition-colors cursor-pointer"
-            @click="queue?.loadCurrent()"
-          >
-            {{ t('quiz.retry') }}
-          </button>
-        </template>
-      </QuizDialogShell>
+        @retry="queue?.loadCurrent()"
+      />
 
       <!-- Quiz (queue or single-deck) -->
-      <QuizDialogShell
+      <QuizPlayView
         v-else-if="session"
-        ref="quizShellRef"
-        layout-class="grid grid-rows-[auto_1fr_auto]"
-      >
-        <QuizHeader
-          v-if="!session.isComplete.value"
-          :progress-text="progressText"
-          :group-progress-text="groupProgressText"
-          :current-group-label="currentGroupLabel"
-          @close="close"
-        />
-        <div class="overflow-y-auto min-h-0">
-          <div
-            v-if="!session.isComplete.value"
-            class="px-6 py-8 min-h-75 flex items-center perspective-[1000px]"
-          >
-            <Transition
-              :name="session.direction.value === 'backward' ? 'slide-backward' : 'slide-forward'"
-              mode="out-in"
-            >
-              <div :key="session.currentIndex.value" class="w-full">
-                <QuizCard
-                  :question="session.currentQuestion.value"
-                  :model-value="session.getAnswer(session.currentQuestion.value.id)"
-                  @update:model-value="session.setAnswer(session.currentQuestion.value.id, $event)"
-                />
-              </div>
-            </Transition>
-          </div>
-          <QuizResults
-            v-else-if="session.results.value && !queue"
-            :results="session.results.value"
-            @retry="onRetry"
-            @close="close"
-          />
-        </div>
-        <QuizFooter
-          v-if="!session.isComplete.value"
-          :is-first="session.isFirst.value"
-          :is-last="session.isLast.value"
-          @prev="onPrev"
-          @next="onNext"
-          @submit="onSubmit"
-        />
-      </QuizDialogShell>
+        ref="viewRef"
+        :session="session"
+        :progress-text="progressText"
+        :group-progress-text="groupProgressText"
+        :current-group-label="currentGroupLabel"
+        :has-queue="!!queue"
+        @close="close"
+        @prev="onPrev"
+        @next="onNext"
+        @submit="onSubmit"
+        @retry="onRetry"
+      />
 
       <!-- Queue per-group results -->
       <QuizDialogShell
         v-else-if="queue?.phase.value === 'results' && activeResults"
-        ref="resultsShellRef"
+        ref="viewRef"
         layout-class="grid grid-rows-[minmax(0,1fr)]"
         closeable
         @close="close"
@@ -316,7 +254,7 @@ watch(isOpen, async (open) => {
       <!-- Queue summary -->
       <QuizDialogShell
         v-else-if="queue?.phase.value === 'summary' && queue.summary.value"
-        ref="summaryShellRef"
+        ref="viewRef"
         layout-class="grid grid-rows-[minmax(0,1fr)]"
         closeable
         @close="close"
@@ -326,41 +264,3 @@ watch(isOpen, async (open) => {
     </div>
   </Teleport>
 </template>
-
-<style scoped>
-.slide-forward-enter-active,
-.slide-forward-leave-active,
-.slide-backward-enter-active,
-.slide-backward-leave-active {
-  transition:
-    transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
-    opacity 0.25s ease;
-}
-
-.slide-forward-enter-from {
-  transform: translateX(40px) scale(0.97);
-  opacity: 0;
-}
-.slide-forward-leave-to {
-  transform: translateX(-40px) scale(0.97) rotateY(5deg);
-  opacity: 0;
-}
-
-.slide-backward-enter-from {
-  transform: translateX(-40px) scale(0.97);
-  opacity: 0;
-}
-.slide-backward-leave-to {
-  transform: translateX(40px) scale(0.97) rotateY(-5deg);
-  opacity: 0;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .slide-forward-enter-active,
-  .slide-forward-leave-active,
-  .slide-backward-enter-active,
-  .slide-backward-leave-active {
-    transition: none;
-  }
-}
-</style>

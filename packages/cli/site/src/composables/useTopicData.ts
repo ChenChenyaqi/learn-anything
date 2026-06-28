@@ -10,74 +10,30 @@
 /* ================================================================== */
 
 import { ref } from 'vue';
+import type {
+  StateV1,
+  TopicSummary,
+  SessionFile,
+  ExerciseFile,
+  ExerciseGroup,
+} from './topicDataTypes';
+import { createSSEListener } from './useSSE';
 
 /* ------------------------------------------------------------------ */
-/*  Types                                                             */
+/*  Types (re-exported for consumers)                                 */
 /* ------------------------------------------------------------------ */
 
-export type ConceptStatus = 'mastered' | 'in_progress' | 'needs_practice' | 'unexplored';
-
-export interface Concept {
-  name: string;
-  slug: string;
-  status: ConceptStatus;
-  confidence: number;
-  practice_count: number;
-  explain_count: number;
-  last_explained: string | null;
-  last_practiced: string | null;
-  details: string[];
-}
-
-export interface Domain {
-  name: string;
-  slug: string;
-  concepts: Concept[];
-}
-
-export interface StateV1 {
-  version: 1;
-  topic: string;
-  slug: string;
-  created: string;
-  domains: Domain[];
-}
-
-export interface TopicSummary {
-  slug: string;
-  name: string;
-  domainCount: number;
-  totalConcepts: number;
-  masteredCount: number;
-  percentage: number;
-}
-
-export interface SessionFile {
-  filename: string;
-  path: string;
-}
-
-export interface ExerciseFile {
-  name: string;
-  path: string;
-}
-
-export interface ExerciseGroup {
-  conceptSlug: string;
-  conceptName: string;
-  files: ExerciseFile[];
-}
-
-export interface SelectedFilePayload {
-  path: string;
-  type: 'markdown' | 'code';
-  sourceTab?: 'topics' | 'exercises' | 'quizzes';
-  /**
-   * Filled in asynchronously after the file content loads.
-   * The selection itself (path/type) is available synchronously.
-   */
-  content?: string;
-}
+export type {
+  ConceptStatus,
+  Concept,
+  Domain,
+  StateV1,
+  TopicSummary,
+  SessionFile,
+  ExerciseFile,
+  ExerciseGroup,
+  SelectedFilePayload,
+} from './topicDataTypes';
 
 /* ------------------------------------------------------------------ */
 /*  In-memory indexes (populated by initTopicData)                     */
@@ -247,52 +203,13 @@ export async function initTopicData(): Promise<void> {
 /* ------------------------------------------------------------------ */
 
 export function listenForChanges(callback: () => void): () => void {
-  let src: EventSource | null = null;
-  let stopped = false;
-  let retryDelay = 1000;
-  let reconnecting = false;
-  const MAX_RETRY_DELAY = 30000;
-
-  function handleReload() {
+  return createSSEListener('/api/events', () => {
     clearIndexes();
     initTopicData().then(() => {
       dataVersion.value++;
       callback();
     });
-  }
-
-  function connect() {
-    if (stopped) return;
-    src = new EventSource('/api/events');
-    src.addEventListener('message', (e) => {
-      if (e.data === 'reload') {
-        retryDelay = 1000;
-        handleReload();
-      }
-    });
-    src.addEventListener('open', () => {
-      retryDelay = 1000;
-      if (reconnecting) {
-        reconnecting = false;
-        handleReload();
-      }
-    });
-    src.onerror = () => {
-      reconnecting = true;
-      src?.close();
-      src = null;
-      if (!stopped) {
-        setTimeout(connect, retryDelay);
-        retryDelay = Math.min(retryDelay * 2, MAX_RETRY_DELAY);
-      }
-    };
-  }
-
-  connect();
-  return () => {
-    stopped = true;
-    src?.close();
-  };
+  });
 }
 
 /* ------------------------------------------------------------------ */

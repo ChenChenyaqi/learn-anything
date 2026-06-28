@@ -302,7 +302,7 @@ describe('useToc — scrollTo()', () => {
     const { result } = withScope(() => useToc(containerRef));
 
     result.scrollTo('h-link');
-    expect(replaceSpy).toHaveBeenCalledWith(null, '', '#h-link');
+    expect(replaceSpy).toHaveBeenCalledWith(history.state, '', '#h-link');
     document.body.removeChild(h2);
   });
 

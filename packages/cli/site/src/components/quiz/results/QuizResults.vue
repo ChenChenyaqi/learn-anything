@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { useI18n } from '../../composables/useI18n';
-import type { QuizResults, QuizAnswer } from '../../composables/useQuiz';
+import { useI18n } from '../../../composables/useI18n';
+import type { QuizResults, QuizAnswer } from '../useQuiz';
+import QuizResultsFooter from './QuizResultsFooter.vue';
 
 const props = defineProps<{
   results: QuizResults;
@@ -104,51 +105,19 @@ function formatAnswer(answer: QuizAnswer): string {
       </div>
     </div>
 
-    <!-- Footer (queue: multi-group mode) -->
-    <div
+    <QuizResultsFooter
       v-if="props.queueContext"
-      class="flex items-center justify-between border-t border-(--color-divider) px-6 py-3"
-    >
-      <button
-        class="px-4 py-2 text-sm text-text-2 hover:text-brand-2 transition-colors cursor-pointer"
-        @click="emit('retry')"
-      >
-        {{ t('quiz.retryGroup') }}
-      </button>
-      <button
-        v-if="!props.queueContext.isLast"
-        class="px-6 py-2 text-sm font-medium text-white bg-brand-2 rounded-lg hover:bg-brand-1 transition-colors cursor-pointer"
-        @click="emit('next-group')"
-      >
-        {{ t('quiz.nextGroup') }} →
-      </button>
-      <button
-        v-else
-        class="px-6 py-2 text-sm font-medium text-white bg-brand-2 rounded-lg hover:bg-brand-1 transition-colors cursor-pointer"
-        @click="emit('next-group')"
-      >
-        {{ t('quiz.viewSummary') }} →
-      </button>
-    </div>
-
-    <!-- Footer (single-deck mode) -->
-    <div
+      mode="queue"
+      :is-last-group="props.queueContext.isLast"
+      @retry="emit('retry')"
+      @next-group="emit('next-group')"
+    />
+    <QuizResultsFooter
       v-else
-      class="flex items-center justify-between border-t border-(--color-divider) px-6 py-3"
-    >
-      <button
-        class="px-4 py-2 text-sm text-text-2 hover:text-brand-2 transition-colors cursor-pointer"
-        @click="emit('close')"
-      >
-        {{ t('quiz.backToList') }}
-      </button>
-      <button
-        class="px-6 py-2 text-sm font-medium text-white bg-brand-2 rounded-lg hover:bg-brand-1 transition-colors cursor-pointer"
-        @click="emit('retry')"
-      >
-        {{ t('quiz.retry') }}
-      </button>
-    </div>
+      mode="single"
+      @retry="emit('retry')"
+      @close="emit('close')"
+    />
   </div>
 </template>
 

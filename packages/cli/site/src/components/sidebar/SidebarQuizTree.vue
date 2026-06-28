@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { computed, watch } from 'vue';
+import { computed } from 'vue';
 import { useI18n } from '../../composables/useI18n';
-import { useTreeExpansion } from '../../composables/useTreeExpansion';
-import { fetchQuizList, type QuizFile, type QueueItem } from '../../composables/useQuiz';
+import { useAutoExpand } from '../../composables/useAutoExpand';
+import { fetchQuizList, type QuizFile, type QueueItem } from '../quiz/useQuiz';
 import QuizIcons from '../quiz/QuizIcons.vue';
+import SidebarTreeNode from './SidebarTreeNode.vue';
 
 const props = defineProps<{
   topicSlug: string;
@@ -15,12 +16,6 @@ const emit = defineEmits<{
 }>();
 
 const { t } = useI18n();
-
-const {
-  expanded: expandedConcepts,
-  load: loadExpansion,
-  toggle: toggleExpansion,
-} = useTreeExpansion('quizzes');
 
 const { groups, loading, error } = fetchQuizList(props.topicSlug);
 
@@ -41,25 +36,26 @@ const allItems = computed<QueueItem[]>(() => {
   return items;
 });
 
-watch(
+const { expanded: expandedConcepts, toggle: toggleExpansion } = useAutoExpand(
+  'quizzes',
+  () => props.topicSlug,
+  () => groups.value[0]?.concept_slug,
   groups,
-  (groupList) => {
-    if (!props.topicSlug || groupList.length === 0) return;
-    const first = groupList[0]?.concept_slug;
-    loadExpansion(props.topicSlug, first ? [first] : []);
-  },
-  { immediate: true },
 );
 
 function toggleConcept(conceptSlug: string) {
   toggleExpansion(props.topicSlug, conceptSlug);
 }
 
-function selectQuiz(file: QuizFile, conceptSlug: string) {
+function selectQuiz(file: QuizFile) {
   emit('quiz-selected', { path: file.path });
 }
 
-function buildConceptItems(conceptSlug: string, conceptName: string, files: QuizFile[]): QueueItem[] {
+function buildConceptItems(
+  conceptSlug: string,
+  conceptName: string,
+  files: QuizFile[],
+): QueueItem[] {
   return files.map((f) => ({
     concept_slug: conceptSlug,
     concept_name: conceptName,
@@ -83,10 +79,10 @@ function emitBatch(items: QueueItem[], mode: 'sequential' | 'random') {
 
     <div v-else-if="hasQuizzes" class="space-y-px">
       <!-- Topic-level header -->
-      <div
-        class="flex items-center justify-between py-1 mb-1"
-      >
-        <span class="text-xs font-medium uppercase tracking-wide text-text-3">{{ t('quiz.allQuizzes') }}</span>
+      <div class="flex items-center justify-between py-1 mb-1">
+        <span class="text-xs font-medium uppercase tracking-wide text-text-3">{{
+          t('quiz.allQuizzes')
+        }}</span>
         <div class="flex items-center gap-1">
           <button
             class="p-1 rounded text-text-3 hover:text-brand-2 hover:bg-(--color-bg-soft) transition-colors cursor-pointer"
@@ -105,58 +101,55 @@ function emitBatch(items: QueueItem[], mode: 'sequential' | 'random') {
         </div>
       </div>
 
-      <div v-for="group in groups" :key="group.concept_slug">
-        <button
-          class="group/concept w-full flex items-center gap-1.5 py-1 text-sm font-medium transition-colors cursor-pointer"
-          :class="
-            expandedConcepts.has(group.concept_slug)
-              ? 'text-text-1'
-              : 'text-text-2 hover:text-text-1'
-          "
-          @click="toggleConcept(group.concept_slug)"
-        >
-          <span
-            class="text-[10px] transition-transform duration-150 shrink-0 w-3 text-center"
-            :class="expandedConcepts.has(group.concept_slug) ? 'rotate-90' : ''"
-            >▶</span
-          >
-          <span class="truncate">{{ group.concept_name }}</span>
-          <span
-            class="ml-auto flex items-center gap-0.5"
-            @click.stop
-          >
+      <SidebarTreeNode
+        v-for="group in groups"
+        :key="group.concept_slug"
+        :label="group.concept_name"
+        :expanded="expandedConcepts.has(group.concept_slug)"
+        @toggle="toggleConcept(group.concept_slug)"
+      >
+        <template #actions>
+          <span class="ml-auto flex items-center gap-0.5" @click.stop>
             <button
               class="p-0.5 rounded text-text-3 hover:text-brand-2 transition-colors cursor-pointer"
               :title="t('quiz.sequential')"
-              @click="emitBatch(buildConceptItems(group.concept_slug, group.concept_name, group.files), 'sequential')"
+              @click="
+                emitBatch(
+                  buildConceptItems(group.concept_slug, group.concept_name, group.files),
+                  'sequential',
+                )
+              "
             >
               <QuizIcons icon="sequential" />
             </button>
             <button
               class="p-0.5 rounded text-text-3 hover:text-brand-2 transition-colors cursor-pointer"
               :title="t('quiz.random')"
-              @click="emitBatch(buildConceptItems(group.concept_slug, group.concept_name, group.files), 'random')"
+              @click="
+                emitBatch(
+                  buildConceptItems(group.concept_slug, group.concept_name, group.files),
+                  'random',
+                )
+              "
             >
               <QuizIcons icon="random" />
             </button>
           </span>
-        </button>
+        </template>
 
-        <div v-if="expandedConcepts.has(group.concept_slug)" class="pl-4 mb-1 space-y-px">
-          <button
-            v-for="file in group.files"
-            :key="file.path"
-            class="group/q w-full flex items-center gap-1.5 py-1 text-xs text-text-2 hover:text-brand-2 transition-colors cursor-pointer truncate font-mono"
-            @click="selectQuiz(file, group.concept_slug)"
+        <button
+          v-for="file in group.files"
+          :key="file.path"
+          class="group/q w-full flex items-center gap-1.5 py-1 text-xs text-text-2 hover:text-brand-2 transition-colors cursor-pointer truncate font-mono"
+          @click="selectQuiz(file)"
+        >
+          <span
+            class="text-[10px] shrink-0 w-3 text-center text-text-3 group-hover/q:text-brand-2 transition-colors"
+            >▶</span
           >
-            <span
-              class="text-[10px] shrink-0 w-3 text-center text-text-3 group-hover/q:text-brand-2 transition-colors"
-              >▶</span
-            >
-            <span class="truncate">{{ file.filename.replace(/\.json$/, '') }}</span>
-          </button>
-        </div>
-      </div>
+          <span class="truncate">{{ file.filename.replace(/\.json$/, '') }}</span>
+        </button>
+      </SidebarTreeNode>
     </div>
 
     <div v-else class="py-2 text-xs text-text-3">

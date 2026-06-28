@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { useI18n } from '../composables/useI18n';
+import { useI18n } from '../../composables/useI18n';
+import { usePlatform } from '../../composables/usePlatform';
 
 const { t } = useI18n();
 
-const isMac = typeof navigator !== 'undefined' && /Mac|iPod|iPhone|iPad/.test(navigator.platform);
+const { isMac } = usePlatform();
 
 defineEmits<{ open: [] }>();
 </script>

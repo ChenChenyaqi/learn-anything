@@ -1,19 +1,20 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue';
-import { useI18n } from '../composables/useI18n';
-import type { SelectedFilePayload } from '../composables/useTopicData';
+import { useI18n } from '../../composables/useI18n';
+import type { SelectedFilePayload } from '../../composables/useTopicData';
 import SearchTrigger from './SearchTrigger.vue';
-import SidebarMobileToggle from './sidebar/SidebarMobileToggle.vue';
-import SidebarDashboard from './sidebar/SidebarDashboard.vue';
-import SidebarTopicTree from './sidebar/SidebarTopicTree.vue';
-import SidebarExerciseTree from './sidebar/SidebarExerciseTree.vue';
-import SidebarQuizTree from './sidebar/SidebarQuizTree.vue';
-import SidebarFooter from './sidebar/SidebarFooter.vue';
+import SidebarMobileToggle from './SidebarMobileToggle.vue';
+import SidebarDashboard from './SidebarDashboard.vue';
+import SidebarTopicTree from './SidebarTopicTree.vue';
+import SidebarExerciseTree from './SidebarExerciseTree.vue';
+import SidebarQuizTree from './SidebarQuizTree.vue';
+import SidebarFooter from './footer/SidebarFooter.vue';
+import { OmitQuizSourceType } from '../../composables/topicDataTypes';
 
 const props = defineProps<{
   context: 'dashboard' | 'topic';
   topicSlug?: string;
-  initialTab?: 'topics' | 'exercises' | 'quizzes';
+  initialTab?: OmitQuizSourceType;
   selectedFilePath?: string | null;
 }>();
 
@@ -23,18 +24,20 @@ const emit = defineEmits<{
   'back-to-dashboard': [];
   'search-open': [];
   'quiz-selected': [quiz: { path: string }];
-  'quiz-batch-selected': [batch: { items: import('../composables/useQuiz').QueueItem[]; mode: 'sequential' | 'random' }];
+  'quiz-batch-selected': [
+    batch: { items: import('../quiz/useQuiz').QueueItem[]; mode: 'sequential' | 'random' },
+  ];
 }>();
 
 const { t } = useI18n();
 
 const mobileOpen = ref(false);
-const tabMode = ref<'topics' | 'exercises' | 'quizzes'>('topics');
+const tabMode = ref<SelectedFilePayload['sourceTab']>('topics');
 
 watch(
   () => props.initialTab,
   (tab) => {
-    if (tab === 'exercises' || tab === 'quizzes') tabMode.value = tab;
+    if (tab === 'exercises') tabMode.value = tab;
   },
   { immediate: true },
 );
@@ -49,7 +52,10 @@ function onTopicSelected(slug: string) {
 }
 
 function onFileSelected(payload: { path: string; type: 'markdown' | 'code' }) {
-  emit('file-selected', { ...payload, sourceTab: tabMode.value });
+  emit('file-selected', {
+    ...payload,
+    sourceTab: tabMode.value as SelectedFilePayload['sourceTab'],
+  });
   mobileOpen.value = false;
 }
 
@@ -66,7 +72,10 @@ function onQuizSelected(quiz: { path: string }) {
   mobileOpen.value = false;
 }
 
-function onQuizBatchSelected(batch: { items: import('../composables/useQuiz').QueueItem[]; mode: 'sequential' | 'random' }) {
+function onQuizBatchSelected(batch: {
+  items: import('../quiz/useQuiz').QueueItem[];
+  mode: 'sequential' | 'random';
+}) {
   emit('quiz-batch-selected', batch);
   mobileOpen.value = false;
 }

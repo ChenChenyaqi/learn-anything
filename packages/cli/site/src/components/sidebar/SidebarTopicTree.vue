@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, watch } from 'vue';
 import { useI18n } from '../../composables/useI18n';
-import { useTreeExpansion } from '../../composables/useTreeExpansion';
+import { useAutoExpand } from '../../composables/useAutoExpand';
 import {
   loadTopic,
   scanSessions,
@@ -10,6 +10,7 @@ import {
   getDataVersion,
 } from '../../composables/useTopicData';
 import type { Domain, SessionFile } from '../../composables/useTopicData';
+import SidebarTreeNode from './SidebarTreeNode.vue';
 
 const props = defineProps<{
   topicSlug: string;
@@ -22,13 +23,6 @@ const emit = defineEmits<{
 }>();
 
 const { t } = useI18n();
-
-const {
-  expanded: expandedDomains,
-  load: loadExpansion,
-  toggle: toggleExpansion,
-  add: addExpansion,
-} = useTreeExpansion('topics');
 
 interface DomainWithSessions {
   domain: Domain;
@@ -73,19 +67,12 @@ const rootSessions = computed<SessionFile[]>(() => {
   return scanRootSessions(props.topicSlug);
 });
 
-/* Switching topic: restore its persisted expansion (default to first node). */
-watch(
-  () => props.topicSlug,
-  (slug) => {
-    if (!slug) {
-      expandedDomains.value = new Set();
-      return;
-    }
-    const first = domainSessions.value[0]?.domain.slug;
-    loadExpansion(slug, first ? [first] : []);
-  },
-  { immediate: true },
-);
+const { expanded: expandedDomains, toggle: toggleExpansion, add: addExpansion } =
+  useAutoExpand(
+    'topics',
+    () => props.topicSlug,
+    () => domainSessions.value[0]?.domain.slug,
+  );
 
 /* Selecting a file: expand its parent folder (incl. orphans) without collapsing others. */
 watch(
@@ -122,43 +109,27 @@ function selectSessionFile(file: SessionFile) {
     </button>
 
     <div v-if="domainSessions.length > 0" class="space-y-px">
-      <div v-for="ds in domainSessions" :key="ds.domain.slug">
-        <button
-          class="w-full flex items-center gap-1.5 py-1 text-sm font-medium transition-colors cursor-pointer"
-          :class="
-            expandedDomains.has(ds.domain.slug)
-              ? 'text-text-1'
-              : 'text-text-2 hover:text-text-1'
-          "
-          :title="ds.isOrphan ? t('sidebar.orphanTip') : undefined"
-          @click="toggleDomain(ds.domain.slug)"
-        >
-          <span
-            class="text-[10px] transition-transform duration-150 shrink-0 w-3 text-center"
-            :class="expandedDomains.has(ds.domain.slug) ? 'rotate-90' : ''"
-          >▶</span>
-          <span
-            v-if="ds.isOrphan"
-            class="inline-block w-[5px] h-[5px] rounded-full bg-text-3 shrink-0"
-            aria-hidden="true"
-          ></span>
-          <span class="truncate">{{ ds.domain.name }}</span>
-        </button>
-
-        <div v-if="expandedDomains.has(ds.domain.slug)" class="pl-4 mb-1 space-y-px">
-          <div v-if="ds.sessions.length === 0" class="py-1 text-[11px] text-text-3">
-            {{ t('sidebar.noNotes') }}
-          </div>
-          <button
-            v-for="file in ds.sessions"
-            :key="file.path"
-            class="block w-full text-left py-1 text-xs text-text-2 hover:text-text-1 transition-colors cursor-pointer truncate font-medium"
-            @click="selectSessionFile(file)"
-          >
-            {{ file.filename }}
-          </button>
+      <SidebarTreeNode
+        v-for="ds in domainSessions"
+        :key="ds.domain.slug"
+        :label="ds.domain.name"
+        :expanded="expandedDomains.has(ds.domain.slug)"
+        :is-orphan="ds.isOrphan"
+        :orphan-title="t('sidebar.orphanTip')"
+        @toggle="toggleDomain(ds.domain.slug)"
+      >
+        <div v-if="ds.sessions.length === 0" class="py-1 text-[11px] text-text-3">
+          {{ t('sidebar.noNotes') }}
         </div>
-      </div>
+        <button
+          v-for="file in ds.sessions"
+          :key="file.path"
+          class="block w-full text-left py-1 text-xs text-text-2 hover:text-text-1 transition-colors cursor-pointer truncate font-medium"
+          @click="selectSessionFile(file)"
+        >
+          {{ file.filename }}
+        </button>
+      </SidebarTreeNode>
     </div>
 
     <div v-if="rootSessions.length > 0" class="pt-2 mb-1 space-y-px">

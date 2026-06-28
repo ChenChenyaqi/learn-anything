@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useI18n } from '../../composables/useI18n';
-import type { QuizQuestion } from '../../composables/useQuiz';
+import type { QuizQuestion } from './useQuiz';
 
 const props = defineProps<{
   question: QuizQuestion;

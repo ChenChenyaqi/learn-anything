@@ -10,7 +10,7 @@
 /* ================================================================== */
 
 import { ref, computed, type Ref, type ComputedRef } from 'vue';
-import type { QuizDeck, QuizQuestion } from '../../../src/core/learn-protocol/types';
+import type { QuizDeck, QuizQuestion } from '../../../../src/core/learn-protocol/types';
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                             */
@@ -18,8 +18,8 @@ import type { QuizDeck, QuizQuestion } from '../../../src/core/learn-protocol/ty
 /*  Frontend-only types defined below.                                */
 /* ------------------------------------------------------------------ */
 
-export type { QuizDeck, QuizQuestion } from '../../../src/core/learn-protocol/types';
-export type { QuestionGradeable, QuestionType } from '../../../src/core/learn-protocol/types';
+export type { QuizDeck, QuizQuestion } from '../../../../src/core/learn-protocol/types';
+export type { QuestionGradeable, QuestionType } from '../../../../src/core/learn-protocol/types';
 
 export interface QuizFile {
   filename: string;

@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { nextTick, onBeforeUnmount, ref, watch } from 'vue';
+import { computed, nextTick, ref, watch } from 'vue';
 import { useI18n } from '../composables/useI18n';
 import type { SearchEntry } from '../composables/useSearch';
 import { breadcrumb, resolveNavKey, useSearchModal } from '../composables/useSearchModal';
+import { useModalA11y } from '../composables/useModalA11y';
 
 /* ------------------------------------------------------------------ */
 /*  Props / Emits                                                      */
@@ -41,7 +42,6 @@ const {
 
 const inputEl = ref<HTMLInputElement | null>(null);
 const listEl = ref<HTMLElement | null>(null);
-let savedFocus: HTMLElement | null = null;
 
 watch(
   () => props.open,
@@ -59,18 +59,12 @@ function close() {
   emit('close');
 }
 
-/** Restore focus to whatever had it before the modal opened. */
-watch(
-  () => props.open,
-  (isOpen, wasOpen) => {
-    if (isOpen && !wasOpen) {
-      savedFocus = document.activeElement as HTMLElement | null;
-    }
-    if (!isOpen && wasOpen && savedFocus) {
-      nextTick(() => savedFocus?.focus());
-    }
-  },
-);
+/* ------------------------------------------------------------------ */
+/*  Modal a11y (focus save/restore, scroll lock, unmount cleanup)     */
+/* ------------------------------------------------------------------ */
+
+const isOpen = computed(() => props.open);
+useModalA11y(isOpen);
 
 /* ------------------------------------------------------------------ */
 /*  Keyboard navigation                                                */
@@ -107,21 +101,6 @@ function scrollActiveIntoView() {
 function select(entry: SearchEntry) {
   emit('select', entry);
 }
-
-/* ------------------------------------------------------------------ */
-/*  Body scroll lock while modal is open                               */
-/* ------------------------------------------------------------------ */
-
-watch(
-  () => props.open,
-  (isOpen) => {
-    document.body.style.overflow = isOpen ? 'hidden' : '';
-  },
-);
-
-onBeforeUnmount(() => {
-  document.body.style.overflow = '';
-});
 </script>
 
 <template>

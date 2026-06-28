@@ -77,7 +77,7 @@ export function useToc(containerRef: Ref<HTMLElement | null | undefined>) {
     };
     window.addEventListener('scroll', onScroll, { passive: true });
     if (typeof history !== 'undefined') {
-      history.replaceState(null, '', `#${id}`);
+      history.replaceState(history.state, '', `#${id}`);
     }
   }
 

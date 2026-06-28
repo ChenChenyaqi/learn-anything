@@ -10,7 +10,7 @@ import {
   type QuizDeck,
   type QuizQuestion,
   type QuizAnswers,
-} from '../../site/src/composables/useQuiz';
+} from '../../site/src/components/quiz/useQuiz';
 
 /* ------------------------------------------------------------------ */
 /*  Helpers — run composable inside a real component lifecycle        */

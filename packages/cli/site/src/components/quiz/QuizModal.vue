@@ -150,6 +150,11 @@ function onModalKeydown(e: KeyboardEvent) {
     close();
     return;
   }
+  // prevent space keydown, it can refresh quiz cards
+  if (e.code === 'Space') {
+    e.preventDefault();
+    return;
+  }
 
   if (e.key === 'Enter' && !e.metaKey && !e.ctrlKey) {
     const anyDialog = viewRef.value?.dialogEl ?? null;

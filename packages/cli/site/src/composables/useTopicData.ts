@@ -18,6 +18,7 @@ import type {
   ExerciseGroup,
 } from './topicDataTypes';
 import { createSSEListener } from './useSSE';
+import { clearFileContentCache, setFileContent } from './fileContentCache';
 
 /* ------------------------------------------------------------------ */
 /*  Types (re-exported for consumers)                                 */
@@ -35,6 +36,8 @@ export type {
   SelectedFilePayload,
 } from './topicDataTypes';
 
+export { loadFileContent, loadSessionContent, loadExerciseContent } from './fileContentCache';
+
 /* ------------------------------------------------------------------ */
 /*  In-memory indexes (populated by initTopicData)                     */
 /* ------------------------------------------------------------------ */
@@ -49,7 +52,6 @@ const sessionsBySlug = new Map<string, Map<string, SessionFile[]>>();
 const exerciseGroupsBySlug = new Map<string, ExerciseGroup[]>();
 const orphanSessionsBySlug = new Map<string, SessionFile[]>();
 const orphanExercisesBySlug = new Map<string, ExerciseFile[]>();
-const fileContents = new Map<string, string>();
 
 let topicSummaryCache: TopicSummary[] | null = null;
 
@@ -58,8 +60,6 @@ const dataVersion = ref(0);
 export function getDataVersion(): number {
   return dataVersion.value;
 }
-
-const FILE_CACHE_MAX = 200;
 
 /* ------------------------------------------------------------------ */
 /*  Helpers                                                            */
@@ -75,7 +75,7 @@ function clearIndexes() {
   exerciseGroupsBySlug.clear();
   orphanSessionsBySlug.clear();
   orphanExercisesBySlug.clear();
-  fileContents.clear();
+  clearFileContentCache();
   topicSummaryCache = null;
 }
 
@@ -109,7 +109,7 @@ export function __injectTestData(data: {
     orphanSessionsBySlug.set(slug, files);
   for (const [slug, files] of Object.entries(data.orphanExercises))
     orphanExercisesBySlug.set(slug, files);
-  for (const [path, content] of Object.entries(data.fileContents)) fileContents.set(path, content);
+  for (const [path, content] of Object.entries(data.fileContents)) setFileContent(path, content);
   ready = true;
 }
 
@@ -248,30 +248,3 @@ export function scanRootSessions(slug: string): SessionFile[] {
 export function scanRootExercises(slug: string): ExerciseFile[] {
   return orphanExercisesBySlug.get(slug) ?? [];
 }
-
-export async function loadFileContent(path: string): Promise<string | null> {
-  if (fileContents.has(path)) {
-    // Re-insert on hit so the entry becomes most-recently-used; eviction
-    // then removes the genuinely least-recently-used key (true LRU).
-    const cached = fileContents.get(path)!;
-    fileContents.delete(path);
-    fileContents.set(path, cached);
-    return cached;
-  }
-  try {
-    const resp = await fetch(`/api/file?path=${encodeURIComponent(path)}`);
-    if (!resp.ok) return null;
-    const text = await resp.text();
-    if (fileContents.size >= FILE_CACHE_MAX) {
-      const oldest = fileContents.keys().next().value;
-      if (oldest) fileContents.delete(oldest);
-    }
-    fileContents.set(path, text);
-    return text;
-  } catch {
-    return null;
-  }
-}
-
-export const loadSessionContent = loadFileContent;
-export const loadExerciseContent = loadFileContent;

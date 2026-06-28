@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from '@/composables/useI18n';
-import type { QuizSummary as QuizSummaryData } from './useQuiz';
+import type { QuizSummary as QuizSummaryData } from './types';
 
 defineProps<{
   summary: QuizSummaryData;

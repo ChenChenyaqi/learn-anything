@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import { type useQuizSession } from './useQuiz';
+import { type useQuizSession } from './useQuizSession';
 import QuizDialogShell from './QuizDialogShell.vue';
 import QuizHeader from './header/QuizHeader.vue';
 import QuizCard from './QuizCard.vue';

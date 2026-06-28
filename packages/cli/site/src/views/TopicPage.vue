@@ -2,8 +2,8 @@
 import { computed, ref, inject, type Ref } from 'vue';
 import { useI18n } from '@/composables/useI18n';
 import { loadTopic, loadKnowledgeMap, getDataVersion } from '@/composables/useTopicData';
-import ContentViewer from './ContentViewer.vue';
-import TocLayout from './TocLayout.vue';
+import ContentViewer from '@/components/content/ContentViewer.vue';
+import TocLayout from '@/components/content/TocLayout.vue';
 import type { SelectedFilePayload } from '@/composables/useTopicData';
 import { renderMarkdown } from '@/utils/markdown';
 

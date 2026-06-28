@@ -2,7 +2,8 @@
 import { computed } from 'vue';
 import { useI18n } from '@/composables/useI18n';
 import { useAutoExpand } from './useAutoExpand';
-import { fetchQuizList, type QuizFile, type QueueItem } from '@/components/quiz/useQuiz';
+import { fetchQuizList } from '@/components/quiz/quizApi';
+import type { QuizFile, QueueItem } from '@/components/quiz/types';
 import QuizIcons from '@/components/quiz/QuizIcons.vue';
 import SidebarTreeNode from '@/components/sidebar/SidebarTreeNode.vue';
 

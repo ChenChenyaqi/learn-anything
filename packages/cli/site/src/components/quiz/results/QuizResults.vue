@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from '@/composables/useI18n';
-import type { QuizResults, QuizAnswer } from '@/components/quiz/useQuiz';
+import type { QuizResults, QuizAnswer } from '@/components/quiz/types';
 import QuizResultsFooter from './QuizResultsFooter.vue';
 
 const props = defineProps<{
@@ -112,12 +112,7 @@ function formatAnswer(answer: QuizAnswer): string {
       @retry="emit('retry')"
       @next-group="emit('next-group')"
     />
-    <QuizResultsFooter
-      v-else
-      mode="single"
-      @retry="emit('retry')"
-      @close="emit('close')"
-    />
+    <QuizResultsFooter v-else mode="single" @retry="emit('retry')" @close="emit('close')" />
   </div>
 </template>
 

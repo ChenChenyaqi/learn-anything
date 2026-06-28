@@ -9,7 +9,7 @@
 /*  action to the right handler.                                       */
 /* ================================================================== */
 
-import type { QuizQuestion } from './useQuiz';
+import type { QuizQuestion } from './types';
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */

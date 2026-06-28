@@ -23,7 +23,7 @@ const emit = defineEmits<{
   'quiz-selected': [quiz: { path: string }];
   'quiz-batch-selected': [
     batch: {
-      items: import('@/components/quiz/useQuiz').QueueItem[];
+      items: import('@/components/quiz/types').QueueItem[];
       mode: 'sequential' | 'random';
     },
   ];
@@ -51,7 +51,7 @@ function onQuizSelected(quiz: { path: string }) {
 }
 
 function onQuizBatchSelected(batch: {
-  items: import('@/components/quiz/useQuiz').QueueItem[];
+  items: import('@/components/quiz/types').QueueItem[];
   mode: 'sequential' | 'random';
 }) {
   emit('quiz-batch-selected', batch);

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { renderMarkdown, highlightCode, getFileExtension } from '@/utils/markdown';
+import { renderMarkdown, getFileExtension } from '@/utils/markdown';
+import { highlightCode } from '@/utils/highlight';
 import type { SelectedFilePayload } from '@/composables/useTopicData';
 import TocLayout from './TocLayout.vue';
 

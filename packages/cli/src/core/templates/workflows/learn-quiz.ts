@@ -38,6 +38,12 @@ Resolve scope:
 - If the scope has no touched concepts, stop and suggest \`/learn:explain\`.
 - Ambiguous name: list close matches from state.json and ask. Do not silently add concepts.
 
+**Load session notes:**
+For each concept to quiz, find and read its explain session notes:
+1. From state.json, get the concept's domain \`slug\`.
+2. List session files: \`ls .learn/topics/<topic>/sessions/<domain-slug>/*.md\` (Bash tool — never glob, it skips dot-directories).
+3. Read the session file(s) matching this concept — match by concept name in the filename, or the \`# [Concept Name]\` heading inside the file.
+
 ### Step 2: Assess Difficulty
 
 Read each covered concept's confidence and status:
@@ -48,6 +54,8 @@ Read each covered concept's confidence and status:
 An explicit difficulty request from the user overrides this.
 
 ### Step 3: Generate the Full Deck
+
+Use the session notes from Step 1 as your PREFERRED reference — anchor questions in what the learner actually studied (analogies, code examples, misconceptions, key mechanisms), but feel free to extend beyond them to related sub-topics. If no notes were found, use \`details[]\` from state.json to scope the questions.
 
 Generate ALL questions up front, roughly 5–8 per concept, mixing types and weighted by difficulty. Each question maps to exactly the deck's concept.
 
@@ -147,6 +155,7 @@ For weak concepts, suggest \`/learn:explain\` or \`/learn:practice\`. Mention th
 
 - No topics: ask the user to run \`/learn:topic <topic-name>\`.
 - Concept not in state.json: same handling as \`/learn-explain\` — list close matches and ask.
+- No session notes found: fall back to the \`details[]\` array in state.json to guide question scope; do not refuse to quiz.
 - User wants to write real code: point them to \`/learn:practice\`.
 - User abandons mid-quiz (no answers): the deck file already exists and stays for future re-practice, but do NOT update state.json.
 - Regrading: if the user re-answers an existing deck, grade again but never increment \`practice_count\` twice without explicit confirmation.`;

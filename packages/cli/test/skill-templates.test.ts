@@ -264,6 +264,14 @@ describe('Skill Template Content Quality', () => {
     expect(t.instructions).not.toContain('C:/Users/');
     expect(t.instructions).not.toContain('launch parallel agents');
   });
+
+  it('quiz template should reference session notes as preferred source material', () => {
+    const t = getLearnQuizSkillTemplate();
+    expect(t.instructions).toContain('session notes');
+    expect(t.instructions).toContain('sessions/<domain-slug>/');
+    expect(t.instructions).toContain('PREFERRED reference');
+    expect(t.instructions).toContain('details[]');
+  });
 });
 
 // ── v1 Format: state.json and render.mjs integration ────────────────

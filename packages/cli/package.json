@@ -1,6 +1,6 @@
 {
   "name": "learn-anything-cli",
-  "version": "1.5.5",
+  "version": "1.5.6",
   "description": "AI-powered recursive learning system with Socratic method and TDD practice",
   "keywords": [
     "learn-anything-cli",

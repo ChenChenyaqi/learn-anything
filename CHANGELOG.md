@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.6] - 2026-06-29
+
+### Changed
+
+- Quiz keyboard shortcut hints now mention number keys (`1-4`) in addition to letters (`A-D`), and use a more compact range notation. (#108)
+
+### Added
+
+- Quiz workflow now reads explain session notes as the **preferred reference** for question generation. Questions are anchored in what the learner actually studied (analogies, code examples, misconceptions), while still allowing the AI to extend beyond the notes. Falls back to the concept's `details[]` in state.json when no session notes exist. (#107)
+- New `multi_select` question type for multiple-answer quiz questions. The quiz system now supports true multi-select (checkboxes) alongside the existing single-select `multiple_choice` type. Includes full-stack support: schema, validation, UI rendering with toggle logic, keyboard shortcuts (A/B/C/D toggle), order-independent set grading, i18n labels, and AI generation template updates. (#91, #106)
+
 ## [1.5.5] - 2026-06-29
 
 ### Fixed
@@ -284,7 +295,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Locale support: English (`en`) and Chinese (`zh-CN`).
 - MIT License.
 
-[Unreleased]: https://github.com/ChenChenyaqi/learn-anything/compare/v1.5.5...HEAD
+[Unreleased]: https://github.com/ChenChenyaqi/learn-anything/compare/v1.5.6...HEAD
+[1.5.6]: https://github.com/ChenChenyaqi/learn-anything/compare/v1.5.5...v1.5.6
 [1.5.5]: https://github.com/ChenChenyaqi/learn-anything/compare/v1.5.4...v1.5.5
 [1.5.4]: https://github.com/ChenChenyaqi/learn-anything/compare/v1.5.3...v1.5.4
 [1.5.3]: https://github.com/ChenChenyaqi/learn-anything/compare/v1.5.2...v1.5.3

@@ -11,15 +11,18 @@ import {
 } from '@/composables/useTopicData';
 import type { ConceptStatus } from '@/composables/topicDataTypes';
 
-export interface DashboardStats {
-  topicCount: number;
-  domainCount: number;
+export interface MasteryStats {
   totalConcepts: number;
   mastered: number;
   inProgress: number;
   needsPractice: number;
   unexplored: number;
   overallPct: number;
+}
+
+export interface DashboardStats extends MasteryStats {
+  topicCount: number;
+  domainCount: number;
   totalPractice: number;
   totalExplain: number;
   noteCount: number;

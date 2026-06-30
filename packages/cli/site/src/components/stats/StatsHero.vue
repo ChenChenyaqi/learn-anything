@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { useI18n } from '@/composables/useI18n';
-import type { DashboardStats } from './useDashboardStats';
+import type { MasteryStats } from './useDashboardStats';
 
-defineProps<{ stats: DashboardStats }>();
+defineProps<{ stats: MasteryStats }>();
 
 const { t } = useI18n();
 </script>
@@ -33,15 +33,15 @@ const { t } = useI18n();
         :style="{ flexGrow: stats.mastered, flexBasis: 0 }"
       />
       <div
-        class="h-full bg-(--color-progress) transition-all duration-500"
+        class="h-full bg-progress transition-all duration-500"
         :style="{ flexGrow: stats.inProgress, flexBasis: 0 }"
       />
       <div
-        class="h-full bg-(--color-brand-2) transition-all duration-500"
+        class="h-full bg-brand-2 transition-all duration-500"
         :style="{ flexGrow: stats.needsPractice, flexBasis: 0 }"
       />
       <div
-        class="h-full bg-(--color-text-3) opacity-25 transition-all duration-500"
+        class="h-full bg-text-3 opacity-25 transition-all duration-500"
         :style="{ flexGrow: stats.unexplored, flexBasis: 0 }"
       />
     </div>
@@ -49,22 +49,22 @@ const { t } = useI18n();
     <!-- Tick labels -->
     <div class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-text-3">
       <span class="inline-flex items-center gap-1.5">
-        <span class="w-2 h-2 rounded-full bg-(--color-mastered)" />
+        <span class="w-2 h-2 rounded-full bg-mastered" />
         <span class="font-semibold tabular-nums text-text-2">{{ stats.mastered }}</span>
         {{ t('status.mastered') }}
       </span>
       <span class="inline-flex items-center gap-1.5">
-        <span class="w-2 h-2 rounded-full bg-(--color-progress)" />
+        <span class="w-2 h-2 rounded-full bg-progress" />
         <span class="font-semibold tabular-nums text-text-2">{{ stats.inProgress }}</span>
         {{ t('status.inProgress') }}
       </span>
       <span class="inline-flex items-center gap-1.5">
-        <span class="w-2 h-2 rounded-full bg-(--color-brand-2)" />
+        <span class="w-2 h-2 rounded-full bg-brand-2" />
         <span class="font-semibold tabular-nums text-text-2">{{ stats.needsPractice }}</span>
         {{ t('status.needsPractice') }}
       </span>
       <span class="inline-flex items-center gap-1.5">
-        <span class="w-2 h-2 rounded-full bg-(--color-text-3) opacity-25" />
+        <span class="w-2 h-2 rounded-full bg-text-3 opacity-25" />
         <span class="font-semibold tabular-nums text-text-2">{{ stats.unexplored }}</span>
         {{ t('status.unexplored') }}
       </span>

@@ -7,6 +7,7 @@ import SearchModal from './components/search/SearchModal.vue';
 import QuizModal from './components/quiz/QuizModal.vue';
 import { listenForChanges } from './composables/useTopicData';
 import { useFileNavigation } from './composables/useFileNavigation';
+import { useViewMode } from './composables/useViewMode';
 import { useSearchLauncher } from './composables/useSearchLauncher';
 import { useQuizLauncher } from './composables/useQuizLauncher';
 import { useDarkMode } from './composables/useDarkMode';
@@ -28,6 +29,8 @@ const {
   onBackToDashboard,
   refreshCurrentFile,
 } = useFileNavigation();
+
+useViewMode();
 
 const sidebarContext = computed<'dashboard' | 'topic'>(() => {
   return route.name === 'topic' ? 'topic' : 'dashboard';

@@ -4,7 +4,10 @@ import { useI18n } from '@/composables/useI18n';
 import { loadTopic, loadKnowledgeMap, getDataVersion } from '@/composables/useTopicData';
 import ContentViewer from '@/components/content/ContentViewer.vue';
 import TocLayout from '@/components/content/TocLayout.vue';
+import ViewModeToggle from '@/components/content/ViewModeToggle.vue';
+import TopicProgressView from '@/components/stats/TopicProgressView.vue';
 import type { SelectedFilePayload } from '@/composables/useTopicData';
+import type { ViewMode } from '@/composables/useViewMode';
 import { renderMarkdown } from '@/utils/markdown';
 
 const props = defineProps<{ slug: string }>();
@@ -29,6 +32,9 @@ const knowledgeMapHtml = computed(() => {
 /* --- Receive file selection from sidebar via provide/inject --- */
 const selectedFile = inject<Ref<SelectedFilePayload | null>>('topicSelectedFile', ref(null));
 
+/* --- View-mode toggle (Map / Progress) shared via provide/inject --- */
+const viewMode = inject<Ref<ViewMode>>('viewMode', ref<ViewMode>('map'));
+
 const showKnowledgeMap = computed(() => !selectedFile.value);
 </script>
 
@@ -41,9 +47,16 @@ const showKnowledgeMap = computed(() => !selectedFile.value);
 
   <!-- Topic content -->
   <div v-else>
-    <!-- Knowledge Map (default) — VitePress style: h1 outside prose, content flows naturally -->
+    <!-- Topic overview: toggle between Knowledge Map (markdown) and Progress (data).
+         The Progress view is width-constrained to the prose reading measure. -->
     <template v-if="showKnowledgeMap">
-      <TocLayout :html="knowledgeMapHtml" />
+      <div :class="viewMode === 'progress' ? 'max-w-4xl mx-auto' : ''">
+        <div class="flex justify-end mb-6">
+          <ViewModeToggle />
+        </div>
+        <TocLayout v-if="viewMode === 'map'" :html="knowledgeMapHtml" />
+        <TopicProgressView v-else :state="state" />
+      </div>
     </template>
 
     <!-- File content -->

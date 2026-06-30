@@ -26,7 +26,7 @@ import type {
 /* ==================================================================== */
 /*  Fixture-based tests against packages/cli/test/fixtures/topics/       */
 /*  The JavaScript fixture has:                                          */
-/*    - state.json with 6 domains, 24 concepts (all 'unexplored')        */
+/*    - state.json with 6 domains, 24 concepts (mixed learning states)   */
 /*    - knowledge-map.md                                                  */
 /*    - sessions/language-basics/2026-06-13.md                            */
 /*    - sessions/language-basics/2026-06-14.md                            */
@@ -246,10 +246,10 @@ describe('listAllTopics', () => {
     expect(topics[0].totalConcepts).toBe(24);
   });
 
-  it('reports zero mastered when all concepts are unexplored', () => {
+  it('reports correct mastered count and percentage', () => {
     const topics = listAllTopics();
-    expect(topics[0].masteredCount).toBe(0);
-    expect(topics[0].percentage).toBe(0);
+    expect(topics[0].masteredCount).toBe(5);
+    expect(topics[0].percentage).toBe(21);
   });
 
   it('sorts results by name alphabetically', () => {

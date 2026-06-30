@@ -76,6 +76,13 @@ const zhCN: Record<I18nKey, string> = {
   'search.shortcutNonMac': 'Ctrl K',
   'loading.note': '正在打开笔记',
   'toc.title': '本页内容',
+  'review.title': '建议复习',
+  'review.neverPracticed': '学过未练',
+  'review.needsPractice': '需巩固',
+  'review.lowConfidence': '信心不足',
+  'review.stale': '久未复习',
+  'review.daysAgo': '天前',
+  'review.never': '未练习',
 };
 
 export default zhCN;

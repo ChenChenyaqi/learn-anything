@@ -74,6 +74,13 @@ const en = {
   'search.shortcutNonMac': 'Ctrl K',
   'loading.note': 'Opening note…',
   'toc.title': 'On this page',
+  'review.title': 'Suggested Review',
+  'review.neverPracticed': 'Studied, not practiced',
+  'review.needsPractice': 'Needs reinforcement',
+  'review.lowConfidence': 'Low confidence',
+  'review.stale': 'Due for review',
+  'review.daysAgo': 'd ago',
+  'review.never': 'Never',
 };
 
 export type I18nKey = keyof typeof en;

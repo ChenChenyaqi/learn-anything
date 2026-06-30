@@ -3,6 +3,9 @@ import { computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useI18n } from '@/composables/useI18n';
 import { listAllTopics } from '@/composables/useTopicData';
+import { useDashboardStats } from '@/components/stats/useDashboardStats';
+import StatsHero from '@/components/stats/StatsHero.vue';
+import StatsSummary from '@/components/stats/StatsSummary.vue';
 import ReviewPanel from '@/components/review/ReviewPanel.vue';
 import { useReviewItems } from '@/components/review/useReview';
 
@@ -10,6 +13,7 @@ const router = useRouter();
 const { t } = useI18n();
 const topics = computed(() => listAllTopics());
 const reviewItems = useReviewItems(8);
+const stats = useDashboardStats();
 
 function goToTopic(slug: string) {
   router.push(`/topics/${slug}`);
@@ -42,10 +46,10 @@ function goToTopic(slug: string) {
       </p>
     </div>
 
-    <!-- Two-column: topics (left, grows) + review (right, fixed) -->
-    <div v-else class="flex flex-col lg:flex-row gap-8 lg:gap-10">
-      <!-- Left: Topic cards -->
-      <div class="flex-1 min-w-0">
+    <!-- Content (only when topics exist) -->
+    <template v-else>
+      <!-- Topics band (top, full width) -->
+      <section class="mb-8">
         <div class="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4">
           <button
             v-for="topic in topics"
@@ -69,24 +73,37 @@ function goToTopic(slug: string) {
             <div class="mt-4 flex items-center gap-3">
               <div class="flex-1 h-1.5 bg-(--color-divider) rounded-full overflow-hidden">
                 <div
-                  class="h-full rounded-full bg-(--color-mastered) transition-all duration-500"
+                  class="h-full rounded-full bg-mastered transition-all duration-500"
                   :style="{ width: `${topic.percentage}%` }"
                 />
               </div>
-              <span class="text-xs font-semibold tabular-nums text-(--color-mastered)">
+              <span class="text-xs font-semibold tabular-nums text-mastered">
                 {{ topic.percentage }}%
               </span>
             </div>
           </button>
         </div>
-      </div>
+      </section>
 
-      <!-- Right: Review panel (responsive width, sticky) -->
-      <aside v-if="reviewItems.length > 0" class="w-full lg:w-72 xl:w-96 2xl:w-[36rem] shrink-0">
-        <div class="lg:sticky lg:top-10">
-          <ReviewPanel />
+      <!-- Bottom: stats (left, grows) + review (right, fixed width) -->
+      <div class="flex flex-col lg:flex-row gap-8 lg:gap-10">
+        <!-- Left: merged stats card -->
+        <div class="flex-1 min-w-0">
+          <div
+            class="bg-(--color-bg-soft) rounded-xl border border-(--color-divider) shadow-sm overflow-hidden"
+          >
+            <StatsHero :stats="stats" />
+            <div class="border-t border-(--color-divider)">
+              <StatsSummary :stats="stats" />
+            </div>
+          </div>
         </div>
-      </aside>
-    </div>
+
+        <!-- Right: Review panel (no longer sticky) -->
+        <aside v-if="reviewItems.length > 0" class="w-full lg:w-72 xl:w-96 2xl:w-xl shrink-0">
+          <ReviewPanel />
+        </aside>
+      </div>
+    </template>
   </div>
 </template>

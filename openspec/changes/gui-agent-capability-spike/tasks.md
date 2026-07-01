@@ -23,11 +23,11 @@
 
 ## 4. learn-agent: learn-topic Workflow
 
-- [ ] 4.1 Condense the `learn-topic.ts` instructions (`packages/cli/src/core/templates/workflows/learn-topic.ts`) into an extraction prompt that returns a `StateV1` taxonomy
-- [ ] 4.2 Implement `learn_topic(client: &dyn ModelClient, topic: &str)` that runs extraction and validates the result with `validate_state`; retry once on invalid output, then surface an error
-- [ ] 4.3 Implement `write_state(dir, state)` writing `.learn/topics/<slug>/state.json` (`"version": 1`) and `render` to `.learn/topics/<slug>/knowledge-map.md`
-- [ ] 4.4 Add a streaming variant that yields progress deltas while extraction runs, then the final rendered markdown
-- [ ] 4.5 Add tests using `FakeModelClient`: valid extraction writes both files; invalid extraction (after retry) errors and writes nothing
+- [x] 4.1 Condense the `learn-topic.ts` instructions (`packages/cli/src/core/templates/workflows/learn-topic.ts`) into an extraction prompt that returns a `StateV1` taxonomy
+- [x] 4.2 Implement `learn_topic(client: &dyn ModelClient, topic: &str)` that runs extraction and validates the result with `validate_state`; retry once on invalid output, then surface an error
+- [x] 4.3 Implement `write_state(dir, state)` writing `.learn/topics/<slug>/state.json` (`"version": 1`) and `render` to `.learn/topics/<slug>/knowledge-map.md`
+- [x] 4.4 Add a streaming variant that yields progress deltas while extraction runs, then the final rendered markdown
+- [x] 4.5 Add tests using `FakeModelClient`: valid extraction writes both files; invalid extraction (after retry) errors and writes nothing
 
 ## 5. src-tauri: Keychain & Config
 

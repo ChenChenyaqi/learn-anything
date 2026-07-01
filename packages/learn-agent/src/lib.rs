@@ -18,6 +18,7 @@ pub mod model;
 pub mod render;
 pub mod state;
 pub mod utils;
+pub mod workflow;
 
 pub use model::{
     FakeModelClient, LocalModelClient, ModelClient, Provider, RemoteModelClient,
@@ -27,3 +28,4 @@ pub use state::{
     mastered_count, total_count, validate_state, Concept, ConceptStatus, Domain, StateV1,
 };
 pub use utils::ValidationError;
+pub use workflow::{learn_topic, learn_topic_stream, write_state, LearnTopicEvent};

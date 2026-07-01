@@ -2,9 +2,9 @@
 
 - [x] 1.1 Create the Cargo workspace: add a root `Cargo.toml` (workspace) covering `packages/learn-agent` and `packages/gui/src-tauri`, without disturbing the existing pnpm CLI build
 - [x] 1.2 Scaffold the `packages/learn-agent` Rust library crate (`lib.rs`, `Cargo.toml` with `serde`, `schemars`, `rig-core`, `tokio`, `anyhow`)
-- [ ] 1.3 Scaffold `packages/gui/src-tauri` via Tauri v2 (Vue 3 + Vite preset), and replace the placeholder `packages/gui/package.json`/README with the real app config
-- [ ] 1.4 Wire `packages/gui` into `pnpm-workspace.yaml`; add `src-tauri` as a dependency on the local `learn-agent` crate
-- [ ] 1.5 Verify `pnpm tauri dev` opens a window showing a placeholder Vue page (no Node required at runtime)
+- [x] 1.3 Scaffold `packages/gui/src-tauri` via Tauri v2 (Vue 3 + Vite preset), and replace the placeholder `packages/gui/package.json`/README with the real app config
+- [x] 1.4 Wire `packages/gui` into `pnpm-workspace.yaml`; add `src-tauri` as a dependency on the local `learn-agent` crate
+- [x] 1.5 Verify `pnpm tauri dev` opens a window showing a placeholder Vue page (no Node required at runtime)
 
 ## 2. learn-agent: v1 Data Types & Render
 

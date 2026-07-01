@@ -2,12 +2,30 @@
   "name": "learn-anything-gui",
   "version": "0.1.0",
   "private": true,
-  "description": "Learn Anything GUI (under construction)",
+  "type": "module",
+  "description": "Learn Anything — cross-platform desktop app (Tauri v2 + Vue 3)",
   "homepage": "https://github.com/ChenChenyaqi/learn-anything",
   "repository": {
     "type": "git",
     "url": "https://github.com/ChenChenyaqi/learn-anything"
   },
   "license": "AGPL-3.0-only",
-  "author": "yaqi chen"
+  "author": "yaqi chen",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "tauri": "tauri"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^2",
+    "vue": "^3.5.13"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2",
+    "@vitejs/plugin-vue": "^5.2.1",
+    "typescript": "~5.6.2",
+    "vite": "^6.0.3",
+    "vue-tsc": "^2.1.10"
+  }
 }

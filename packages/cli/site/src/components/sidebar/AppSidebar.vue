@@ -8,7 +8,7 @@ import SidebarTabs from './tabs/SidebarTabs.vue';
 import SidebarFooter from './footer/SidebarFooter.vue';
 import { OmitQuizSourceType } from '@/composables/topicDataTypes';
 
-const props = defineProps<{
+defineProps<{
   context: 'dashboard' | 'topic';
   topicSlug?: string;
   initialTab?: OmitQuizSourceType;

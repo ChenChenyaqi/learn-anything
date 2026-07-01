@@ -1,0 +1,23 @@
+[package]
+name = "learn-anything-gui"
+version = "0.1.0"
+description = "Learn Anything desktop application"
+authors = ["yaqi chen"]
+edition = "2021"
+
+[lib]
+# The `_lib` suffix keeps the lib name unique so it doesn't collide with the bin
+# name on Windows (https://github.com/rust-lang/cargo/issues/8519).
+name = "learn_anything_gui_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# Shared agent logic (workflow, v1 types, ModelClient).
+learn-agent.workspace = true

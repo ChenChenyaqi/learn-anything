@@ -4,4 +4,5 @@ dist/
 *.tsbuildinfo
 .claude/
 .learn/
+packages/learn-agent/mock/
 pnpm-lock.yaml

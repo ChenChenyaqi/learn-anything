@@ -27,6 +27,7 @@ export default tseslint.config(
       '.learn/',
       'packages/cli/site/topics/',
       'packages/cli/test/fixtures/',
+      'packages/learn-agent/mock/',
     ],
   },
   {

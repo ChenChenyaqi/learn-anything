@@ -14,10 +14,14 @@
 
 #![forbid(unsafe_code)]
 
+pub mod model;
 pub mod render;
 pub mod state;
 pub mod utils;
 
+pub use model::{
+    FakeModelClient, LocalModelClient, ModelClient, Provider, RemoteModelClient,
+};
 pub use render::render;
 pub use state::{
     mastered_count, total_count, validate_state, Concept, ConceptStatus, Domain, StateV1,

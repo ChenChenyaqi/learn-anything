@@ -15,11 +15,11 @@
 
 ## 3. learn-agent: ModelClient Abstraction
 
-- [ ] 3.1 Define the `ModelClient` trait (async `stream` + async `extract::<T>`), documenting it as the BYOK/subscription seam
-- [ ] 3.2 Implement `LocalModelClient` backed by `rig`: configurable provider (OpenAI-compatible + Anthropic), API key, optional `base_url`; streaming via `rig` streaming API; extraction via `rig` extractor
-- [ ] 3.3 Implement `RemoteModelClient` as a stub returning a "not implemented" error for every operation (subscription placeholder)
-- [ ] 3.4 Add a `FakeModelClient` test double that yields canned streaming deltas and a canned extracted value, to keep workflow tests offline
-- [ ] 3.5 Add tests proving workflow code depends on the trait (compiles against any impl) and that swapping Local→Fake requires no workflow change
+- [x] 3.1 Define the `ModelClient` trait (async `stream` + async `extract::<T>`), documenting it as the BYOK/subscription seam
+- [x] 3.2 Implement `LocalModelClient` backed by `rig`: configurable provider (OpenAI-compatible + Anthropic), API key, optional `base_url`; streaming via `rig` streaming API; extraction via `rig` extractor
+- [x] 3.3 Implement `RemoteModelClient` as a stub returning a "not implemented" error for every operation (subscription placeholder)
+- [x] 3.4 Add a `FakeModelClient` test double that yields canned streaming deltas and a canned extracted value, to keep workflow tests offline
+- [x] 3.5 Add tests proving workflow code depends on the trait (compiles against any impl) and that swapping Local→Fake requires no workflow change
 
 ## 4. learn-agent: learn-topic Workflow
 

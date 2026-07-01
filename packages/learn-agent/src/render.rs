@@ -118,9 +118,6 @@ mod tests {
             domains: vec![],
         };
         let out = render(&state);
-        assert_eq!(
-            out,
-            "# Empty\n\n> 0/0 mastered · 0% complete\n"
-        );
+        assert_eq!(out, "# Empty\n\n> 0/0 mastered · 0% complete\n");
     }
 }

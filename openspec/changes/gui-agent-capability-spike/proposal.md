@@ -7,7 +7,7 @@ Because this is a large surface, Phase 1 is deliberately a **capability-verifica
 ## What Changes
 
 - **New Tauri v2 desktop shell** (`packages/gui`): a cross-platform native binary (no bundled Node/Chromium runtime — it uses the OS webview). Hosts a minimal Vue 3 single-page app with one chat window, a folder picker, and an API-key setup screen. Follows the system theme. **No design system, no native-desktop polish, no dashboard in this phase** — functional UI only.
-- **New Rust agent library** (`crates/learn-agent`): a standalone crate that both the desktop binary and a future server will depend on. Holds the learning workflow logic, the v1 data types, and an LLM-client abstraction.
+- **New Rust agent library** (`packages/learn-agent`): a standalone crate that both the desktop binary and a future server will depend on. Holds the learning workflow logic, the v1 data types, and an LLM-client abstraction.
 - **New `ModelClient` abstraction**: a Rust trait with two interchangeable backends — `LocalModelClient` (uses the [`rig`](https://crates.io/crates/rig-core) crate, multi-provider: OpenAI-compatible + Anthropic, configurable key and `base_url` for proxies/OpenRouter, streaming and structured extraction) and `RemoteModelClient` (a **stub** reserved for the future subscription proxy, where the server holds the key). The workflow logic is written only against the trait, so the subscription mode is a later drop-in.
 - **Secure API-key storage** via the OS keychain (Tauri secure-storage plugin). The key is never written to plaintext config.
 - **First built-in agent workflow — `learn-topic`**: the entry workflow that generates a knowledge map for a topic. Implemented as a `rig` _extractor_ that produces the `StateV1` structure directly (validated), then writes `.learn/topics/<slug>/state.json` and renders `knowledge-map.md`.
@@ -44,8 +44,8 @@ These define the long-term product but are **not** built now; they are listed so
   - `packages/gui/` — Tauri v2 + Vue 3 + Vite application (currently a placeholder `package.json`/`README.md`).
   - `packages/gui/src/` — minimal Vue 3 frontend (chat dialog, key setup, folder pick).
   - `packages/gui/src-tauri/` — Rust backend: Tauri commands, keychain wiring, file I/O.
-  - `crates/learn-agent/` — new Rust workspace library crate (workflow logic, `ModelClient`, v1 types, render).
-  - Cargo workspace root wiring for `crates/` and `packages/gui/src-tauri/`.
+  - `packages/learn-agent/` — new Rust workspace library crate (workflow logic, `ModelClient`, v1 types, render).
+  - Cargo workspace root wiring for `packages/learn-agent` and `packages/gui/src-tauri/`.
 - **Existing code**: untouched. `packages/cli` and `packages/cli/site` continue to work unchanged; the GUI reuses only the **data contract** (the v1 `state.json` schema defined in `packages/cli/src/scripts/utils.mts` and the render output shape from `render.mts`), not their code.
 - **New Rust dependencies** (in `learn-agent` / `src-tauri`): `rig-core` (LLM client, streaming, extractor), `serde`/`schemars` (v1 types + extraction schema), `notify` (future fs watching), Tauri plugins for secure storage and dialog. Frontend adds `@tauri-apps/api`.
 - **No Node runtime dependency**: the shipped application contains no Node binary; the `cli/site` Node dev-server (`serve.mjs`) is **not** bundled — all backend file access is reimplemented as Rust Tauri commands.

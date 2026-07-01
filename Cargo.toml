@@ -1,0 +1,18 @@
+# Cargo workspace for the Learn Anything Rust crates.
+# Sits alongside the pnpm workspace (packages/*) without interfering with it:
+# the pnpm CLI/site build does not touch these members.
+[workspace]
+resolver = "2"
+# Explicit members (not a `packages/*` glob) so Cargo doesn't try to parse the
+# Node-only dirs like packages/cli. pnpm, in turn, ignores packages/learn-agent
+# because it has no package.json.
+members = [
+    "packages/learn-agent",
+    # "packages/gui/src-tauri",  # <-- added in task 1.3 once the Tauri app is scaffolded
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "AGPL-3.0-only"
+publish = false

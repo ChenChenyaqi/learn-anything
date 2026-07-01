@@ -67,7 +67,7 @@ Define a Rust trait the workflow logic depends on, with two backends:
 
 ### D4 — `learn-agent` as a standalone Rust library crate
 
-All workflow logic, v1 types, render, and the `ModelClient` trait live in `crates/learn-agent`, depended on by both `packages/gui/src-tauri` (desktop) and the future `server` crate. This guarantees a single source of truth for learning logic across client and server, BYOK and subscription.
+All workflow logic, v1 types, render, and the `ModelClient` trait live in `packages/learn-agent`, depended on by both `packages/gui/src-tauri` (desktop) and the future `server` crate. This guarantees a single source of truth for learning logic across client and server, BYOK and subscription.
 
 ### D5 — `learn-topic` via `rig` extractor → `StateV1` (structured output)
 
@@ -110,8 +110,8 @@ The frontend is the thinnest possible slice: key setup screen, one folder pick, 
 
 Greenfield addition; no existing behavior changes.
 
-- **Rollout:** add `packages/gui` and `crates/learn-agent`; neither is wired into `pnpm build`/`pnpm test` of the existing CLI flow unless desired. Existing `pnpm` scripts at the repo root are unaffected.
-- **Rollback:** remove `packages/gui/`, `crates/learn-agent/`, and any workspace wiring. The CLI and site continue to work untouched.
+- **Rollout:** add `packages/gui` and `packages/learn-agent`; neither is wired into `pnpm build`/`pnpm test` of the existing CLI flow unless desired. Existing `pnpm` scripts at the repo root are unaffected.
+- **Rollback:** remove `packages/gui/`, `packages/learn-agent/`, and any workspace wiring. The CLI and site continue to work untouched.
 
 ## Open Questions
 

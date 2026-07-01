@@ -19,7 +19,9 @@ use serde_json::Value;
 /// A concept's learning status. Serializes as the snake_case strings used
 /// throughout the v1 contract: `unexplored`, `in_progress`, `needs_practice`,
 /// `mastered`.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize, schemars::JsonSchema)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize, schemars::JsonSchema,
+)]
 #[serde(rename_all = "snake_case")]
 #[schemars(rename_all = "snake_case")]
 pub enum ConceptStatus {
@@ -125,7 +127,14 @@ pub fn validate_state(value: &Value) -> Vec<ValidationError> {
     };
 
     // State-level fields.
-    check_field(obj, "version", "", &mut errors, |v| literal_check(v, &one()));
+    // Note: `serde_json::Number` distinguishes integer from float, so a literal
+    // `1.0` is rejected here ("Must be 1") whereas the TS CLI's `=== 1` accepts
+    // it. This divergence never surfaces on the typed path (`StateV1.version`
+    // is `u8`, which round-trips to an integer); it can only appear when
+    // `validate_state` is called directly on raw JSON.
+    check_field(obj, "version", "", &mut errors, |v| {
+        literal_check(v, &serde_json::json!(1))
+    });
     check_field(obj, "topic", "", &mut errors, str_check);
     check_field(obj, "slug", "", &mut errors, str_check);
     check_field(obj, "created", "", &mut errors, date_check);
@@ -155,8 +164,20 @@ pub fn validate_state(value: &Value) -> Vec<ValidationError> {
                     check_field(concept, "explain_count", &cp, &mut errors, |v| {
                         num_check(v, Some(0.0), None, true)
                     });
-                    check_field(concept, "last_explained", &cp, &mut errors, nullable_date_check);
-                    check_field(concept, "last_practiced", &cp, &mut errors, nullable_date_check);
+                    check_field(
+                        concept,
+                        "last_explained",
+                        &cp,
+                        &mut errors,
+                        nullable_date_check,
+                    );
+                    check_field(
+                        concept,
+                        "last_practiced",
+                        &cp,
+                        &mut errors,
+                        nullable_date_check,
+                    );
                     check_field(concept, "details", &cp, &mut errors, str_array_check);
                 }
             }
@@ -166,15 +187,7 @@ pub fn validate_state(value: &Value) -> Vec<ValidationError> {
     errors
 }
 
-fn one() -> Value {
-    Value::Number(serde_json::Number::from(1u64))
-}
-const STATUS_VALUES: &[&str] = &[
-    "unexplored",
-    "in_progress",
-    "needs_practice",
-    "mastered",
-];
+const STATUS_VALUES: &[&str] = &["unexplored", "in_progress", "needs_practice", "mastered"];
 
 /* ------------------------------------------------------------------ */
 /*  Tests                                                             */
@@ -233,7 +246,10 @@ mod tests {
     fn accepts_mock_fixture() {
         let fixture = include_str!("../mock/state.json");
         let value: Value = serde_json::from_str(fixture).unwrap();
-        assert!(validate_state(&value).is_empty(), "fixture should be valid v1");
+        assert!(
+            validate_state(&value).is_empty(),
+            "fixture should be valid v1"
+        );
     }
 
     #[test]
@@ -316,7 +332,11 @@ mod tests {
             .unwrap()[0]
             .get_mut("explain_count")
             .unwrap() = json!(1.5);
-        assert_invalid(&v, "domains[0].concepts[0].explain_count", "Must be an integer");
+        assert_invalid(
+            &v,
+            "domains[0].concepts[0].explain_count",
+            "Must be an integer",
+        );
     }
 
     #[test]
@@ -327,11 +347,7 @@ mod tests {
             .unwrap()[0]
             .get_mut("status")
             .unwrap() = json!("done");
-        assert_invalid(
-            &v,
-            "domains[0].concepts[0].status",
-            "Must be one of",
-        );
+        assert_invalid(&v, "domains[0].concepts[0].status", "Must be one of");
     }
 
     #[test]
@@ -343,11 +359,7 @@ mod tests {
             .as_object_mut()
             .unwrap()
             .remove("last_explained");
-        assert_invalid(
-            &v,
-            "domains[0].concepts[0].last_explained",
-            "YYYY-MM-DD",
-        );
+        assert_invalid(&v, "domains[0].concepts[0].last_explained", "YYYY-MM-DD");
     }
 
     #[test]
@@ -358,11 +370,7 @@ mod tests {
             .unwrap()[0]
             .get_mut("details")
             .unwrap() = json!("not an array");
-        assert_invalid(
-            &v,
-            "domains[0].concepts[0].details",
-            "Must be an array",
-        );
+        assert_invalid(&v, "domains[0].concepts[0].details", "Must be an array");
     }
 
     #[test]
@@ -373,11 +381,7 @@ mod tests {
             .unwrap()[0]
             .get_mut("details")
             .unwrap() = json!(["ok", ""]);
-        assert_invalid(
-            &v,
-            "domains[0].concepts[0].details",
-            "non-empty",
-        );
+        assert_invalid(&v, "domains[0].concepts[0].details", "non-empty");
     }
 
     #[test]

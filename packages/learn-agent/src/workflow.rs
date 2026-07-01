@@ -35,44 +35,37 @@ const SYSTEM_PROMPT: &str = include_str!("../prompts/learn-topic.md");
 /// prompt. If it still fails, returns an error.
 pub async fn learn_topic<C: ModelClient>(client: &C, topic: &str) -> anyhow::Result<StateV1> {
     let user_prompt = format!("Generate a knowledge map for: {topic}");
+    let created = today();
 
     // First attempt
     let state = client
         .extract::<StateV1>(SYSTEM_PROMPT, &user_prompt)
         .await?;
-    let state = normalize(state);
+    let state = finalize(state, topic, &created);
     let errors = validation_errors(&state);
     if errors.is_empty() {
         return Ok(state);
     }
 
     // Retry once with error context
-    let error_summary: String = errors
-        .iter()
-        .map(|e| format!("  - {}: {}", e.path, e.message))
-        .collect::<Vec<_>>()
-        .join("\n");
     let retry_prompt = format!(
         "{user_prompt}\n\n\
-         Your previous response had these validation errors:\n{error_summary}\n\n\
-         Please fix them and regenerate."
+         Your previous response had these validation errors:\n{}\n\n\
+         Please fix them and regenerate.",
+        summarize(&errors)
     );
     let state = client
         .extract::<StateV1>(SYSTEM_PROMPT, &retry_prompt)
         .await?;
-    let state = normalize(state);
+    let state = finalize(state, topic, &created);
     let errors = validation_errors(&state);
     if errors.is_empty() {
         return Ok(state);
     }
 
-    let error_summary: String = errors
-        .iter()
-        .map(|e| format!("  - {}: {}", e.path, e.message))
-        .collect::<Vec<_>>()
-        .join("\n");
     anyhow::bail!(
-        "Generated knowledge map for '{topic}' failed validation after retry:\n{error_summary}"
+        "Generated knowledge map for '{topic}' failed validation after retry:\n{}",
+        summarize(&errors)
     );
 }
 
@@ -137,17 +130,31 @@ pub fn write_state(dir: &Path, state: &StateV1) -> anyhow::Result<()> {
     Ok(())
 }
 
+/// Async twin of [`write_state`] for async runtimes (e.g. a Tauri command
+/// running on a Tokio handle), so file I/O never blocks the executor thread.
+pub async fn write_state_async(dir: &Path, state: &StateV1) -> anyhow::Result<()> {
+    tokio::fs::create_dir_all(dir).await?;
+
+    let json = serde_json::to_string_pretty(state)?;
+    tokio::fs::write(dir.join("state.json"), format!("{json}\n")).await?;
+
+    let markdown = render(state);
+    tokio::fs::write(dir.join("knowledge-map.md"), markdown).await?;
+
+    Ok(())
+}
+
 /* ------------------------------------------------------------------ */
 /*  Helpers                                                           */
 /* ------------------------------------------------------------------ */
 
 /// Override fields that must be deterministic for a new topic:
 /// - `version` → 1
-/// - `created` → today's date
+/// - `created` → `created` (injected so callers/tests are deterministic)
 /// - All concept stats reset to initial/unexplored values.
-fn normalize(mut state: StateV1) -> StateV1 {
+fn normalize(mut state: StateV1, created: &str) -> StateV1 {
     state.version = 1;
-    state.created = today();
+    state.created = created.to_string();
     for domain in &mut state.domains {
         for concept in &mut domain.concepts {
             concept.status = ConceptStatus::Unexplored;
@@ -159,6 +166,44 @@ fn normalize(mut state: StateV1) -> StateV1 {
         }
     }
     state
+}
+
+/// Normalize a freshly-extracted state *and* reconcile its identity fields
+/// with the user's requested `topic`: version/date/stats are reset, and
+/// `topic`/`slug` are taken from the request rather than trusted from the
+/// model (the model's own `topic`/`slug` are discarded).
+fn finalize(mut state: StateV1, topic: &str, created: &str) -> StateV1 {
+    state = normalize(state, created);
+    state.topic = topic.to_string();
+    state.slug = slugify(topic);
+    state
+}
+
+/// Deterministic slug: lowercased, runs of non-alphanumeric chars collapse to a
+/// single `-`, then leading/trailing `-` trimmed.
+fn slugify(s: &str) -> String {
+    let mut out = String::with_capacity(s.len());
+    let mut prev_dash = false;
+    for c in s.trim().to_lowercase().chars() {
+        if c.is_alphanumeric() {
+            out.push(c);
+            prev_dash = false;
+        } else if !prev_dash {
+            out.push('-');
+            prev_dash = true;
+        }
+    }
+    out.trim_matches('-').to_string()
+}
+
+/// Render validation errors as an indented bullet list for the retry prompt
+/// and the final error message.
+fn summarize(errors: &[crate::utils::ValidationError]) -> String {
+    errors
+        .iter()
+        .map(|e| format!("  - {}: {}", e.path, e.message))
+        .collect::<Vec<_>>()
+        .join("\n")
 }
 
 fn today() -> String {
@@ -237,7 +282,10 @@ mod tests {
         let result = learn_topic(&fake, "Bad").await;
         assert!(result.is_err(), "should fail after retry");
         assert!(
-            result.unwrap_err().to_string().contains("failed validation"),
+            result
+                .unwrap_err()
+                .to_string()
+                .contains("failed validation"),
             "error should mention validation"
         );
     }
@@ -247,10 +295,7 @@ mod tests {
     #[tokio::test]
     async fn stream_yields_deltas_then_done() {
         let json = include_str!("../mock/state.json");
-        let fake = FakeModelClient::new(
-            vec!["Building ".into(), "roadmap...".into()],
-            json,
-        );
+        let fake = FakeModelClient::new(vec!["Building ".into(), "roadmap...".into()], json);
 
         let events: Vec<anyhow::Result<LearnTopicEvent>> =
             learn_topic_stream(&fake, "Rust").collect().await;
@@ -303,7 +348,7 @@ mod tests {
         let mut state: StateV1 = serde_json::from_str(json).unwrap();
 
         // Fixture has mastered/in-progress concepts — normalize should reset.
-        state = normalize(state);
+        state = normalize(state, "2026-01-01");
         for d in &state.domains {
             for c in &d.concepts {
                 assert_eq!(c.status, ConceptStatus::Unexplored);
@@ -315,6 +360,30 @@ mod tests {
             }
         }
         assert_eq!(state.version, 1);
+        assert_eq!(state.created, "2026-01-01");
+    }
+
+    // ── slugify ────────────────────────────────────────────────────
+
+    #[test]
+    fn slugify_basic() {
+        assert_eq!(slugify("Rust"), "rust");
+        assert_eq!(slugify("  Machine Learning  "), "machine-learning");
+        assert_eq!(slugify("C++ / Rust!"), "c-rust");
+        assert_eq!(slugify("---noise---"), "noise");
+        assert_eq!(slugify(""), "");
+    }
+
+    // ── topic/slug are taken from the request, not the model ───────
+
+    #[tokio::test]
+    async fn topic_is_overridden_from_request() {
+        // Model returns a mismatched topic/slug; the request must win.
+        let json = include_str!("../mock/state.json");
+        let fake = FakeModelClient::new(vec![], json);
+        let state = learn_topic(&fake, "TypeScript").await.unwrap();
+        assert_eq!(state.topic, "TypeScript");
+        assert_eq!(state.slug, "typescript");
     }
 
     // ── write_state creates nested directories ─────────────────────
@@ -323,12 +392,32 @@ mod tests {
     fn write_state_creates_nested_dirs() {
         let json = include_str!("../mock/state.json");
         let state: StateV1 = serde_json::from_str(json).unwrap();
-        let state = normalize(state);
+        let state = normalize(state, "2026-01-01");
 
         let tmp = tempfile::tempdir().unwrap();
         let dir = tmp.path().join("a").join("b").join("c");
         write_state(&dir, &state).unwrap();
         assert!(dir.join("state.json").exists());
+        assert!(dir.join("knowledge-map.md").exists());
+    }
+
+    // ── write_state_async writes the same files ────────────────────
+
+    #[tokio::test]
+    async fn write_state_async_writes_files() {
+        let json = include_str!("../mock/state.json");
+        let state: StateV1 = serde_json::from_str(json).unwrap();
+        let state = normalize(state, "2026-01-01");
+
+        let tmp = tempfile::tempdir().unwrap();
+        let dir = tmp.path().join("x").join("y");
+        write_state_async(&dir, &state).await.unwrap();
+
+        let state_text = tokio::fs::read_to_string(dir.join("state.json"))
+            .await
+            .unwrap();
+        let val: serde_json::Value = serde_json::from_str(&state_text).unwrap();
+        assert_eq!(val["version"], 1);
         assert!(dir.join("knowledge-map.md").exists());
     }
 

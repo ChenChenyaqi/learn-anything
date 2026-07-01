@@ -39,6 +39,15 @@ use serde::Serialize;
 ///   real-time UI feedback.
 /// - [`extract`](ModelClient::extract) returns a typed `T` via structured
 ///   output (the model fills a JSON schema; `rig` deserializes it).
+///
+/// # Object safety
+///
+/// This trait is **intentionally not object-safe**: the methods return
+/// `impl Future` (RPITIT) instead of `Pin<Box<dyn Future>>`. All dispatch is
+/// generic/monomorphized, which is zero-cost and keeps every backend
+/// statically verifiable. If dynamic dispatch (`Box<dyn ModelClient>`) is ever
+/// required — e.g. choosing a backend at runtime — switch the return types to
+/// boxed futures or adopt `async-trait`.
 pub trait ModelClient: Send + Sync {
     /// Stream a completion, yielding incremental text deltas.
     fn stream(
@@ -80,12 +89,33 @@ pub enum Provider {
 
 /// BYOK model client backed by [`rig`]. The API key stays local; requests go
 /// directly from the user's machine to the configured provider endpoint.
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct LocalModelClient {
     provider: Provider,
     api_key: String,
     base_url: Option<String>,
     model: String,
+}
+
+/// Custom `Debug`: never prints the raw API key, so logging a client (error
+/// chains, `tracing`, `{:?}`) cannot leak the user's secret.
+impl std::fmt::Debug for LocalModelClient {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("LocalModelClient")
+            .field("provider", &self.provider)
+            .field("api_key", &"<redacted>")
+            .field("base_url", &self.base_url)
+            .field("model", &self.model)
+            .finish()
+    }
+}
+
+/// Provider-specific rig client, produced by [`LocalModelClient::build_client`].
+/// Lets `stream` / `extract` dispatch over the provider without re-running the
+/// builder (and the `base_url` branch) on every call.
+enum RigClient {
+    OpenAi(openai::Client),
+    Anthropic(anthropic::Client),
 }
 
 impl LocalModelClient {
@@ -109,6 +139,30 @@ impl LocalModelClient {
             model: model.into(),
         }
     }
+
+    /// Build the provider-specific rig client, applying the optional
+    /// `base_url` override. Centralizes the provider × base_url branching so
+    /// [`ModelClient::stream`] / [`ModelClient::extract`] each stay a single
+    /// flat `match` instead of repeating the builder boilerplate.
+    fn build_client(&self) -> anyhow::Result<RigClient> {
+        let key = self.api_key.as_str();
+        match self.provider {
+            Provider::OpenAi => {
+                let mut builder = openai::Client::builder().api_key(key);
+                if let Some(url) = &self.base_url {
+                    builder = builder.base_url(url.as_str());
+                }
+                Ok(RigClient::OpenAi(builder.build()?))
+            }
+            Provider::Anthropic => {
+                let mut builder = anthropic::Client::builder().api_key(key);
+                if let Some(url) = &self.base_url {
+                    builder = builder.base_url(url.as_str());
+                }
+                Ok(RigClient::Anthropic(builder.build()?))
+            }
+        }
+    }
 }
 
 /// Map a rig streaming-response into a `BoxStream<Result<String>>` that yields
@@ -120,11 +174,11 @@ where
 {
     let text = stream.filter_map(|item| async move {
         match item {
-            Ok(MultiTurnStreamItem::StreamAssistantItem(
-                StreamedAssistantContent::Text(text),
-            )) => Some(Ok(text.text)),
+            Ok(MultiTurnStreamItem::StreamAssistantItem(StreamedAssistantContent::Text(text))) => {
+                Some(Ok(text.text))
+            }
             Ok(_) => None,
-            Err(e) => Some(Err(anyhow!("{e}"))),
+            Err(e) => Some(Err(e.into())),
         }
     });
     Box::pin(text)
@@ -136,32 +190,15 @@ impl ModelClient for LocalModelClient {
         system_prompt: &str,
         user_prompt: &str,
     ) -> anyhow::Result<BoxStream<'static, anyhow::Result<String>>> {
-        match self.provider {
-            Provider::OpenAi => {
-                let client = match &self.base_url {
-                    Some(url) => openai::Client::builder()
-                        .api_key(self.api_key.as_str())
-                        .base_url(url.as_str())
-                        .build()?,
-                    None => openai::Client::builder()
-                        .api_key(self.api_key.as_str())
-                        .build()?,
-                };
-                let agent = client.agent(&self.model).preamble(system_prompt).build();
+        let model = &self.model;
+        match self.build_client()? {
+            RigClient::OpenAi(client) => {
+                let agent = client.agent(model).preamble(system_prompt).build();
                 let stream = agent.stream_prompt(user_prompt).await;
                 Ok(text_only_stream(stream))
             }
-            Provider::Anthropic => {
-                let client = match &self.base_url {
-                    Some(url) => anthropic::Client::builder()
-                        .api_key(self.api_key.as_str())
-                        .base_url(url.as_str())
-                        .build()?,
-                    None => anthropic::Client::builder()
-                        .api_key(self.api_key.as_str())
-                        .build()?,
-                };
-                let agent = client.agent(&self.model).preamble(system_prompt).build();
+            RigClient::Anthropic(client) => {
+                let agent = client.agent(model).preamble(system_prompt).build();
                 let stream = agent.stream_prompt(user_prompt).await;
                 Ok(text_only_stream(stream))
             }
@@ -172,37 +209,14 @@ impl ModelClient for LocalModelClient {
     where
         T: JsonSchema + DeserializeOwned + Serialize + Send + Sync + 'static,
     {
-        match self.provider {
-            Provider::OpenAi => {
-                let client = match &self.base_url {
-                    Some(url) => openai::Client::builder()
-                        .api_key(self.api_key.as_str())
-                        .base_url(url.as_str())
-                        .build()?,
-                    None => openai::Client::builder()
-                        .api_key(self.api_key.as_str())
-                        .build()?,
-                };
-                let extractor = client
-                    .extractor::<T>(&self.model)
-                    .preamble(system_prompt)
-                    .build();
+        let model = &self.model;
+        match self.build_client()? {
+            RigClient::OpenAi(client) => {
+                let extractor = client.extractor::<T>(model).preamble(system_prompt).build();
                 Ok(extractor.extract(user_prompt).await?)
             }
-            Provider::Anthropic => {
-                let client = match &self.base_url {
-                    Some(url) => anthropic::Client::builder()
-                        .api_key(self.api_key.as_str())
-                        .base_url(url.as_str())
-                        .build()?,
-                    None => anthropic::Client::builder()
-                        .api_key(self.api_key.as_str())
-                        .build()?,
-                };
-                let extractor = client
-                    .extractor::<T>(&self.model)
-                    .preamble(system_prompt)
-                    .build();
+            RigClient::Anthropic(client) => {
+                let extractor = client.extractor::<T>(model).preamble(system_prompt).build();
                 Ok(extractor.extract(user_prompt).await?)
             }
         }
@@ -243,11 +257,7 @@ impl ModelClient for RemoteModelClient {
         Err(anyhow!(NOT_IMPLEMENTED))
     }
 
-    async fn extract<T>(
-        &self,
-        _system_prompt: &str,
-        _user_prompt: &str,
-    ) -> anyhow::Result<T>
+    async fn extract<T>(&self, _system_prompt: &str, _user_prompt: &str) -> anyhow::Result<T>
     where
         T: JsonSchema + DeserializeOwned + Serialize + Send + Sync + 'static,
     {
@@ -290,11 +300,7 @@ impl ModelClient for FakeModelClient {
         Ok(Box::pin(futures::stream::iter(deltas)))
     }
 
-    async fn extract<T>(
-        &self,
-        _system_prompt: &str,
-        _user_prompt: &str,
-    ) -> anyhow::Result<T>
+    async fn extract<T>(&self, _system_prompt: &str, _user_prompt: &str) -> anyhow::Result<T>
     where
         T: JsonSchema + DeserializeOwned + Serialize + Send + Sync + 'static,
     {
@@ -385,10 +391,7 @@ mod tests {
 
     #[tokio::test]
     async fn fake_stream_yields_deltas_in_order() {
-        let fake = FakeModelClient::new(
-            vec!["alpha".into(), "beta".into(), "gamma".into()],
-            "{}",
-        );
+        let fake = FakeModelClient::new(vec!["alpha".into(), "beta".into(), "gamma".into()], "{}");
         let mut stream = fake.stream("sys", "prompt").await.unwrap();
         let mut collected = Vec::new();
         while let Some(delta) = stream.next().await {
@@ -407,7 +410,13 @@ mod tests {
 
         let fake = FakeModelClient::new(vec![], r#"{"name":"test","value":42}"#);
         let result: Data = fake.extract("sys", "prompt").await.unwrap();
-        assert_eq!(result, Data { name: "test".into(), value: 42 });
+        assert_eq!(
+            result,
+            Data {
+                name: "test".into(),
+                value: 42
+            }
+        );
     }
 
     #[tokio::test]

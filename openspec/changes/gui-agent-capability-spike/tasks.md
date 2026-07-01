@@ -8,10 +8,10 @@
 
 ## 2. learn-agent: v1 Data Types & Render
 
-- [ ] 2.1 Define `StateV1`, `Domain`, `Concept` structs and the status enum in `learn-agent`, matching `packages/cli/src/scripts/utils.mts` (serde + schemars)
-- [ ] 2.2 Port the v1 validators (confidence in [0,1], non-negative integer counts, `details` string array, valid status) as a `validate_state` function
-- [ ] 2.3 Port the `render` logic from `packages/cli/src/scripts/render.mts` to a pure `fn render(state: &StateV1) -> String` (topic title, mastered/total header, per-domain sections, concept bullets with status icons + detail lines)
-- [ ] 2.4 Add unit tests: validator accept/reject cases, and a render snapshot test using the repo's `.learn/topics/javascript/state.json` as fixture
+- [x] 2.1 Define `StateV1`, `Domain`, `Concept` structs and the status enum in `learn-agent`, matching `packages/cli/src/scripts/utils.mts` (serde + schemars)
+- [x] 2.2 Port the v1 validators (confidence in [0,1], non-negative integer counts, `details` string array, valid status) as a `validate_state` function
+- [x] 2.3 Port the `render` logic from `packages/cli/src/scripts/render.mts` to a pure `fn render(state: &StateV1) -> String` (topic title, mastered/total header, per-domain sections, concept bullets with status icons + detail lines)
+- [x] 2.4 Add unit tests: validator accept/reject cases, and a render snapshot test using the repo's `.learn/topics/javascript/state.json` as fixture
 
 ## 3. learn-agent: ModelClient Abstraction
 

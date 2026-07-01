@@ -7,9 +7,19 @@
 //! client/server and BYOK/subscription modes.
 //!
 //! Capabilities are filled in by later tasks:
-//! - v1 data types & validators (`state` module)
-//! - knowledge-map rendering (`render` module)
+//! - v1 data types & validators ([`state`] module)
+//! - knowledge-map rendering ([`render`] module)
 //! - [`ModelClient`] trait + `LocalModelClient` / `RemoteModelClient` (`model`)
 //! - `learn-topic` workflow (`workflow`)
 
 #![forbid(unsafe_code)]
+
+pub mod render;
+pub mod state;
+pub mod utils;
+
+pub use render::render;
+pub use state::{
+    mastered_count, total_count, validate_state, Concept, ConceptStatus, Domain, StateV1,
+};
+pub use utils::ValidationError;

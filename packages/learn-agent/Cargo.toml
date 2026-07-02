@@ -12,9 +12,9 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 schemars = "1"
 rig-core = "0.39"
-tokio = { version = "1", features = ["macros", "rt-multi-thread", "fs"] }
-anyhow = "1"
-futures = "0.3"
+tokio = { workspace = true, features = ["macros", "rt-multi-thread", "fs"] }
+anyhow.workspace = true
+futures.workspace = true
 chrono = "0.4"
 async-stream = "0.3"
 

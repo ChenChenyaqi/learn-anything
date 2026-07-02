@@ -74,10 +74,15 @@ pub trait ModelClient: Send + Sync {
 /* ================================================================== */
 
 /// Which LLM provider to use with [`LocalModelClient`].
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+///
+/// Serializes to lowercase strings (`"openai"` / `"anthropic"`) so it can be
+/// stored in the app's plaintext config and round-tripped to/from the frontend.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize, Default)]
+#[serde(rename_all = "lowercase")]
 pub enum Provider {
     /// OpenAI-compatible (also works with OpenRouter, Azure OpenAI, local
     /// servers, etc. via an optional `base_url`).
+    #[default]
     OpenAi,
     /// Anthropic (Claude).
     Anthropic,

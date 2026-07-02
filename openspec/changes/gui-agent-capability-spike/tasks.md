@@ -31,9 +31,9 @@
 
 ## 5. src-tauri: Keychain & Config
 
-- [ ] 5.1 Add the Tauri secure-storage plugin; implement `save_key`/`load_key` commands storing the API key in the OS keychain
-- [ ] 5.2 Implement appData config (non-secret): provider, model id, optional base_url, last working-folder path
-- [ ] 5.3 Implement a `test_key` command: one short completion against the configured provider, returning success/failure with the error reason; ensure the key is never logged
+- [x] 5.1 Add the Tauri secure-storage plugin; implement `save_key`/`load_key` commands storing the API key in the OS keychain
+- [x] 5.2 Implement appData config (non-secret): provider, model id, optional base_url, last working-folder path
+- [x] 5.3 Implement a `test_key` command: one short completion against the configured provider, returning success/failure with the error reason; ensure the key is never logged
 
 ## 6. src-tauri: Project & File Commands
 

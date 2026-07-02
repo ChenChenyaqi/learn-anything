@@ -18,6 +18,28 @@ tauri-build = { version = "2", features = [] }
 tauri = { version = "2", features = [] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+# Ergonomic error chaining for the backend command helpers.
+anyhow.workspace = true
+# OS keychain access (macOS Keychain / Windows Credential Manager / Linux
+# secret-service) for the user's LLM API key. This is the "secure storage" seam
+# required by the agent-keychain spec — the key is never written to plaintext.
+# keyring v3 has NO default backend; we must enable the platform stores
+# explicitly. `crypto-rust` gives the Linux secret-service backend a pure-Rust
+# crypto impl (no system OpenSSL required) so it builds on Linux CI.
+keyring = { version = "3", features = [
+    "apple-native",
+    "windows-native",
+    "sync-secret-service",
+    "crypto-rust",
+] }
+# Needed to consume the `BoxStream` returned by `LocalModelClient::stream`
+# inside the `test_key` command.
+futures.workspace = true
+# Drives the async `test_key` command; the `time` feature backs its per-step
+# timeout so a stalled provider can't hang the command indefinitely.
+tokio = { workspace = true, features = ["time"] }
+# Parses/validates the optional `base_url` in `set_config`.
+url = "2"
 
 # Shared agent logic (workflow, v1 types, ModelClient).
 learn-agent.workspace = true

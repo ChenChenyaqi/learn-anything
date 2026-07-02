@@ -72,16 +72,17 @@ Start a zero-config web dashboard to browse your learning data:
 
 ```bash
 # Start the visual dashboard (no npm install needed)
-learn-anything serve
+npx learn-anything-cli serve
 
 # Custom port
-learn-anything serve --port 8080
+npx learn-anything-cli serve --port 8080
 
 # Disable auto-open browser
-learn-anything serve --no-open
+npx learn-anything-cli serve --no-open
 ```
 
 > The dashboard is pre-built and shipped with the CLI — no extra dependencies or `npm install` required.
+> If you installed globally, you can use `learn-anything serve` instead.
 
 The dashboard provides:
 

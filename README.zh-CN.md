@@ -72,16 +72,17 @@ learn-anything init
 
 ```bash
 # 启动可视化仪表盘（无需 npm install）
-learn-anything serve
+npx learn-anything-cli serve
 
 # 自定义端口
-learn-anything serve --port 8080
+npx learn-anything-cli serve --port 8080
 
 # 禁止自动打开浏览器
-learn-anything serve --no-open
+npx learn-anything-cli serve --no-open
 ```
 
 > 仪表盘已在 CLI 中预构建并随包发布 — 无需额外依赖或 `npm install`。
+> 如果已全局安装，也可以使用 `learn-anything serve`。
 
 仪表盘提供：
 

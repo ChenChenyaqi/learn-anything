@@ -19,7 +19,7 @@ export const zhCN: LocaleMessages = {
     strictPortOption: '严格使用 --port 指定的端口，被占用时不自动寻找空闲端口',
     noOpenOption: '不自动打开浏览器',
     serveCommandDescription: '启动本地站点以可视化学习进度',
-    serveHint: '运行 npx learn-anything serve 在浏览器中查看学习进度',
+    serveHint: '运行 npx learn-anything-cli serve 在浏览器中查看学习进度',
   },
 
   init: {

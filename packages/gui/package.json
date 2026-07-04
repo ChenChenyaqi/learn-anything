@@ -12,20 +12,25 @@
   "license": "AGPL-3.0-only",
   "author": "yaqi chen",
   "scripts": {
-    "dev": "vite",
+    "dev": "tauri dev",
     "build": "vue-tsc --noEmit && vite build",
-    "preview": "vite preview",
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
+    "@tailwindcss/vite": "^4.3.1",
     "@tauri-apps/api": "^2",
+    "tailwindcss": "^4.3.1",
     "vue": "^3.5.13"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2",
     "@vitejs/plugin-vue": "^5.2.1",
+    "jsdom": "^29.1.1",
     "typescript": "~5.6.2",
     "vite": "^6.0.3",
+    "vitest": "^3.2.4",
     "vue-tsc": "^2.1.10"
   }
 }

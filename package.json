@@ -22,7 +22,6 @@
   "private": true,
   "scripts": {
     "build": "pnpm -r build",
-    "dev": "pnpm -r dev",
     "test": "pnpm -r test",
     "test:watch": "pnpm -r test:watch",
     "lint": "eslint packages/",

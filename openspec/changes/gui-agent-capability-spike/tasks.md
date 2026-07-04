@@ -49,10 +49,10 @@
 
 ## 8. Frontend: Shell & Setup
 
-- [ ] 8.1 Create the minimal Vue 3 page in `packages/gui/src`: a single-window app whose primary surface is one chat dialog
-- [ ] 8.2 Implement the API-key setup screen (provider, optional base URL, model id, secret key) shown when no key is stored; wire it to `save_key`/`test_key`
-- [ ] 8.3 Implement the folder-pick flow (`pick_project_dir`) and surface the non-v1 rejection message from `open_project`
-- [ ] 8.4 Follow the system light/dark theme by default
+- [x] 8.1 Create the minimal Vue 3 page in `packages/gui/src`: a single-window app whose primary surface is one chat dialog
+- [x] 8.2 Implement the API-key setup screen (provider, optional base URL, model id, secret key) shown when no key is stored; wire it to `save_key`/`test_key`
+- [x] 8.3 Implement the folder-pick flow (`pick_project_dir`) and surface the non-v1 rejection message from `open_project`
+- [x] 8.4 Follow the system light/dark theme by default
 
 ## 9. Frontend: Chat Dialog
 

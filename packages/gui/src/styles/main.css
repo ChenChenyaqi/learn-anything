@@ -1,0 +1,201 @@
+/* ================================================================== */
+/*  Learn Anything — desktop GUI design tokens                          */
+/*  Mirrors the site's "Annotated Notebook" palette (Tailwind v4 @theme) */
+/*  so the desktop app shares the same visual language. Markdown prose  */
+/*  styles are intentionally omitted: Phase 1 does not render the        */
+/*  knowledge map inside the chat (see design D10).                      */
+/* ================================================================== */
+
+@import "tailwindcss";
+
+/* ------------------------------------------------------------------ */
+/*  Tailwind class sources                                             */
+/* ------------------------------------------------------------------ */
+
+@source "../**/*.vue";
+@source "../**/*.ts";
+
+/* ------------------------------------------------------------------ */
+/*  Dark mode — class-based (dark class on <html>); set by useDarkMode  */
+/*  to follow the system theme by default.                             */
+/* ------------------------------------------------------------------ */
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ------------------------------------------------------------------ */
+/*  Design tokens                                                      */
+/* ------------------------------------------------------------------ */
+
+@theme {
+  /* --- Typography --- */
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system,
+    "PingFang SC", "Noto Sans SC", "Microsoft YaHei",
+    sans-serif;
+  --font-mono: ui-monospace, "Cascadia Code", "Fira Code", "JetBrains Mono",
+    "SF Mono", "Menlo", "Monaco", "Consolas", monospace;
+
+  /* --- Font sizes (VitePress scale) --- */
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1rem;
+  --text-sm: 0.875rem;
+  --text-sm--line-height: 1.25rem;
+  --text-base: 1rem;
+  --text-base--line-height: 1.75;
+  --text-lg: 1.125rem;
+  --text-lg--line-height: 1.75rem;
+  --text-xl: 1.25rem;
+  --text-xl--line-height: 1.75rem;
+  --text-2xl: 1.5rem;
+  --text-2xl--line-height: 2rem;
+  --text-3xl: 2rem;
+  --text-3xl--line-height: 2.5rem;
+
+  /* --- Font weights --- */
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* --- Text hierarchy --- */
+  --color-text-1: #3c3c43;
+  --color-text-2: #67676c;
+  --color-text-3: #929295;
+  --color-text-1-rgb: 60 60 67;
+
+  /* --- Background hierarchy --- */
+  --color-bg: #ffffff;
+  --color-bg-alt: #f6f6f7;
+  --color-bg-soft: #f6f6f7;
+  --color-bg-elv: #ffffff;
+
+  /* --- Borders / dividers --- */
+  --color-border: #c2c2c4;
+  --color-divider: #e2e2e3;
+
+  /* --- Accent: the red pen --- */
+  --color-brand-1: #cc4428;
+  --color-brand-2: #d94e34;
+  --color-brand-2-rgb: 217 78 52;
+  --color-brand-3: #e0604a;
+  --color-brand-soft: rgba(217 78 52 / 0.14);
+
+  /* --- Status colors --- */
+  --color-mastered: #18794e;
+  --color-mastered-rgb: 24 121 78;
+  --color-progress: #915930;
+
+  /* --- Code --- */
+  --color-code-bg: var(--color-bg-alt);
+
+  /* --- Radius --- */
+  --radius-card: 12px;
+  --radius-sm: 4px;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Dark mode overrides                                                */
+/* ------------------------------------------------------------------ */
+
+.dark {
+  --color-text-1: #dfdfd6;
+  --color-text-2: #98989f;
+  --color-text-3: #6a6a71;
+  --color-text-1-rgb: 223 223 214;
+
+  --color-bg: #1b1b1f;
+  --color-bg-alt: #161618;
+  --color-bg-soft: #202127;
+  --color-bg-elv: #202127;
+
+  --color-border: #3c3f44;
+  --color-divider: #2e2e32;
+
+  --color-brand-1: #f0705a;
+  --color-brand-2: #e85d44;
+  --color-brand-2-rgb: 232 93 68;
+  --color-brand-3: #d94e34;
+  --color-brand-soft: rgba(232 93 68 / 0.16);
+
+  --color-mastered: #3dd68c;
+  --color-mastered-rgb: 61 214 140;
+  --color-progress: #f9b44e;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Convenience token aliases                                          */
+/* ------------------------------------------------------------------ */
+
+:root {
+  --color-page: var(--color-bg);
+  --color-ink: var(--color-text-1);
+  --color-pencil: var(--color-text-2);
+  --color-rule: var(--color-divider);
+  --color-surface: var(--color-bg-soft);
+  --color-surface-hover: var(--color-bg-alt);
+  --color-accent: var(--color-brand-2);
+  --color-accent-soft: var(--color-brand-soft);
+}
+
+/* ------------------------------------------------------------------ */
+/*  Base element styles                                                */
+/* ------------------------------------------------------------------ */
+
+body {
+  font-family: var(--font-sans);
+  font-weight: var(--font-weight-normal);
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
+  color: var(--color-text-1);
+  background-color: var(--color-bg);
+  font-optical-sizing: auto;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ---- Custom scrollbar ---- */
+
+* {
+  scrollbar-color: var(--color-border) transparent;
+  scrollbar-width: thin;
+}
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+  background-color: var(--color-border);
+  border-radius: 3px;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-text-3);
+}
+
+/* Headings */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-sans);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-1);
+}
+
+/* Focus ring */
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* Selection */
+::selection {
+  background-color: var(--color-accent-soft);
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

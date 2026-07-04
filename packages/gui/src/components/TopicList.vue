@@ -1,8 +1,9 @@
 <script setup lang="ts">
 // Topic list for an opened working folder. Lists readable v1 topics, or an
-// "empty folder" hint when fresh. The dashed block is the task-9 chat surface
-// placeholder.
+// "empty folder" hint when fresh. Below the topic list is the chat dialog
+// surface where new topics are created.
 import { type ProjectInfo } from '../lib/commands';
+import ChatDialog from './ChatDialog.vue';
 
 defineProps<{ project: ProjectInfo }>();
 </script>
@@ -20,10 +21,8 @@ defineProps<{ project: ProjectInfo }>();
         This folder has no topics yet. The chat (next task) will create them here.
       </p>
     </div>
-    <div
-      class="mt-6 rounded-[10px] border border-dashed border-(--color-rule) p-8 text-center text-sm opacity-55"
-    >
-      Chat dialog arrives in task 9.
+    <div class="mt-6">
+      <ChatDialog />
     </div>
   </div>
 </template>

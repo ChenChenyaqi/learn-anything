@@ -56,9 +56,9 @@
 
 ## 9. Frontend: Chat Dialog
 
-- [ ] 9.1 Build the chat dialog UI: message input and a transcript area
-- [ ] 9.2 Subscribe to `agent:done`/`agent:error` via `@tauri-apps/api/event`; on `agent:done` show a "topic created" confirmation with the topic dir (no live delta rendering, no markdown echo)
-- [ ] 9.3 Trigger `chat_create_topic` from user input (e.g. "create a topic: JavaScript")
+- [x] 9.1 Build the chat dialog UI: message input and a transcript area
+- [x] 9.2 Subscribe to `agent:done`/`agent:error` via `@tauri-apps/api/event`; on `agent:done` show a "topic created" confirmation with the topic dir (no live delta rendering, no markdown echo)
+- [x] 9.3 Trigger `chat_create_topic` from user input (e.g. "create a topic: JavaScript")
 
 ## 10. End-to-End Verification
 

@@ -119,7 +119,7 @@ impl std::fmt::Debug for LocalModelClient {
 /// Lets `stream` / `extract` dispatch over the provider without re-running the
 /// builder (and the `base_url` branch) on every call.
 enum RigClient {
-    OpenAi(openai::Client),
+    OpenAi(openai::CompletionsClient),
     Anthropic(anthropic::Client),
 }
 
@@ -153,7 +153,7 @@ impl LocalModelClient {
         let key = self.api_key.as_str();
         match self.provider {
             Provider::OpenAi => {
-                let mut builder = openai::Client::builder().api_key(key);
+                let mut builder = openai::CompletionsClient::builder().api_key(key);
                 if let Some(url) = &self.base_url {
                     builder = builder.base_url(url.as_str());
                 }

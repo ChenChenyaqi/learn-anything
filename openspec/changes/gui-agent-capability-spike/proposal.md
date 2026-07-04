@@ -12,7 +12,7 @@ Because this is a large surface, Phase 1 is deliberately a **capability-verifica
 - **Secure API-key storage** via the OS keychain (Tauri secure-storage plugin). The key is never written to plaintext config.
 - **First built-in agent workflow — `learn-topic`**: the entry workflow that generates a knowledge map for a topic. Implemented as a `rig` _extractor_ that produces the `StateV1` structure directly (validated), then writes `.learn/topics/<slug>/state.json` and renders `knowledge-map.md`.
 - **v1-only data handling, no migration**: the GUI reads/writes the v1 state schema exclusively. There is **no v0→v1 migration** in the GUI; a pre-v1 folder surfaces a clear "upgrade via CLI" message.
-- **Streaming UX**: agent token deltas are emitted from Rust to the webview in real time and rendered in the chat dialog; on completion the generated knowledge map is displayed and the files are confirmed written.
+- **Completion UX**: agent token deltas are NOT streamed into the chat (a progress echo was prototyped and dropped as token-wasteful for output the UX never shows). The chat shows an in-progress indicator, then a completion confirmation naming the created topic and its directory; the user reads the generated `knowledge-map.md` from disk.
 
 ### Out of scope for Phase 1 (future vision, explicitly deferred)
 
@@ -29,10 +29,10 @@ These define the long-term product but are **not** built now; they are listed so
 
 ### New Capabilities
 
-- `gui-desktop-shell`: The Tauri v2 native application shell — boots a cross-platform, Node-free binary; manages window lifecycle and system-theme; hosts the minimal Vue 3 page; provides the folder picker and API-key setup screen; renders the single chat dialog that displays streamed agent output and the generated knowledge map.
+- `gui-desktop-shell`: The Tauri v2 native application shell — boots a cross-platform, Node-free binary; manages window lifecycle and system-theme; hosts the minimal Vue 3 page; provides the folder picker and API-key setup screen; renders the single chat dialog that shows in-progress → done confirmation for topic creation.
 - `agent-keychain`: Secure storage and retrieval of the user's LLM API key through the OS keychain, with no plaintext persistence, plus a "test key" verification request.
 - `agent-model-client`: The Rust `ModelClient` abstraction — a `LocalModelClient` backed by `rig` (OpenAI-compatible + Anthropic providers, configurable API key and `base_url`, streaming and typed structured extraction) and a `RemoteModelClient` stub that defines the subscription-proxy seam.
-- `agent-learn-topic`: The built-in `learn-topic` workflow — runs the `rig` extractor to produce a validated `StateV1`, writes `.learn/topics/<slug>/state.json` (v1) and renders `knowledge-map.md`, with no v0 migration; exposes a Tauri command that streams progress to the frontend and returns the final map.
+- `agent-learn-topic`: The built-in `learn-topic` workflow — runs the `rig` extractor to produce a validated `StateV1`, writes `.learn/topics/<slug>/state.json` (v1) and renders `knowledge-map.md`, with no v0 migration; exposes a non-streaming Tauri command that emits a completion event (`{slug, topic, dir}`) on success.
 
 ### Modified Capabilities
 
@@ -49,4 +49,4 @@ These define the long-term product but are **not** built now; they are listed so
 - **Existing code**: untouched. `packages/cli` and `packages/cli/site` continue to work unchanged; the GUI reuses only the **data contract** (the v1 `state.json` schema defined in `packages/cli/src/scripts/utils.mts` and the render output shape from `render.mts`), not their code.
 - **New Rust dependencies** (in `learn-agent` / `src-tauri`): `rig-core` (LLM client, streaming, extractor), `serde`/`schemars` (v1 types + extraction schema), `notify` (future fs watching), Tauri plugins for secure storage and dialog. Frontend adds `@tauri-apps/api`.
 - **No Node runtime dependency**: the shipped application contains no Node binary; the `cli/site` Node dev-server (`serve.mjs`) is **not** bundled — all backend file access is reimplemented as Rust Tauri commands.
-- **Verification target**: `pnpm tauri dev` → set key → pick a folder → type "create a topic: JavaScript" → watch streamed output + final knowledge map → confirm `.learn/topics/javascript/{state.json,knowledge-map.md}` written as valid v1.
+- **Verification target**: `pnpm tauri dev` → set key → pick a folder → type "create a topic: JavaScript" → see the in-progress → done confirmation → confirm `.learn/topics/javascript/{state.json,knowledge-map.md}` written as valid v1.

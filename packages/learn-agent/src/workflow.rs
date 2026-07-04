@@ -10,7 +10,9 @@ use crate::model::ModelClient;
 use crate::render::render;
 use crate::state::{validate_state, ConceptStatus, StateV1};
 use chrono::Local;
+use std::io::Write;
 use std::path::Path;
+use tempfile::NamedTempFile;
 
 /* ------------------------------------------------------------------ */
 /*  Prompts                                                           */
@@ -76,16 +78,47 @@ pub async fn learn_topic<C: ModelClient>(client: &C, topic: &str) -> anyhow::Res
 ///
 /// `dir` should be the topic directory (e.g. `.learn/topics/javascript/`).
 /// The directory and its parents are created if they do not exist.
+///
+/// Atomic with respect to the two files: both are written or neither is.
+/// Each file is staged to a uniquely-named temp file in `dir` then renamed,
+/// so (a) the rename stays on one filesystem (no cross-FS `EXDEV`), (b)
+/// concurrent `write_state` calls on the same directory cannot clobber each
+/// other's staging files, and (c) a temp file is never left orphaned if the
+/// call is dropped or panics between staging and rename. If the second
+/// rename fails the already-promoted `state.json` is removed, so a caller
+/// observing a failure never sees a half-written topic directory.
 pub fn write_state(dir: &Path, state: &StateV1) -> anyhow::Result<()> {
     std::fs::create_dir_all(dir)?;
 
     let json = serde_json::to_string_pretty(state)?;
-    std::fs::write(dir.join("state.json"), format!("{json}\n"))?;
-
     let markdown = render(state);
-    std::fs::write(dir.join("knowledge-map.md"), markdown)?;
 
+    let json_path = dir.join("state.json");
+    let md_path = dir.join("knowledge-map.md");
+
+    let json_tmp = stage(dir, format!("{json}\n"))?;
+    let md_tmp = stage(dir, markdown)?;
+
+    // Promote JSON first, then MD. Roll back the promoted JSON if MD fails so
+    // the directory is never left with only one of the two files. The staging
+    // files clean themselves up on drop if they are not persisted.
+    json_tmp.persist(&json_path).map_err(|e| e.error)?;
+    if let Err(e) = md_tmp.persist(&md_path) {
+        let _ = std::fs::remove_file(&json_path);
+        return Err(e.error.into());
+    }
     Ok(())
+}
+
+/// Write `contents` to a new uniquely-named temp file inside `dir` and return
+/// the handle (un-flushed-writes-safe: flushed before returning). Unique names
+/// keep concurrent staging safe; the handle removes the temp file on drop if
+/// it is never [`NamedTempFile::persist`]ed.
+fn stage(dir: &Path, contents: impl AsRef<[u8]>) -> anyhow::Result<NamedTempFile> {
+    let mut tmp = NamedTempFile::new_in(dir)?;
+    tmp.write_all(contents.as_ref())?;
+    tmp.flush()?;
+    Ok(tmp)
 }
 
 /* ------------------------------------------------------------------ */

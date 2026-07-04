@@ -60,16 +60,16 @@ The system SHALL show an API-key setup screen when no API key is configured. The
 - **WHEN** the user saves an API key on the setup screen
 - **THEN** the key is stored via the OS keychain and is not written to any plaintext file
 
-### Requirement: Streamed agent output rendering
+### Requirement: Topic-creation completion feedback
 
-The system SHALL render agent token deltas in the chat dialog in real time as they arrive, and SHALL display the generated knowledge map when the agent completes.
+The system SHALL show, in the chat dialog, that a topic-generation request is in progress and SHALL surface a completion confirmation when the agent finishes. The chat does NOT stream token deltas or echo the generated knowledge map — the user opens the written `knowledge-map.md` from disk to read it.
 
-#### Scenario: Streaming text appears live
+#### Scenario: In-progress state is shown
 
-- **WHEN** the agent emits incremental token deltas during a request
-- **THEN** those deltas are appended to the chat dialog as they arrive
+- **WHEN** the user submits a topic-creation request
+- **THEN** the chat dialog shows an in-progress indicator while the request runs
 
-#### Scenario: Final knowledge map is displayed
+#### Scenario: Completion confirmation is shown
 
-- **WHEN** the agent completes a topic-generation request
-- **THEN** the chat dialog renders the generated knowledge map
+- **WHEN** the agent completes a topic-generation request successfully
+- **THEN** the chat dialog shows a confirmation identifying the created topic and the directory its files were written to

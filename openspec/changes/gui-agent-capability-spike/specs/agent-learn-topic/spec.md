@@ -51,21 +51,16 @@ The system MUST NOT perform any v0→v1 migration. When opening a project, the s
 - **WHEN** the user opens a working folder whose `state.json` has a version other than 1
 - **THEN** the system rejects it and presents a message telling the user to run `learn-anything init` in the CLI to upgrade
 
-### Requirement: Expose a streaming Tauri command
+### Requirement: Expose a Tauri command for topic creation
 
-The workflow SHALL be invokable from the frontend via a Tauri command that streams progress as incremental events and completes with a final event carrying the rendered knowledge map (markdown).
+The workflow SHALL be invokable from the frontend via a Tauri command (`chat_create_topic`) that runs generation to completion (non-streaming) and emits a completion event carrying locating metadata — the topic `slug`, the `topic` name, and the absolute `dir` the files were written to — not the rendered markdown (the chat does not echo the knowledge map; the user reads it from disk).
 
-#### Scenario: Progress is streamed during generation
-
-- **WHEN** the frontend invokes the learn-topic command for a topic
-- **THEN** incremental progress events are emitted to the frontend during generation
-
-#### Scenario: Completion delivers the rendered map
+#### Scenario: Completion delivers locating metadata
 
 - **WHEN** generation finishes successfully
-- **THEN** a completion event is emitted whose payload contains the rendered `knowledge-map.md` markdown
+- **THEN** an `agent:done` event is emitted whose payload is `{slug, topic, dir}` pointing at the written `state.json`/`knowledge-map.md`
 
 #### Scenario: Failure delivers an error
 
-- **WHEN** generation fails (e.g. extraction invalid after retries)
-- **THEN** an error event is emitted describing the failure, and no `state.json`/`knowledge-map.md` is written
+- **WHEN** generation fails (e.g. extraction invalid after retries, or no key/model/working-folder configured)
+- **THEN** an `agent:error` event is emitted describing the failure, and no `state.json`/`knowledge-map.md` is written

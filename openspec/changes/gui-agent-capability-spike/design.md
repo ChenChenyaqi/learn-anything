@@ -26,7 +26,7 @@ Key data sources referenced by this design:
 - Prove a Rust LLM client (`rig`) can call providers (OpenAI-compatible + Anthropic) with the user's key, **with streaming and typed structured extraction**.
 - Prove structured LLM output can be extracted directly into `StateV1` and written to `.learn/topics/<slug>/state.json` plus a rendered `knowledge-map.md` (v1).
 - Establish the `ModelClient` trait seam (`LocalModelClient` implemented, `RemoteModelClient` stubbed) so the subscription path is structurally ready.
-- Surface the whole flow through one chat dialog with real-time streaming.
+- Surface the whole flow through one chat dialog with a simple in-progress → done confirmation (no token streaming into the chat).
 
 **Non-Goals:**
 
@@ -85,9 +85,9 @@ Rather than asking the model for free text and parsing JSON by hand, the workflo
 
 - _Rationale:_ keeps the GUI's data layer minimal and correct; migration remains the CLI's responsibility.
 
-### D8 — Streaming via Tauri events (replacing the site's SSE)
+### D8 — Completion events via Tauri (replacing the site's SSE)
 
-The site uses `EventSource('/api/events')` over a Node server. In Tauri, the Rust command emits incremental events (`app.emit("agent:delta", …)`) consumed by the webview via `listen(...)`, and a final `agent:done` carrying the rendered map. No HTTP/SSE plumbing is needed.
+The site uses `EventSource('/api/events')` over a Node server. In Tauri, the Rust command emits a completion event (`app.emit("agent:done", …)`) consumed by the webview via `listen(...)`. Unlike the site's token-by-token SSE, the GUI's `chat_create_topic` runs generation to completion (non-streaming) and emits a single `agent:done` carrying `{slug, topic, dir}` — locating metadata, not the rendered markdown. No HTTP/SSE plumbing is needed. (A streaming-progress echo was prototyped and dropped: it spent tokens on output the UX never displays.)
 
 ### D9 — OS keychain for the API key
 
@@ -95,7 +95,7 @@ Use Tauri's secure-storage plugin. The key is stored in the OS keychain; only th
 
 ### D10 — Phase 1 surface = a single chat dialog
 
-The frontend is the thinnest possible slice: key setup screen, one folder pick, and one chat view that renders streamed agent text and the final knowledge map. Everything else is deferred. This keeps the spike focused on proving capabilities, not on UI.
+The frontend is the thinnest possible slice: key setup screen, one folder pick, and one chat view that shows an in-progress → done confirmation (no token streaming, no in-chat knowledge-map echo; the user reads `knowledge-map.md` from disk). Everything else is deferred. This keeps the spike focused on proving capabilities, not on UI.
 
 ## Risks / Trade-offs
 

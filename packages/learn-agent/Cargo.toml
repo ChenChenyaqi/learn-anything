@@ -16,6 +16,5 @@ tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
 anyhow.workspace = true
 futures.workspace = true
 chrono = "0.4"
-
-[dev-dependencies]
+# Uniquely-named temp files for the atomic, concurrency-safe `write_state`.
 tempfile = "3"

@@ -26,7 +26,7 @@
 - [x] 4.1 Condense the `learn-topic.ts` instructions (`packages/cli/src/core/templates/workflows/learn-topic.ts`) into an extraction prompt that returns a `StateV1` taxonomy
 - [x] 4.2 Implement `learn_topic(client: &dyn ModelClient, topic: &str)` that runs extraction and validates the result with `validate_state`; retry once on invalid output, then surface an error
 - [x] 4.3 Implement `write_state(dir, state)` writing `.learn/topics/<slug>/state.json` (`"version": 1`) and `render` to `.learn/topics/<slug>/knowledge-map.md`
-- [x] 4.4 Add a streaming variant that yields progress deltas while extraction runs, then the final rendered markdown
+- [x] 4.4 ~~(Streaming variant)~~ Decided against a streaming `learn_topic` variant: a progress-delta echo would spend tokens on output the UX never displays. `learn_topic` is non-streaming (extract → validate → retry → return `StateV1`).
 - [x] 4.5 Add tests using `FakeModelClient`: valid extraction writes both files; invalid extraction (after retry) errors and writes nothing
 
 ## 5. src-tauri: Keychain & Config
@@ -37,15 +37,15 @@
 
 ## 6. src-tauri: Project & File Commands
 
-- [ ] 6.1 Implement `pick_project_dir` using a native Tauri file dialog, persisting the choice to appData
-- [ ] 6.2 Implement `open_project` that validates the working folder's `state.json` is `"version": 1`; reject non-v1 with a "run `learn-anything init` in the CLI to upgrade" message (no migration)
-- [ ] 6.3 Implement `create_project`/ensure `.learn/topics/` exists for a new working folder
+- [x] 6.1 Implement `pick_project_dir` using a native Tauri file dialog, persisting the choice to appData
+- [x] 6.2 Implement `open_project` that validates the working folder's `state.json` is `"version": 1`; reject non-v1 with a "run `learn-anything init` in the CLI to upgrade" message (no migration)
+- [x] 6.3 Implement `create_project`/ensure `.learn/topics/` exists for a new working folder
 
 ## 7. src-tauri: learn-topic Tauri Command
 
-- [ ] 7.1 Register a `chat_create_topic(topic)` Tauri command that loads the key + config, builds a `LocalModelClient`, and runs `learn_topic`
-- [ ] 7.2 Emit `agent:delta` events as progress arrives, and an `agent:done` event carrying the rendered `knowledge-map.md` markdown on success
-- [ ] 7.3 Emit an `agent:error` event (no files written) on failure; wire the working folder from appData into the write path
+- [x] 7.1 Register a `chat_create_topic(topic)` Tauri command that loads the key + config, builds a `LocalModelClient`, and runs `learn_topic`
+- [x] 7.2 Emit an `agent:done` event carrying `{slug, topic, dir}` on success (no `agent:delta`; the rendered markdown is read from disk, not echoed to the chat)
+- [x] 7.3 Emit an `agent:error` event (no files written) on failure; wire the working folder from appData into the write path
 
 ## 8. Frontend: Shell & Setup
 
@@ -54,16 +54,16 @@
 - [ ] 8.3 Implement the folder-pick flow (`pick_project_dir`) and surface the non-v1 rejection message from `open_project`
 - [ ] 8.4 Follow the system light/dark theme by default
 
-## 9. Frontend: Chat Dialog & Streaming
+## 9. Frontend: Chat Dialog
 
 - [ ] 9.1 Build the chat dialog UI: message input and a transcript area
-- [ ] 9.2 Subscribe to `agent:delta`/`agent:done`/`agent:error` via `@tauri-apps/api/event`; render streamed deltas live and the final knowledge map (markdown) on `agent:done`
+- [ ] 9.2 Subscribe to `agent:done`/`agent:error` via `@tauri-apps/api/event`; on `agent:done` show a "topic created" confirmation with the topic dir (no live delta rendering, no markdown echo)
 - [ ] 9.3 Trigger `chat_create_topic` from user input (e.g. "create a topic: JavaScript")
 
 ## 10. End-to-End Verification
 
 - [ ] 10.1 Run `pnpm tauri dev`, set a key, pick the repo's `.learn` working folder, and create a new topic via the chat dialog
-- [ ] 10.2 Confirm streamed output and the final knowledge map render in the dialog
+- [ ] 10.2 Confirm a "topic created" confirmation renders in the dialog on completion
 - [ ] 10.3 Confirm `.learn/topics/<slug>/state.json` (`version: 1`) and `knowledge-map.md` are written and valid
 - [ ] 10.4 Confirm a pre-v1 folder is rejected with the CLI-upgrade message and no files are modified
 - [ ] 10.5 Confirm the running application requires no Node runtime on the host

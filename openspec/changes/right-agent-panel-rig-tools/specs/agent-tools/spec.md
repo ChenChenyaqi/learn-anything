@@ -21,17 +21,32 @@ Every filesystem tool MUST reject any path that resolves outside the canonical w
 
 ### Requirement: ReadFile tool
 
-The `ReadFile` tool SHALL read a UTF-8 text file inside the working folder and return its contents. Files larger than 200 KB SHALL be truncated with an appended marker indicating the truncation and the original byte size.
+The `ReadFile` tool SHALL read a UTF-8 text file inside the working folder and return its contents prefixed with 1-indexed line numbers (`<N>: <content>`). The caller MAY supply an `offset` (1-indexed line to start from, default 1) and a `limit` (maximum number of lines to return, default to end of file) so that large files can be paged through incrementally. Lines longer than 2000 characters SHALL be truncated with an in-line marker noting the original character count. Total output exceeding 200 KB SHALL be truncated with an appended marker that directs the caller to narrow the range with `offset`/`limit`.
 
 #### Scenario: Read an existing text file
 
 - **WHEN** the tool is called with a path to an existing text file inside the working folder
-- **THEN** the tool returns the file's text contents as a string
+- **THEN** the tool returns the file's text prefixed with 1-indexed line numbers (`<N>: <content>`)
 
-#### Scenario: Read a file larger than the size limit
+#### Scenario: Read a range of lines with offset and limit
 
-- **WHEN** the target file exceeds 200 KB
-- **THEN** the tool returns the first 200 KB of text followed by a truncation marker stating the original size in bytes
+- **WHEN** the tool is called with `offset = 50` and `limit = 20` on a file with 100 lines
+- **THEN** the tool returns lines 50 through 69 with their original file line numbers (50, 51, ...), not renumbered from 1
+
+#### Scenario: Offset past end of file
+
+- **WHEN** the `offset` exceeds the number of lines in the file
+- **THEN** the tool returns a human-readable indicator stating the offset is past end of file and the total line count, so the caller can correct its request
+
+#### Scenario: Read a file with a line longer than 2000 characters
+
+- **WHEN** a single line in the returned range exceeds 2000 characters
+- **THEN** the tool truncates that line to 2000 characters and appends an in-line marker stating the original character count
+
+#### Scenario: Read a range whose total output exceeds 200 KB
+
+- **WHEN** the assembled line-numbered output exceeds 200 KB
+- **THEN** the tool truncates the output to 200 KB on a line boundary and appends a marker directing the caller to use a smaller `limit` or a higher `offset`
 
 #### Scenario: Read a non-existent file
 
@@ -83,12 +98,17 @@ The `EditFile` tool SHALL perform an exact string substitution in an existing fi
 
 ### Requirement: ListDir tool
 
-The `ListDir` tool SHALL list the entries of a directory inside the working folder. Directories SHALL be suffixed with `/`; hidden entries (starting with `.`) and entries in a small ignore list (`node_modules`, `target`, `.git`) SHALL be excluded by default. The result SHALL be a flat string, one entry per line, entries sorted alphabetically.
+The `ListDir` tool SHALL list the entries of a directory inside the working folder. Directories SHALL be suffixed with `/`. Entries named `node_modules`, `target`, or `.git` SHALL be excluded; other dotfile entries (e.g. `.learn`, `.github`, `.env`) SHALL be listed so the agent can navigate them. The result SHALL be a flat string, one entry per line, entries sorted alphabetically.
 
 #### Scenario: List a non-empty directory
 
-- **WHEN** the tool is called with a directory path inside the working folder that contains multiple entries
-- **THEN** the tool returns a newline-separated list of entry names, directories suffixed with `/`, excluding hidden and ignore-listed entries, sorted alphabetically
+- **WHEN** the tool is called with a directory path inside the working folder that contains multiple entries including dotfiles and ignored dirs
+- **THEN** the tool returns a newline-separated list of entry names, directories suffixed with `/`, listing dotfile entries but excluding `node_modules`/`target`/`.git`, sorted alphabetically
+
+#### Scenario: List inside a dotfile directory
+
+- **WHEN** the tool is called with a path like `.learn/sessions`
+- **THEN** the tool lists the entries of that dotfile directory the same as any other directory
 
 #### Scenario: List a path that is a file
 
@@ -97,7 +117,7 @@ The `ListDir` tool SHALL list the entries of a directory inside the working fold
 
 ### Requirement: Grep tool
 
-The `Grep` tool SHALL search file contents inside the working folder using a regex pattern, optionally limited to a subdirectory and/or a file-name glob. Results SHALL be returned as `path:line_number:matched_line` entries, capped at 100 results. The tool SHALL use ripgrep when available and fall back to a pure-Rust regex walk when it is not.
+The `Grep` tool SHALL search file contents inside the working folder using a regex pattern, optionally limited to a subdirectory and/or a file-name glob. Results SHALL be returned as `path:line_number:matched_line` entries, capped at 100 results. The tool SHALL search dotfile directories (e.g. `.learn`, `.github`) but skip `node_modules`, `target`, and `.git`. The tool SHALL use ripgrep when available (`--hidden --no-ignore-vcs` with explicit `--glob '!node_modules'`/`'!target'`/`'!.git'` exclusions) and fall back to a pure-Rust regex walk when ripgrep is not present or returns an internal error.
 
 #### Scenario: Search with a matching pattern
 
@@ -109,18 +129,28 @@ The `Grep` tool SHALL search file contents inside the working folder using a reg
 - **WHEN** no file in scope contains the pattern
 - **THEN** the tool returns an empty result set indicator
 
+#### Scenario: Search descends into dotfile directories
+
+- **WHEN** a match exists under a dotfile directory such as `.learn` and another under `.git`
+- **THEN** the `.learn` match is returned and the `.git` match is not
+
 ### Requirement: Glob tool
 
-The `Glob` tool SHALL return file paths inside the working folder that match a glob pattern (recursively). Results SHALL be sorted alphabetically and capped at 500 paths.
+The `Glob` tool SHALL return file paths inside the working folder that match a glob pattern (recursively). Results SHALL be sorted alphabetically and capped at 500 paths. The walker SHALL prune `node_modules`, `target`, and `.git` so broad patterns are not swamped by build artifacts; other dotfile directories (e.g. `.learn`, `.github`) SHALL be included.
 
 #### Scenario: Match a simple glob
 
 - **WHEN** the tool is called with a pattern like `**/Cargo.toml`
 - **THEN** the tool returns all matching paths under the working folder, sorted and capped at 500
 
+#### Scenario: Ignore-listed directories are pruned
+
+- **WHEN** the tool is called with `**/*.rs` and matching files exist under both `src/` and `target/`
+- **THEN** only the `src/` matches are returned; `target/` matches are excluded
+
 ### Requirement: RunCommand tool
 
-The `RunCommand` tool SHALL execute a command (with explicit args, no shell) with `cwd` set to the working folder. stdout and stderr SHALL be captured, each truncated to 4 KB with a truncation marker, and returned together with the exit code. The tool SHALL impose a 120-second wall-clock timeout and kill the child if exceeded.
+The `RunCommand` tool SHALL execute a command (with explicit args, no shell) with `cwd` set to the working folder. stdout and stderr SHALL be captured **concurrently** (not serially, to avoid pipe deadlock when one stream fills the OS buffer), each reported with the first 4 KB of content plus a truncation marker stating the original byte count when the stream exceeded 4 KB. The tool SHALL impose a 120-second wall-clock timeout and kill the child if exceeded.
 
 #### Scenario: Run a fast command that exits 0
 
@@ -140,7 +170,12 @@ The `RunCommand` tool SHALL execute a command (with explicit args, no shell) wit
 #### Scenario: Run a command that produces more than 4 KB of stdout
 
 - **WHEN** the captured stdout exceeds 4 KB
-- **THEN** the tool truncates the returned stdout to 4 KB and appends a truncation marker stating the original byte count
+- **THEN** the tool returns the first 4 KB of stdout and appends a truncation marker stating the original byte count
+
+#### Scenario: Run a command that produces enough stdout to fill the OS pipe buffer
+
+- **WHEN** a command writes more than ~64 KB to stdout (enough to fill the OS pipe buffer)
+- **THEN** the tool still completes and returns exit 0 with a truncation marker, rather than deadlocking until the timeout
 
 ### Requirement: Tool error feedback to the model
 

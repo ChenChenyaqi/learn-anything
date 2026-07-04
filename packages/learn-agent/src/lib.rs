@@ -16,6 +16,7 @@
 pub mod model;
 pub mod render;
 pub mod state;
+pub mod tools;
 pub mod utils;
 pub mod workflow;
 
@@ -23,6 +24,10 @@ pub use model::{FakeModelClient, LocalModelClient, ModelClient, Provider, Remote
 pub use render::render;
 pub use state::{
     mastered_count, total_count, validate_state, Concept, ConceptStatus, Domain, StateV1,
+};
+pub use tools::{
+    EditFile, Grep, Glob, ListDir, ReadFile, RunCommand, ToolError, Workspace, WriteFile,
+    ALL_TOOLS, ALL_TOOL_NAMES,
 };
 pub use utils::ValidationError;
 pub use workflow::{learn_topic, write_state};

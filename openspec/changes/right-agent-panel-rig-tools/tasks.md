@@ -1,17 +1,17 @@
 ## 1. learn-agent: tool foundation
 
-- [ ] 1.1 Add `glob = "3"` and `regex = "1"` and `tokio-util = { version = "2", features = ["rt"] }` to `packages/learn-agent/Cargo.toml`
-- [ ] 1.2 Create `packages/learn-agent/src/tools.rs` and export from `lib.rs`
-- [ ] 1.3 Implement a `Workspace` helper struct holding `working_folder: PathBuf` and a lazily-cached `canonical_root`, with `resolve_within(rel: &str) -> Result<PathBuf, ToolError>` that canonicalizes the target and enforces the prefix check per `agent-tools#working-folder-scope-enforcement`
-- [ ] 1.4 Implement `ReadFile` (`Tool`) using `Workspace::resolve_within`; truncate at 200 KB with appended truncation marker + original byte size
-- [ ] 1.5 Implement `WriteFile` (`Tool`); create missing parents via `fs::create_dir_all`; refuse to overwrite a directory; refuse when path equals a directory's path
-- [ ] 1.6 Implement `EditFile` (`Tool`) with `replace_all` arg; error when `old == new`; error when not-found; error when multiple-occurrence-without-replace_all; include counts in messages
-- [ ] 1.7 Implement `ListDir` (`Tool`); suffix directories with `/`; exclude hidden entries and the ignore list `["node_modules","target",".git"]`; sort alphabetically
-- [ ] 1.8 Implement `Grep` (`Tool`) choosing ripgrep when discovered on PATH and falling back to a `regex`-based recursive walk; cap results at 100; format `path:line:matched_line`
-- [ ] 1.9 Implement `Glob` (`Tool`) using the `glob` crate with `**` recursion; cap at 500; sort alphabetically
-- [ ] 1.10 Implement `RunCommand` (`Tool`) using `tokio::process::Command` (no shell); `cwd = working_folder`; pipe stdout/stderr; 120 s timeout via `tokio::time::timeout` killing the child on drop; truncate each stream at 4 KB with marker; include exit code in the result text
-- [ ] 1.11 Add `ToolError` type whose `Display` strings are model-actionable (named reason + resolved-vs-allowed prefix); ensure every tool returns `ToolResult { status:"error", ... }`-style failure (or the rig-equivalent result) so the model receives the error rather than the loop aborting
-- [ ] 1.12 Unit tests in `tools.rs`: path-escape rejection (`..` outside root, symlink-into-outside rejected), ReadFile truncation, WriteFile parent-create, EditFile single/none/multiple/replace_all branches, ListDir ignore list, Grep no-match, Glob cap, RunCommand timeout + non-existent executable + 4KB stdout truncation
+- [x] 1.1 Add `glob = "3"` and `regex = "1"` and `tokio-util = { version = "2", features = ["rt"] }` to `packages/learn-agent/Cargo.toml`
+- [x] 1.2 Create `packages/learn-agent/src/tools.rs` and export from `lib.rs`
+- [x] 1.3 Implement a `Workspace` helper struct holding `working_folder: PathBuf` and a lazily-cached `canonical_root`, with `resolve_within(rel: &str) -> Result<PathBuf, ToolError>` that canonicalizes the target and enforces the prefix check per `agent-tools#working-folder-scope-enforcement`
+- [x] 1.4 Implement `ReadFile` (`Tool`) using `Workspace::resolve_within`; truncate at 200 KB with appended truncation marker + original byte size
+- [x] 1.5 Implement `WriteFile` (`Tool`); create missing parents via `fs::create_dir_all`; refuse to overwrite a directory; refuse when path equals a directory's path
+- [x] 1.6 Implement `EditFile` (`Tool`) with `replace_all` arg; error when `old == new`; error when not-found; error when multiple-occurrence-without-replace_all; include counts in messages
+- [x] 1.7 Implement `ListDir` (`Tool`); suffix directories with `/`; exclude hidden entries and the ignore list `["node_modules","target",".git"]`; sort alphabetically
+- [x] 1.8 Implement `Grep` (`Tool`) choosing ripgrep when discovered on PATH and falling back to a `regex`-based recursive walk; cap results at 100; format `path:line:matched_line`
+- [x] 1.9 Implement `Glob` (`Tool`) using the `glob` crate with `**` recursion; cap at 500; sort alphabetically
+- [x] 1.10 Implement `RunCommand` (`Tool`) using `tokio::process::Command` (no shell); `cwd = working_folder`; pipe stdout/stderr; 120 s timeout via `tokio::time::timeout` killing the child on drop; truncate each stream at 4 KB with marker; include exit code in the result text
+- [x] 1.11 Add `ToolError` type whose `Display` strings are model-actionable (named reason + resolved-vs-allowed prefix); ensure every tool returns `ToolResult { status:"error", ... }`-style failure (or the rig-equivalent result) so the model receives the error rather than the loop aborting
+- [x] 1.12 Unit tests in `tools.rs`: path-escape rejection (`..` outside root, symlink-into-outside rejected), ReadFile truncation, WriteFile parent-create, EditFile single/none/multiple/replace_all branches, ListDir ignore list, Grep no-match, Glob cap, RunCommand timeout + non-existent executable + 4KB stdout truncation
 
 ## 2. learn-agent: agent session and events
 

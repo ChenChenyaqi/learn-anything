@@ -12,9 +12,17 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 schemars = "1"
 rig-core = "0.39"
-tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
+tokio = { workspace = true, features = ["macros", "rt-multi-thread", "process", "fs", "time"] }
 anyhow.workspace = true
 futures.workspace = true
 chrono = "0.4"
 # Uniquely-named temp files for the atomic, concurrency-safe `write_state`.
 tempfile = "3"
+# Agent tooling: glob/walk for the `Glob`/`Grep` tools, regex for the Grep
+# fallback when ripgrep is not on PATH, thiserror for ergonomic tool error
+# types (rig's `Tool::Error` requires `std::error::Error`), and tokio-util's
+# `CancellationToken` for cancelling in-flight agent runs.
+glob = "0.3"
+regex = "1"
+thiserror = "2"
+tokio-util = { version = "0.7", default-features = false, features = ["rt"] }

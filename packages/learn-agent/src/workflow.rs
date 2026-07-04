@@ -10,7 +10,6 @@ use crate::model::ModelClient;
 use crate::render::render;
 use crate::state::{validate_state, ConceptStatus, StateV1};
 use chrono::Local;
-use futures::StreamExt;
 use std::path::Path;
 
 /* ------------------------------------------------------------------ */
@@ -70,47 +69,6 @@ pub async fn learn_topic<C: ModelClient>(client: &C, topic: &str) -> anyhow::Res
 }
 
 /* ------------------------------------------------------------------ */
-/*  Streaming variant                                                 */
-/* ------------------------------------------------------------------ */
-
-/// Event yielded by [`learn_topic_stream`].
-#[derive(Debug, Clone)]
-pub enum LearnTopicEvent {
-    /// Progress text streamed from the model.
-    Delta(String),
-    /// Final rendered knowledge-map markdown.
-    Done(String),
-}
-
-/// Streaming variant of [`learn_topic`].
-///
-/// First streams a brief progress description from the model (yielding
-/// [`LearnTopicEvent::Delta`] for each text chunk), then runs extraction and
-/// validation, and finally yields [`LearnTopicEvent::Done`] with the rendered
-/// `knowledge-map.md` markdown.
-///
-/// If any step fails the stream yields `Err` and terminates.
-pub fn learn_topic_stream<'a, C: ModelClient>(
-    client: &'a C,
-    topic: &'a str,
-) -> impl futures::Stream<Item = anyhow::Result<LearnTopicEvent>> + Send + 'a {
-    async_stream::try_stream! {
-        // Phase 1: stream a brief progress message.
-        let stream_msg = format!("I want to learn {topic}. Briefly describe the roadmap.");
-        let mut stream = client.stream(SYSTEM_PROMPT, &stream_msg).await?;
-        while let Some(delta) = stream.next().await {
-            yield LearnTopicEvent::Delta(delta?);
-        }
-
-        // Phase 2: extract + validate (may retry internally).
-        let state = learn_topic(client, topic).await?;
-
-        // Phase 3: yield the rendered markdown.
-        yield LearnTopicEvent::Done(render(&state));
-    }
-}
-
-/* ------------------------------------------------------------------ */
 /*  File I/O                                                          */
 /* ------------------------------------------------------------------ */
 
@@ -126,20 +84,6 @@ pub fn write_state(dir: &Path, state: &StateV1) -> anyhow::Result<()> {
 
     let markdown = render(state);
     std::fs::write(dir.join("knowledge-map.md"), markdown)?;
-
-    Ok(())
-}
-
-/// Async twin of [`write_state`] for async runtimes (e.g. a Tauri command
-/// running on a Tokio handle), so file I/O never blocks the executor thread.
-pub async fn write_state_async(dir: &Path, state: &StateV1) -> anyhow::Result<()> {
-    tokio::fs::create_dir_all(dir).await?;
-
-    let json = serde_json::to_string_pretty(state)?;
-    tokio::fs::write(dir.join("state.json"), format!("{json}\n")).await?;
-
-    let markdown = render(state);
-    tokio::fs::write(dir.join("knowledge-map.md"), markdown).await?;
 
     Ok(())
 }
@@ -181,6 +125,10 @@ fn finalize(mut state: StateV1, topic: &str, created: &str) -> StateV1 {
 
 /// Deterministic slug: lowercased, runs of non-alphanumeric chars collapse to a
 /// single `-`, then leading/trailing `-` trimmed.
+///
+/// Non-ASCII letters (e.g. CJK) are kept verbatim on purpose: the learning
+/// prompt responds in the user's language, so a Chinese topic yields a Chinese
+/// slug rather than a transliterated ASCII one.
 fn slugify(s: &str) -> String {
     let mut out = String::with_capacity(s.len());
     let mut prev_dash = false;
@@ -290,56 +238,6 @@ mod tests {
         );
     }
 
-    // ── 4.4: Stream yields Deltas then Done ────────────────────────
-
-    #[tokio::test]
-    async fn stream_yields_deltas_then_done() {
-        let json = include_str!("../mock/state.json");
-        let fake = FakeModelClient::new(vec!["Building ".into(), "roadmap...".into()], json);
-
-        let events: Vec<anyhow::Result<LearnTopicEvent>> =
-            learn_topic_stream(&fake, "Rust").collect().await;
-
-        // Expect: Delta("Building "), Delta("roadmap..."), Done(markdown)
-        assert_eq!(events.len(), 3, "got {events:?}");
-
-        assert!(matches!(
-            &events[0],
-            Ok(LearnTopicEvent::Delta(s)) if s == "Building "
-        ));
-        assert!(matches!(
-            &events[1],
-            Ok(LearnTopicEvent::Delta(s)) if s == "roadmap..."
-        ));
-        assert!(matches!(
-            &events[2],
-            Ok(LearnTopicEvent::Done(md)) if md.starts_with("# ")
-        ));
-    }
-
-    // ── 4.4: Stream yields error when extraction fails ─────────────
-
-    #[tokio::test]
-    async fn stream_errors_on_invalid_extraction() {
-        let bad = serde_json::json!({
-            "version": 1,
-            "topic": "X",
-            "slug": "x",
-            "created": "2026-01-01",
-            "domains": [{ "name": "", "slug": "d", "concepts": [] }]
-        })
-        .to_string();
-
-        let fake = FakeModelClient::new(vec!["hi".into()], bad);
-        let events: Vec<anyhow::Result<LearnTopicEvent>> =
-            learn_topic_stream(&fake, "X").collect().await;
-
-        // Delta("hi") then Err(...)
-        assert_eq!(events.len(), 2);
-        assert!(matches!(&events[0], Ok(LearnTopicEvent::Delta(_))));
-        assert!(events[1].is_err());
-    }
-
     // ── normalize resets concept stats ─────────────────────────────
 
     #[test]
@@ -374,6 +272,13 @@ mod tests {
         assert_eq!(slugify(""), "");
     }
 
+    #[test]
+    fn slugify_keeps_cjk() {
+        assert_eq!(slugify("机器学习"), "机器学习");
+        assert_eq!(slugify("机器 学习"), "机器-学习");
+        assert_eq!(slugify("Rust 并发"), "rust-并发");
+    }
+
     // ── topic/slug are taken from the request, not the model ───────
 
     #[tokio::test]
@@ -398,26 +303,6 @@ mod tests {
         let dir = tmp.path().join("a").join("b").join("c");
         write_state(&dir, &state).unwrap();
         assert!(dir.join("state.json").exists());
-        assert!(dir.join("knowledge-map.md").exists());
-    }
-
-    // ── write_state_async writes the same files ────────────────────
-
-    #[tokio::test]
-    async fn write_state_async_writes_files() {
-        let json = include_str!("../mock/state.json");
-        let state: StateV1 = serde_json::from_str(json).unwrap();
-        let state = normalize(state, "2026-01-01");
-
-        let tmp = tempfile::tempdir().unwrap();
-        let dir = tmp.path().join("x").join("y");
-        write_state_async(&dir, &state).await.unwrap();
-
-        let state_text = tokio::fs::read_to_string(dir.join("state.json"))
-            .await
-            .unwrap();
-        let val: serde_json::Value = serde_json::from_str(&state_text).unwrap();
-        assert_eq!(val["version"], 1);
         assert!(dir.join("knowledge-map.md").exists());
     }
 

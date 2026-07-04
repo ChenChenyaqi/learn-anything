@@ -137,7 +137,7 @@ pub fn check_field(
 // digits only) without pulling in a regex dependency. Only the *shape* is
 // validated, not calendar validity (e.g. `"2026-13-45"` passes), to match the
 // CLI's regex-only behavior exactly.
-pub fn is_date_str(s: &str) -> bool {
+fn is_date_str(s: &str) -> bool {
     let (date, time) = match s.split_once(' ') {
         Some((d, t)) => (d, Some(t)),
         None => (s, None),
@@ -145,7 +145,7 @@ pub fn is_date_str(s: &str) -> bool {
     is_yyyy_mm_dd(date) && time.is_none_or(is_hh_mm_ss)
 }
 
-pub fn is_yyyy_mm_dd(s: &str) -> bool {
+fn is_yyyy_mm_dd(s: &str) -> bool {
     let b = s.as_bytes();
     b.len() == 10
         && b[4] == b'-'
@@ -155,7 +155,7 @@ pub fn is_yyyy_mm_dd(s: &str) -> bool {
         && b[8..10].iter().all(u8::is_ascii_digit)
 }
 
-pub fn is_hh_mm_ss(s: &str) -> bool {
+fn is_hh_mm_ss(s: &str) -> bool {
     let b = s.as_bytes();
     b.len() == 8
         && b[2] == b':'

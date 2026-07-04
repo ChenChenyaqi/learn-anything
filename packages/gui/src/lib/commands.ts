@@ -33,22 +33,6 @@ export interface ProjectInfo {
   topics: TopicSummary[];
 }
 
-/** Success payload of `chat_create_topic` / the `agent:done` event. */
-export interface TopicCreated {
-  slug: string;
-  topic: string;
-  dir: string;
-}
-
-/** Optional overrides for `test_key`. Every field optional so the same command
- * serves "test already-stored key" (`{}`) and "test form values pre-save". */
-export interface TestKeyParams {
-  key?: string;
-  provider?: Provider;
-  model?: string;
-  base_url?: string;
-}
-
 /* ── keychain (OS keychain) ─────────────────────────────────────────── */
 
 /** Whether a key is currently stored (decides setup vs. chat view). */
@@ -68,11 +52,6 @@ export const deleteKey = (): Promise<void> => invoke('delete_key');
 export const getConfig = (): Promise<AppConfig> => invoke('get_config');
 export const setConfig = (config: AppConfig): Promise<void> => invoke('set_config', { config });
 
-/* ── model verification ─────────────────────────────────────────────── */
-
-/** Run one short completion; returns the model's reply on success. */
-export const testKey = (params: TestKeyParams): Promise<string> => invoke('test_key', { params });
-
 /* ── working-folder selection / validation / creation ───────────────── */
 
 /** Open a native folder picker; returns the chosen path or `null` on cancel. */
@@ -83,9 +62,3 @@ export const openProject = (dir: string): Promise<ProjectInfo> => invoke('open_p
 
 /** Ensure `<dir>/.learn/topics/` exists. Idempotent. */
 export const createProject = (dir: string): Promise<string> => invoke('create_project', { dir });
-
-/* ── agent workflow ─────────────────────────────────────────────────── */
-
-/** Generate a knowledge map for `topic` and write it under the working folder. */
-export const chatCreateTopic = (topic: string): Promise<TopicCreated> =>
-  invoke('chat_create_topic', { topic });

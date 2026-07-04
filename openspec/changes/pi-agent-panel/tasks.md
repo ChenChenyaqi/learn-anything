@@ -1,22 +1,22 @@
 ## 1. Code deletion — clean slate before pi work
 
-- [ ] 1.1 Delete the entire `packages/learn-agent/` directory (Cargo.toml, src/, prompts/, mock/) from the workspace
-- [ ] 1.2 Remove `"packages/learn-agent"` from the root `Cargo.toml` `[workspace] members` array and `learn-agent = { path = "packages/learn-agent" }` from `[workspace.dependencies]`
-- [ ] 1.3 Delete `packages/gui/src-tauri/src/agent.rs` (chat_create_topic, TopicCreated, run_create_topic, resolve_run_inputs, all tests)
-- [ ] 1.4 Delete `packages/gui/src-tauri/src/commands.rs` (test_key, TestKeyParams, all tests)
-- [ ] 1.5 Update `packages/gui/src-tauri/src/lib.rs`: drop `mod agent;` / `mod commands;` and their `use` lines; remove `chat_create_topic` and `test_key` from `tauri::generate_handler!`
-- [ ] 1.6 Inline the `Provider` enum (variants `OpenAi`/`Anthropic`, `#[serde(rename_all="lowercase")]`, `#[default] OpenAi`) into `packages/gui/src-tauri/src/config.rs` and drop `use learn_agent::model::Provider;`; verify `AppConfig` still round-trips through JSON identically
-- [ ] 1.7 Update `packages/gui/src-tauri/Cargo.toml`: remove `learn-agent.workspace = true`, remove `futures.workspace = true`, remove the `tokio` `time` feature (or remove the `tokio` line entirely if unused); update the comment blocks that referenced `LocalModelClient::stream`
-- [ ] 1.8 Delete `packages/gui/src/components/ChatDialog.vue`
-- [ ] 1.9 Update `packages/gui/src/components/TopicList.vue`: remove `import ChatDialog` and the `<ChatDialog />` render slot
-- [ ] 1.10 Update `packages/gui/src/lib/commands.ts`: remove `TopicCreated` interface, `chatCreateTopic` export, `TestKeyParams` interface, `testKey` export, and the `agent workflow ──` section comment
-- [ ] 1.11 Scrub `useAppSession.ts` / `useSetupForm.ts` / `SetupScreen.vue` for any `testKey` / `chatCreateTopic` / `TopicCreated` callers; remove the call sites and leave the forms persisting key + config only (verification moves to the sidecar's session boot)
-- [ ] 1.12 Delete `openspec/changes/gui-agent-capability-spike/` (the entire directory)
-- [ ] 1.13 Delete `openspec/changes/right-agent-panel-rig-tools/` (the entire directory)
-- [ ] 1.14 Verify `cargo check --workspace` and `cargo check -p learn-anything-gui` are green with no warnings about unused code
-- [ ] 1.15 Verify `pnpm -F learn-anything-gui build` (vue-tsc + vite) is green with no unused-symbol errors
-- [ ] 1.16 Verify `pnpm -F learn-anything-gui test` is green
-- [ ] 1.17 Grep the source tree for `learn_agent|LocalModelClient|AgentSession|chat_create_topic|TopicCreated|test_key|TestKeyParams|agent:done|agent:error` and confirm zero matches outside `openspec/changes/archive/`
+- [x] 1.1 Delete the entire `packages/learn-agent/` directory (Cargo.toml, src/, prompts/, mock/) from the workspace
+- [x] 1.2 Remove `"packages/learn-agent"` from the root `Cargo.toml` `[workspace] members` array and `learn-agent = { path = "packages/learn-agent" }` from `[workspace.dependencies]`
+- [x] 1.3 Delete `packages/gui/src-tauri/src/agent.rs` (chat_create_topic, TopicCreated, run_create_topic, resolve_run_inputs, all tests)
+- [x] 1.4 Delete `packages/gui/src-tauri/src/commands.rs` (test_key, TestKeyParams, all tests)
+- [x] 1.5 Update `packages/gui/src-tauri/src/lib.rs`: drop `mod agent;` / `mod commands;` and their `use` lines; remove `chat_create_topic` and `test_key` from `tauri::generate_handler!`
+- [x] 1.6 Inline the `Provider` enum (variants `OpenAi`/`Anthropic`, `#[serde(rename_all="lowercase")]`, `#[default] OpenAi`) into `packages/gui/src-tauri/src/config.rs` and drop `use learn_agent::model::Provider;`; verify `AppConfig` still round-trips through JSON identically
+- [x] 1.7 Update `packages/gui/src-tauri/Cargo.toml`
+- [x] 1.8 Delete `packages/gui/src/components/ChatDialog.vue`
+- [x] 1.9 Update `packages/gui/src/components/TopicList.vue`: remove `import ChatDialog` and the `<ChatDialog />` render slot
+- [x] 1.10 Update `packages/gui/src/lib/commands.ts`: remove `TopicCreated` interface, `chatCreateTopic` export, `TestKeyParams` interface, `testKey` export, and the `agent workflow ──` section comment
+- [x] 1.11 Scrub `useAppSession.ts` / `useSetupForm.ts` / `SetupScreen.vue` for any `testKey` / `chatCreateTopic` / `TopicCreated` callers; remove the call sites and leave the forms persisting key + config only (verification moves to the sidecar's session boot)
+- [x] 1.12 Delete `openspec/changes/gui-agent-capability-spike/` (the entire directory)
+- [x] 1.13 Delete `openspec/changes/right-agent-panel-rig-tools/` (the entire directory)
+- [x] 1.14 Verify `cargo check --workspace` and `cargo check -p learn-anything-gui` are green with no warnings about unused code
+- [x] 1.15 Verify `pnpm -F learn-anything-gui build` (vue-tsc + vite) is green with no unused-symbol errors
+- [x] 1.16 Verify `pnpm -F learn-anything-gui test` is green
+- [x] 1.17 Grep the source tree for `learn_agent|LocalModelClient|AgentSession|chat_create_topic|TopicCreated|test_key|TestKeyParams|agent:done|agent:error` and confirm zero matches outside `openspec/changes/archive/`
 
 ## 2. pi-agent-panel openspec change — land this proposal
 

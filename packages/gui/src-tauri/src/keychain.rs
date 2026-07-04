@@ -93,9 +93,10 @@ pub fn save_key(key: String) -> Result<(), String> {
 /// Return a non-secret preview of the stored key (e.g. `sk-…7X2J`), or `null`
 /// if none is stored.
 ///
-/// The raw key never crosses into the webview: [`test_key`](crate::commands::test_key)
-/// reads it directly from the keychain when needed, so the frontend only ever
-/// needs this masked hint for display (e.g. "a key is configured").
+/// The raw key never crosses into the webview: the agent sidecar reads it
+/// directly from the keychain via [`read_key`] when booting a session, so the
+/// frontend only ever needs this masked hint for display (e.g. "a key is
+/// configured").
 #[tauri::command]
 pub fn load_key() -> Result<Option<String>, String> {
     Ok(read_key().map_err(|e| e.to_string())?.map(|k| mask_key(&k)))

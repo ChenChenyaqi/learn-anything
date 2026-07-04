@@ -1,9 +1,8 @@
 <script setup lang="ts">
 // Topic list for an opened working folder. Lists readable v1 topics, or an
-// "empty folder" hint when fresh. Below the topic list is the chat dialog
-// surface where new topics are created.
+// "empty folder" hint when fresh. The agent chat surface will be mounted at
+// the App level (see pi-agent-panel change) instead of inline here.
 import { type ProjectInfo } from '../lib/commands';
-import ChatDialog from './ChatDialog.vue';
 
 defineProps<{ project: ProjectInfo }>();
 </script>
@@ -18,11 +17,8 @@ defineProps<{ project: ProjectInfo }>();
         <li v-for="t in project.topics" :key="t.slug">{{ t.topic }}</li>
       </ul>
       <p v-else class="text-sm opacity-60">
-        This folder has no topics yet. The chat (next task) will create them here.
+        This folder has no topics yet. The agent panel will create them here.
       </p>
-    </div>
-    <div class="mt-6">
-      <ChatDialog />
     </div>
   </div>
 </template>

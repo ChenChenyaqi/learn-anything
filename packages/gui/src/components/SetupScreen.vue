@@ -1,16 +1,16 @@
 <script setup lang="ts">
 // API-key setup screen — pure markup.
 //
-// All form state (fields, test/save, validation) lives in `useSetupForm`;
+// All form state (fields, save, validation) lives in `useSetupForm`;
 // this component just binds it to inputs and emits `saved` upward. The key
 // itself is never persisted in plaintext: it goes to the OS keychain via
-// `save_key`; only provider/model/base_url reach `set_config`. "Test" runs one
-// short completion *before* saving so a bad key/endpoint is caught early.
+// `save_key`; only provider/model/base_url reach `set_config`. Provider
+// verification moves to the agent sidecar's session boot.
 
 import { type AppConfig } from '../lib/commands';
 import { useSetupForm } from '../composables/useSetupForm';
 import FormField from './FormField.vue';
-import { btnPrimary, btnSecondary, fieldControl } from '../lib/ui';
+import { btnPrimary, fieldControl } from '../lib/ui';
 
 const props = defineProps<{
   /** Current non-secret config, used to pre-fill provider/model/base_url. */
@@ -24,7 +24,7 @@ const emit = defineEmits<{
   saved: [];
 }>();
 
-const { provider, model, baseUrl, key, status, testing, saving, hasExistingKey, onTest, onSave } =
+const { provider, model, baseUrl, key, status, saving, hasExistingKey, onSave } =
   useSetupForm({
     config: () => props.config,
     existingKeyPreview: () => props.existingKeyPreview,
@@ -84,21 +84,13 @@ const { provider, model, baseUrl, key, status, testing, saving, hasExistingKey, 
 
       <p
         v-if="status.kind !== 'idle'"
-        :class="['m-0 text-sm', status.kind === 'ok' ? 'text-mastered' : 'text-(--color-accent)']"
+        :class="['m-0 text-sm text-(--color-accent)']"
       >
         {{ status.text }}
       </p>
 
       <div class="mt-1 flex justify-end gap-3">
-        <button
-          type="button"
-          :class="[btnSecondary, 'px-4 py-2']"
-          :disabled="testing || saving"
-          @click="onTest"
-        >
-          {{ testing ? 'Testing…' : 'Test connection' }}
-        </button>
-        <button type="submit" :class="[btnPrimary, 'px-4 py-2']" :disabled="testing || saving">
+        <button type="submit" :class="[btnPrimary, 'px-4 py-2']" :disabled="saving">
           {{ saving ? 'Saving…' : 'Save' }}
         </button>
       </div>

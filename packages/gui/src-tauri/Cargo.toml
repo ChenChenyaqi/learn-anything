@@ -34,17 +34,11 @@ keyring = { version = "3", features = [
     "sync-secret-service",
     "crypto-rust",
 ] }
-# Needed to consume the `BoxStream` returned by `LocalModelClient::stream`
-# inside the `test_key` command.
-futures.workspace = true
-# Drives the async `test_key` command; the `time` feature backs its per-step
-# timeout so a stalled provider can't hang the command indefinitely.
-tokio = { workspace = true, features = ["time"] }
+# Needed for `tokio::sync::oneshot` in the `project` module's async dialog
+# wrapper.
+tokio = { workspace = true, features = ["sync"] }
 # Parses/validates the optional `base_url` in `set_config`.
 url = "2"
-
-# Shared agent logic (workflow, v1 types, ModelClient).
-learn-agent.workspace = true
 
 [dev-dependencies]
 # Sandboxed temp dirs for the `project` module filesystem tests.

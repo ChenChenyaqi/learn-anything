@@ -1,5 +1,5 @@
 import { computed, ref } from 'vue';
-import { type AppConfig, type Provider, saveKey, setConfig, testKey } from '../lib/commands';
+import { type AppConfig, type Provider, saveKey, setConfig } from '../lib/commands';
 
 // State machine for the API-key setup form, pulled out of SetupScreen.vue so
 // the component is pure markup.
@@ -20,48 +20,15 @@ export function useSetupForm(opts: {
 
   const hasExistingKey = computed(() => opts.existingKeyPreview() !== null);
 
-  // Doubles as the "Test" result and save feedback line.
-  const status = ref<{ kind: 'idle' | 'ok' | 'error'; text: string }>({
+  const status = ref<{ kind: 'idle' | 'error'; text: string }>({
     kind: 'idle',
     text: '',
   });
-  const testing = ref(false);
   const saving = ref(false);
 
   function normalizedBaseUrl(): string | null {
     const v = baseUrl.value.trim();
     return v === '' ? null : v;
-  }
-
-  /** Key to send to `test_key`: the typed value, or fall back to the stored one. */
-  function keyForRequest(): string | undefined {
-    const v = key.value.trim();
-    return v === '' ? undefined : v;
-  }
-
-  async function onTest() {
-    if (keyForRequest() === undefined && !hasExistingKey.value) {
-      status.value = { kind: 'error', text: 'Enter an API key first.' };
-      return;
-    }
-    testing.value = true;
-    status.value = { kind: 'idle', text: 'Testing connection…' };
-    try {
-      const reply = await testKey({
-        key: keyForRequest(),
-        provider: provider.value,
-        model: model.value.trim(),
-        base_url: normalizedBaseUrl() ?? undefined,
-      });
-      status.value = {
-        kind: 'ok',
-        text: `Connected. Provider replied: “${reply.trim()}”.`,
-      };
-    } catch (e) {
-      status.value = { kind: 'error', text: String(e) };
-    } finally {
-      testing.value = false;
-    }
   }
 
   async function onSave() {
@@ -104,10 +71,8 @@ export function useSetupForm(opts: {
     baseUrl,
     key,
     status,
-    testing,
     saving,
     hasExistingKey,
-    onTest,
     onSave,
   };
 }

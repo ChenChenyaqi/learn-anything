@@ -6,9 +6,23 @@
 
 use std::path::PathBuf;
 
-use learn_agent::model::Provider;
 use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Manager};
+
+/// Which LLM provider to use.
+///
+/// Serializes to lowercase strings (`"openai"` / `"anthropic"`) so it can be
+/// stored in the app's plaintext config and round-tripped to/from the frontend.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[serde(rename_all = "lowercase")]
+pub enum Provider {
+    /// OpenAI-compatible (also works with OpenRouter, Azure OpenAI, local
+    /// servers, etc. via an optional `base_url`).
+    #[default]
+    OpenAi,
+    /// Anthropic (Claude).
+    Anthropic,
+}
 
 /// Filename (relative to the app-data dir) holding the config.
 const CONFIG_FILENAME: &str = "config.json";
@@ -37,8 +51,7 @@ impl AppConfig {
     /// Returns the first problem found as a human-readable string, or `Ok(())`
     /// if the config is sound. Called by [`set_config`] so bad values are
     /// rejected at save time with a clear message instead of surfacing later as
-    /// a confusing provider error inside
-    /// [`test_key`](crate::commands::test_key).
+    /// a confusing provider error inside the agent sidecar.
     pub fn validate(&self) -> Result<(), String> {
         if self.model.trim().is_empty() {
             return Err("model must not be empty".into());
@@ -75,7 +88,8 @@ fn config_path_for_write(app: &AppHandle) -> anyhow::Result<PathBuf> {
 
 /// Load the config from app-data. Returns defaults if the file doesn't exist.
 ///
-/// Used by the `get_config` Tauri command and internally (e.g. by `test_key`).
+/// Used by the `get_config` Tauri command and internally by the agent sidecar
+/// boot path (which reads provider/model/base_url to frame the first request).
 pub fn load_config(app: &AppHandle) -> anyhow::Result<AppConfig> {
     let path = config_path(app)?;
     match std::fs::read(&path) {
@@ -143,9 +157,9 @@ pub fn get_config(app: AppHandle) -> Result<AppConfig, String> {
 
 /// Replace the non-secret config with `config`.
 ///
-/// Validates the shape of the config first so obviously broken values (empty
-/// model, malformed `base_url`) are rejected up front with a clear message
-/// rather than failing opaquely later inside `test_key`.
+    /// Validates the shape of the config first so obviously broken values (empty
+    /// model, malformed `base_url`) are rejected up front with a clear message
+    /// rather than failing opaquely later inside the agent sidecar boot.
 #[tauri::command]
 pub fn set_config(app: AppHandle, config: AppConfig) -> Result<(), String> {
     config.validate()?;

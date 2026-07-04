@@ -4,10 +4,8 @@
 [workspace]
 resolver = "2"
 # Explicit members (not a `packages/*` glob) so Cargo doesn't try to parse the
-# Node-only dirs like packages/cli. pnpm, in turn, ignores packages/learn-agent
-# because it has no package.json.
+# Node-only dirs like packages/cli.
 members = [
-    "packages/learn-agent",
     "packages/gui/src-tauri",
 ]
 
@@ -18,12 +16,7 @@ license = "AGPL-3.0-only"
 publish = false
 
 [workspace.dependencies]
-# Shared agent crate, depended on by packages/gui/src-tauri (and the future
-# server crate). Referenced via `learn-agent.workspace = true` in members.
-learn-agent = { path = "packages/learn-agent" }
-# Common utility crates shared by both members. Pinning the versions here keeps
-# them from drifting between learn-agent and the GUI; members add the specific
+# Common utility crates shared by workspace members. Members add the specific
 # features they need (`tokio` features, etc.) at the use site.
 anyhow = "1"
-futures = "0.3"
 tokio = "1"

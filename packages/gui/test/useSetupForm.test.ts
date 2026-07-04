@@ -1,18 +1,16 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ref } from 'vue';
 import { useSetupForm } from '@/composables/useSetupForm';
-import { saveKey, setConfig, testKey } from '@/lib/commands';
+import { saveKey, setConfig } from '@/lib/commands';
 import type { AppConfig } from '@/lib/commands';
 
 vi.mock('@/lib/commands', () => ({
   saveKey: vi.fn(),
   setConfig: vi.fn(),
-  testKey: vi.fn(),
 }));
 
 const mockSaveKey = vi.mocked(saveKey);
 const mockSetConfig = vi.mocked(setConfig);
-const mockTestKey = vi.mocked(testKey);
 
 function cfg(overrides: Partial<AppConfig> = {}): AppConfig {
   return {
@@ -41,7 +39,6 @@ describe('useSetupForm', () => {
   beforeEach(() => {
     mockSaveKey.mockReset();
     mockSetConfig.mockReset();
-    mockTestKey.mockReset();
   });
 
   describe('initial values', () => {
@@ -60,32 +57,6 @@ describe('useSetupForm', () => {
       expect(form.hasExistingKey.value).toBe(false);
       preview.value = 'sk-…';
       expect(form.hasExistingKey.value).toBe(true);
-    });
-  });
-
-  describe('onTest', () => {
-    it('refuses without any key', async () => {
-      const { form } = makeForm({ preview: null });
-      await form.onTest();
-      expect(mockTestKey).not.toHaveBeenCalled();
-      expect(form.status.value).toMatchObject({ kind: 'error' });
-    });
-
-    it('falls back to the stored key when the field is blank', async () => {
-      mockTestKey.mockResolvedValue('ok');
-      const { form } = makeForm({ preview: 'sk-…' });
-      await form.onTest();
-      expect(mockTestKey).toHaveBeenCalledWith(expect.objectContaining({ key: undefined }));
-      expect(form.status.value).toMatchObject({ kind: 'ok' });
-    });
-
-    it('surfaces a provider failure as an error status', async () => {
-      mockTestKey.mockRejectedValue(new Error('401 unauthorized'));
-      const { form } = makeForm();
-      form.key.value = 'sk-bad';
-      await form.onTest();
-      expect(form.status.value).toMatchObject({ kind: 'error' });
-      expect(form.status.value.text).toContain('401');
     });
   });
 

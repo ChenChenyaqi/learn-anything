@@ -1,11 +1,10 @@
-import {
-  SessionManager,
-  type AgentSession,
-  type AgentSessionEvent,
-  type SessionInfo,
-} from '@earendil-works/pi-coding-agent';
+import { SessionManager, type AgentSessionRuntime } from '@earendil-works/pi-coding-agent';
 import { type TextContent } from '@earendil-works/pi-ai';
 import { z } from 'zod';
+import { handleSlash, type SlashContext } from './slash-commands.ts';
+import { emitLine } from './stdout-writer.ts';
+import { subscribeSession } from './session-lifecycle.ts';
+import { toSessionMeta, type ChatBlock, type ChatRow } from './types.ts';
 
 const AgentRequestSchema = z.discriminatedUnion('kind', [
   z.object({
@@ -39,69 +38,11 @@ const AgentRequestSchema = z.discriminatedUnion('kind', [
 ]);
 type AgentRequest = z.infer<typeof AgentRequestSchema>;
 
-interface SessionMeta {
-  id: string;
-  title: string;
-  created_at: string;
-  updated_at: string;
-  message_count: number;
-}
-
-type ChatBlock =
-  | { type: 'text'; text: string }
-  | {
-      type: 'tool_call';
-      id: string;
-      name: string;
-      args: unknown;
-      status: 'ok' | 'error';
-      result: string | null;
-    };
-
-type ChatRow = { role: 'user'; text: string } | { role: 'assistant'; blocks: ChatBlock[] };
-
 type SessionMessages = ReturnType<SessionManager['buildSessionContext']>['messages'];
 
-export interface SlashContext {
-  session: AgentSession;
-  cwd: string;
-  awaitUiResponse: (requestId: string) => Promise<unknown>;
-}
-
 export interface RequestLoopDeps {
-  session: AgentSession;
+  runtime: AgentSessionRuntime;
   cwd: string;
-}
-
-function emitLine(payload: unknown): void {
-  process.stdout.write(`${JSON.stringify(payload)}\n`);
-}
-
-function adaptEvent(sessionId: string, event: AgentSessionEvent): unknown | null {
-  if (event.type === 'message_update' && event.assistantMessageEvent.type === 'text_delta') {
-    return {
-      session_id: sessionId,
-      event: { type: 'text_delta', delta: event.assistantMessageEvent.delta },
-    };
-  }
-  if (event.type === 'agent_end') {
-    return { session_id: sessionId, event: { type: 'done' } };
-  }
-  return null;
-}
-
-async function handleSlash(_text: string, _ctx: SlashContext): Promise<boolean> {
-  return false;
-}
-
-function toSessionMeta(info: SessionInfo): SessionMeta {
-  return {
-    id: info.id,
-    title: info.name ?? info.firstMessage,
-    created_at: info.created.toISOString(),
-    updated_at: info.modified.toISOString(),
-    message_count: info.messageCount,
-  };
 }
 
 function isText(content: unknown): content is TextContent {
@@ -176,7 +117,7 @@ async function loadSessionRows(sessionId: string, cwd: string): Promise<ChatRow[
 }
 
 export function runRequestLoop(deps: RequestLoopDeps, initialRest: Buffer): void {
-  const { session, cwd } = deps;
+  const { runtime, cwd } = deps;
   const waitMap = new Map<
     string,
     { resolve: (value: unknown) => void; reject: (error: Error) => void }
@@ -208,13 +149,13 @@ export function runRequestLoop(deps: RequestLoopDeps, initialRest: Buffer): void
     }
   };
 
-  emitLine({ type: 'session_id', session_id: session.sessionId });
-  session.subscribe((event) => {
-    const line = adaptEvent(session.sessionId, event);
-    if (line) emitLine(line);
+  emitLine({ type: 'session_id', session_id: runtime.session.sessionId });
+  subscribeSession(runtime.session);
+  runtime.setRebindSession(async (newSession) => {
+    subscribeSession(newSession);
   });
 
-  const slashContext: SlashContext = { session, cwd, awaitUiResponse };
+  const slashContext: SlashContext = { runtime, cwd, awaitUiResponse };
 
   const dispatch = async (frame: AgentRequest): Promise<void> => {
     switch (frame.kind) {
@@ -223,18 +164,18 @@ export function runRequestLoop(deps: RequestLoopDeps, initialRest: Buffer): void
           const handled = await handleSlash(frame.text, slashContext);
           if (handled) return;
         }
-        await session.prompt(frame.text);
+        await runtime.session.prompt(frame.text);
         return;
       }
       case 'slash_command': {
         const handled = await handleSlash(frame.text, slashContext);
         if (handled) return;
-        await session.prompt(frame.text);
+        await runtime.session.prompt(frame.text);
         return;
       }
       case 'cancel': {
         rejectAllPending(new Error('sidecar: session cancelled'));
-        await session.abort();
+        await runtime.session.abort();
         return;
       }
       case 'ui_response': {
@@ -249,7 +190,10 @@ export function runRequestLoop(deps: RequestLoopDeps, initialRest: Buffer): void
       }
       case 'list_sessions': {
         const sessions = await SessionManager.list(frame.cwd);
-        emitLine({ type: 'list_sessions_reply', sessions: sessions.map(toSessionMeta) });
+        emitLine({
+          type: 'list_sessions_reply',
+          sessions: sessions.map(toSessionMeta),
+        });
         return;
       }
       case 'load_session': {
@@ -266,6 +210,7 @@ export function runRequestLoop(deps: RequestLoopDeps, initialRest: Buffer): void
   };
 
   let buffer = initialRest.toString('utf8');
+  let promptChain: Promise<void> = Promise.resolve();
 
   const handleLine = (raw: string): void => {
     const line = raw.endsWith('\r') ? raw.slice(0, -1) : raw;
@@ -282,9 +227,16 @@ export function runRequestLoop(deps: RequestLoopDeps, initialRest: Buffer): void
       process.stderr.write(`sidecar: rejected invalid stdin frame: ${result.error.message}\n`);
       return;
     }
-    void dispatch(result.data).catch((err) => {
-      process.stderr.write(`sidecar: frame handler error: ${String(err)}\n`);
-    });
+    const frame = result.data;
+    const run = (): Promise<void> =>
+      dispatch(frame).catch((err) => {
+        process.stderr.write(`sidecar: frame handler error: ${String(err)}\n`);
+      });
+    if (frame.kind === 'user_message' || frame.kind === 'slash_command') {
+      promptChain = promptChain.then(run);
+    } else {
+      void run();
+    }
   };
 
   const drainBuffer = (): void => {
@@ -306,7 +258,7 @@ export function runRequestLoop(deps: RequestLoopDeps, initialRest: Buffer): void
 
   process.stdin.on('end', () => {
     rejectAllPending(new Error('sidecar: stdin closed'));
-    session.dispose();
+    runtime.session.dispose();
     process.exit(0);
   });
 }

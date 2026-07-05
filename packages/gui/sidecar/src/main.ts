@@ -1,13 +1,7 @@
 import { readSync } from 'node:fs';
-import {
-  AuthStorage,
-  createAgentSession,
-  ModelRegistry,
-  SessionManager,
-  type AgentSession,
-} from '@earendil-works/pi-coding-agent';
 import { z } from 'zod';
 import { runRequestLoop } from './request-loop.ts';
+import { createSessionLifecycle, type BootConfig } from './session-lifecycle.ts';
 
 const BootConfigSchema = z.object({
   apiKey: z.string().min(1),
@@ -17,9 +11,6 @@ const BootConfigSchema = z.object({
   cwd: z.string().min(1),
   sessionId: z.string().nullable().optional(),
 });
-type BootConfig = z.infer<typeof BootConfigSchema>;
-
-const BUILT_IN_TOOLS = ['read', 'write', 'edit', 'bash', 'grep', 'find', 'ls'];
 
 function readFirstFrameSync(): { line: string; rest: Buffer } {
   const chunks: Buffer[] = [];
@@ -49,43 +40,11 @@ function readFirstFrameSync(): { line: string; rest: Buffer } {
   }
 }
 
-async function boot(config: BootConfig): Promise<AgentSession> {
-  const authStorage = AuthStorage.create();
-  authStorage.setRuntimeApiKey(config.provider, config.apiKey);
-
-  const modelRegistry = ModelRegistry.create(authStorage);
-  if (config.baseUrl) {
-    modelRegistry.registerProvider(config.provider, { baseUrl: config.baseUrl });
-  }
-
-  const model = modelRegistry.find(config.provider, config.model);
-  if (!model) {
-    throw new Error(`sidecar: model not found for provider "${config.provider}": ${config.model}`);
-  }
-
-  const sessionManager = SessionManager.create(
-    config.cwd,
-    undefined,
-    config.sessionId ? { id: config.sessionId } : undefined,
-  );
-
-  const { session } = await createAgentSession({
-    cwd: config.cwd,
-    model,
-    authStorage,
-    modelRegistry,
-    sessionManager,
-    tools: BUILT_IN_TOOLS,
-  });
-
-  return session;
-}
-
 async function main(): Promise<void> {
   const { line, rest } = readFirstFrameSync();
-  const config = BootConfigSchema.parse(JSON.parse(line));
-  const session = await boot(config);
-  runRequestLoop({ session, cwd: config.cwd }, rest);
+  const config: BootConfig = BootConfigSchema.parse(JSON.parse(line));
+  const { runtime } = await createSessionLifecycle(config);
+  runRequestLoop({ runtime, cwd: config.cwd }, rest);
 }
 
 main().catch((err) => {

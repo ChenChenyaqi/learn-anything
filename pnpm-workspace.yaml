@@ -1,5 +1,6 @@
 packages:
   - 'packages/*'
+  - 'packages/gui/sidecar'
   - 'packages/cli/site'
 
 allowBuilds:

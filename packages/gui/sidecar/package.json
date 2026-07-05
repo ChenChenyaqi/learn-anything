@@ -1,0 +1,25 @@
+{
+  "name": "learn-anything-sidecar",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Node sidecar bridging the Tauri Rust backend to the pi agent framework",
+  "scripts": {
+    "build": "node build.mjs",
+    "dev": "node build.mjs --watch",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@earendil-works/pi-ai": "0.80.3",
+    "@earendil-works/pi-coding-agent": "0.80.3",
+    "@sinclair/typebox": "0.34.49",
+    "zod": "3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.0",
+    "esbuild": "0.28.1",
+    "typescript": "~5.6.2",
+    "vitest": "^3.2.4"
+  }
+}

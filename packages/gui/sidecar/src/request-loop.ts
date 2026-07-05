@@ -29,11 +29,13 @@ const AgentRequestSchema = z.discriminatedUnion('kind', [
   z.object({
     kind: z.literal('list_sessions'),
     cwd: z.string(),
+    requestId: z.string(),
   }),
   z.object({
     kind: z.literal('load_session'),
     sessionId: z.string(),
     cwd: z.string().nullable().optional(),
+    requestId: z.string(),
   }),
 ]);
 type AgentRequest = z.infer<typeof AgentRequestSchema>;
@@ -192,6 +194,7 @@ export function runRequestLoop(deps: RequestLoopDeps, initialRest: Buffer): void
         const sessions = await SessionManager.list(frame.cwd);
         emitLine({
           type: 'list_sessions_reply',
+          requestId: frame.requestId,
           sessions: sessions.map(toSessionMeta),
         });
         return;
@@ -200,6 +203,7 @@ export function runRequestLoop(deps: RequestLoopDeps, initialRest: Buffer): void
         const rows = await loadSessionRows(frame.sessionId, frame.cwd ?? cwd);
         emitLine({
           type: 'load_session_reply',
+          requestId: frame.requestId,
           session_id: frame.sessionId,
           rows: rows ?? [],
           found: rows !== null,

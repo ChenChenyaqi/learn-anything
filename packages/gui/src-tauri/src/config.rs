@@ -157,9 +157,9 @@ pub fn get_config(app: AppHandle) -> Result<AppConfig, String> {
 
 /// Replace the non-secret config with `config`.
 ///
-    /// Validates the shape of the config first so obviously broken values (empty
-    /// model, malformed `base_url`) are rejected up front with a clear message
-    /// rather than failing opaquely later inside the agent sidecar boot.
+/// Validates the shape of the config first so obviously broken values (empty
+/// model, malformed `base_url`) are rejected up front with a clear message
+/// rather than failing opaquely later inside the agent sidecar boot.
 #[tauri::command]
 pub fn set_config(app: AppHandle, config: AppConfig) -> Result<(), String> {
     config.validate()?;

@@ -36,7 +36,7 @@ keyring = { version = "3", features = [
 ] }
 # Needed for `tokio::sync::oneshot` in the `project` module's async dialog
 # wrapper.
-tokio = { workspace = true, features = ["sync"] }
+tokio = { workspace = true, features = ["sync", "process", "io-util", "time", "macros", "rt"] }
 # Parses/validates the optional `base_url` in `set_config`.
 url = "2"
 

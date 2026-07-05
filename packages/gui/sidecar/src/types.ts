@@ -54,9 +54,10 @@ export type StdoutLine =
       kind: UiRequestKind;
       payload: SelectSessionPayload;
     }
-  | { type: 'list_sessions_reply'; sessions: SessionMeta[] }
+  | { type: 'list_sessions_reply'; requestId: string; sessions: SessionMeta[] }
   | {
       type: 'load_session_reply';
+      requestId: string;
       session_id: string;
       rows: ChatRow[];
       found: boolean;

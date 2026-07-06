@@ -61,11 +61,11 @@
 
 ## 5. Frontend types and libs
 
-- [ ] 5.1 Update `packages/gui/src/lib/commands.ts`: add the `AgentEvent`, `ChatBlock`, `ChatMessage`, `SessionMeta` (five fields, no `tool_call_count`), `ChatRow` discriminated union types (snake_case, mirroring Rust serde); add the six command wrappers `agentNewSession`, `agentSend`, `agentCancel`, `agentListSessions`, `agentLoadSession`, `agentReplyUi`
-- [ ] 5.2 Create `packages/gui/src/lib/slash-commands.ts` exporting `SlashCommand { name; description; run(ctx) }`, an array containing `/new` and `/sessions`, and `matchInput(text)` returning `{ query, matches }` or `null`; `/new.run` raises confirm when `ctx.messages.length > 0`, else calls `ctx.newSession()`; `/sessions.run` sets `ctx.sessionsOpen = true`
-- [ ] 5.3 Create `packages/gui/src/lib/time.ts` exporting `relativeTime(unixSecs): string` with boundaries (`just now`, `5m ago`, `3h ago`, `2d ago`, fallback `YYYY-MM-DD`); add vitest cases
-- [ ] 5.4 Add `slashPill` and `toolCard` class strings to `packages/gui/src/lib/ui.ts`
-- [ ] 5.5 Vitest: `slash-commands.matchInput` covers empty input, leading slash filter, mid-string `/` not triggered, no-match, multi-match
+- [x] 5.1 Update `packages/gui/src/lib/commands.ts`: add the `AgentEvent`, `ChatBlock`, `ChatMessage`, `SessionMeta` (five fields, no `tool_call_count`), `ChatRow` discriminated union types (snake_case, mirroring Rust serde); add the six command wrappers `agentNewSession`, `agentSend`, `agentCancel`, `agentListSessions`, `agentLoadSession`, `agentReplyUi`
+- [x] 5.2 Create `packages/gui/src/lib/slash-commands.ts` exporting `SlashCommand { name; description; run(ctx) }`, an array containing `/new` and `/sessions`, and `matchInput(text)` returning `{ query, matches }` or `null`; `/new.run` raises confirm when `ctx.messages.length > 0`, else calls `ctx.newSession()`; `/sessions.run` sets `ctx.sessionsOpen = true`
+- [x] 5.3 Create `packages/gui/src/lib/time.ts` exporting `relativeTime(unixSecs): string` with boundaries (`just now`, `5m ago`, `3h ago`, `2d ago`, fallback `YYYY-MM-DD`); add vitest cases
+- [x] 5.4 Add `slashPill` and `toolCard` class strings to `packages/gui/src/lib/ui.ts`
+- [x] 5.5 Vitest: `slash-commands.matchInput` covers empty input, leading slash filter, mid-string `/` not triggered, no-match, multi-match
 
 ## 6. Frontend composable
 

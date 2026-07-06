@@ -62,3 +62,45 @@ export const openProject = (dir: string): Promise<ProjectInfo> => invoke('open_p
 
 /** Ensure `<dir>/.learn/topics/` exists. Idempotent. */
 export const createProject = (dir: string): Promise<string> => invoke('create_project', { dir });
+
+/* ── agent sidecar (pi Node sidecar proxied through Rust) ───────────── */
+
+// Shared wire types live in `shared/protocol.ts` so the sidecar and frontend
+// cannot drift. Re-exported here so existing `import ... from '@/lib/commands'`
+// call sites keep working.
+import type { ChatRow, SessionMeta } from '../../shared/protocol';
+
+export type { AgentEvent, ChatBlock, ChatRow, SessionMeta } from '../../shared/protocol';
+
+/**
+ * Frontend alias for a transcript row. `useAgentSession.messages` holds
+ * `ChatMessage[]` — structurally identical to `ChatRow` but named to convey
+ * "live in-memory message" rather than "wire-restore row".
+ */
+export type ChatMessage = ChatRow;
+
+/** Boot (or re-enter) a sidecar session for the given working folder. */
+export const agentNewSession = (workingFolder?: string | null): Promise<{ session_id: string }> =>
+  invoke('agent_new_session', { workingFolder });
+
+/** Send a user message to the active session (returns immediately). */
+export const agentSend = (sessionId: string, text: string): Promise<void> =>
+  invoke('agent_send', { sessionId, text });
+
+/** Cancel the in-flight run for a session. */
+export const agentCancel = (sessionId: string): Promise<void> =>
+  invoke('agent_cancel', { sessionId });
+
+/** List persisted sessions for a working folder. */
+export const agentListSessions = (workingFolder?: string | null): Promise<SessionMeta[]> =>
+  invoke('agent_list_sessions', { workingFolder });
+
+/** Restore a session's transcript rows. */
+export const agentLoadSession = (
+  sessionId: string,
+  workingFolder?: string | null,
+): Promise<ChatRow[]> => invoke('agent_load_session', { sessionId, workingFolder });
+
+/** Reply to a sidecar `ui_request` (e.g. session picker). */
+export const agentReplyUi = (requestId: string, value: unknown): Promise<void> =>
+  invoke('agent_reply_ui', { requestId, value });

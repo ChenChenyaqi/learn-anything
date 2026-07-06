@@ -1,43 +1,12 @@
 import type { SessionInfo } from '@earendil-works/pi-coding-agent';
+import type { AgentEvent, ChatRow, SessionMeta } from '../../shared/protocol.ts';
 
-export type AgentEvent =
-  | { type: 'text_delta'; delta: string }
-  | { type: 'tool_call'; id: string; name: string; args: unknown }
-  | {
-      type: 'tool_result';
-      id: string;
-      name: string;
-      status: 'ok' | 'error';
-      result: string | null;
-    }
-  | { type: 'done' }
-  | { type: 'error'; message: string };
+export type { AgentEvent, ChatBlock, ChatRow, SessionMeta } from '../../shared/protocol.ts';
 
 export interface AgentEventJsonL {
   session_id: string;
   event: AgentEvent;
 }
-
-export interface SessionMeta {
-  id: string;
-  title: string;
-  created_at: string;
-  updated_at: string;
-  message_count: number;
-}
-
-export type ChatBlock =
-  | { type: 'text'; text: string }
-  | {
-      type: 'tool_call';
-      id: string;
-      name: string;
-      args: unknown;
-      status: 'ok' | 'error';
-      result: string | null;
-    };
-
-export type ChatRow = { role: 'user'; text: string } | { role: 'assistant'; blocks: ChatBlock[] };
 
 export type UiRequestKind = 'select_session';
 

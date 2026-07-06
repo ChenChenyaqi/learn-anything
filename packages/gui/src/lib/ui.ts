@@ -18,3 +18,10 @@ export const btnGhost =
 
 export const fieldControl =
   'w-full rounded-lg border border-(--color-rule) bg-(--color-surface) px-2.5 py-2 text-sm text-(--color-ink) focus:outline-none focus:border-(--color-accent)';
+
+/** Small pill-shaped ghost button (header quick-actions like `◇ new`). */
+export const slashPill =
+  'inline-flex items-center gap-1.5 rounded-full border border-transparent px-2.5 py-1 text-xs text-(--color-pencil) cursor-pointer transition-colors hover:bg-(--color-surface-hover) hover:text-(--color-ink)';
+
+/** Notebook-margin tool-call card: 2px accent left border + 12px left padding. */
+export const toolCard = 'border-l-2 border-(--color-accent) pl-3';

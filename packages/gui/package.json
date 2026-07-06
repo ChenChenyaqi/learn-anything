@@ -14,9 +14,16 @@
   "scripts": {
     "dev": "tauri dev",
     "build": "vue-tsc --noEmit && vite build",
+    "build:sidecar": "pnpm -F learn-anything-sidecar build",
+    "build:all": "pnpm run build:sidecar && pnpm run build",
     "tauri": "tauri",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:sidecar": "pnpm -F learn-anything-sidecar test",
+    "test:rust": "cargo test -p learn-anything-gui",
+    "test:all": "pnpm run test && pnpm run test:sidecar && pnpm run test:rust",
+    "test:watch": "vitest",
+    "typecheck:sidecar": "pnpm -F learn-anything-sidecar typecheck",
+    "check:rust": "cargo check -p learn-anything-gui"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.1",

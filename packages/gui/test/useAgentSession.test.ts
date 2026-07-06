@@ -10,7 +10,7 @@ import {
   agentReplyUi,
   agentSend,
 } from '@/lib/commands';
-import type { ChatMessage, SessionMeta } from '@/lib/commands';
+import type { ChatMessage, ChatRow, SessionMeta } from '@/lib/commands';
 
 vi.mock('@/lib/commands', () => ({
   agentNewSession: vi.fn(),
@@ -53,11 +53,14 @@ function createDeferred<T>() {
 }
 
 function setupComposable(workingFolder: string | null = '/proj') {
-  const handlers: Record<string, (event: { payload: unknown }) => void> = {};
-  mockListen.mockImplementation((event: string, handler: (e: { payload: unknown }) => void) => {
-    handlers[event] = handler;
-    return Promise.resolve(() => {});
-  });
+  const handlers: Record<string, (payload: unknown) => void> = {};
+
+  (mockListen as any).mockImplementation(
+    (event: string, handler: (e: { payload: unknown }) => void) => {
+      handlers[event] = (payload: unknown) => handler({ payload });
+      return Promise.resolve(() => {});
+    },
+  );
 
   mockAgentNewSession.mockResolvedValue({ session_id: 's1' });
   mockAgentSend.mockResolvedValue(undefined);
@@ -72,7 +75,7 @@ function setupComposable(workingFolder: string | null = '/proj') {
     session,
     workingFolder,
     emit(eventName: string, payload: unknown) {
-      handlers[eventName]?.({ payload });
+      handlers[eventName]?.(payload);
     },
   };
 }
@@ -465,7 +468,7 @@ describe('useAgentSession', () => {
 
   describe('restore', () => {
     it('loads rows, sets messages, switches sessionId, closes overlay', async () => {
-      const rows = [
+      const rows: ChatRow[] = [
         { role: 'user', text: 'hi' },
         { role: 'assistant', blocks: [{ type: 'text', text: 'hello' }] },
       ];

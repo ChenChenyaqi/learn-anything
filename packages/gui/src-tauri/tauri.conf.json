@@ -4,9 +4,9 @@
   "version": "0.1.0",
   "identifier": "com.learnanything.gui",
   "build": {
-    "beforeDevCommand": "vite",
+    "beforeDevCommand": "pnpm run build:sidecar && vite",
     "devUrl": "http://localhost:1420",
-    "beforeBuildCommand": "pnpm build",
+    "beforeBuildCommand": "pnpm run build:all",
     "frontendDist": "../dist"
   },
   "app": {

@@ -69,16 +69,16 @@
 
 ## 6. Frontend composable
 
-- [ ] 6.1 Create `packages/gui/src/composables/useAgentSession.ts` exposing refs `sessionId`, `messages`, `busy`, `pendingConfirm`, `sessionsOpen`, `sessions`, `sessionsQuery`, and methods `boot(workingFolder)`, `send(text)`, `cancel()`, `newSession()`, `restore(id)`, `loadSessions()`
-- [ ] 6.2 In `boot`: call `agentNewSession(workingFolder)`, store `sessionId`, subscribe to `agent:event`, filter by `payload.session_id === sessionId.value`, dispatch each event type (accumulate `TextDelta` into the in-progress assistant message; append `ToolCall`/`ToolResult` blocks; seal on `Done`; append error + clear `busy` on `Error`)
-- [ ] 6.3 In `boot`: also subscribe to `agent:ui_request` and expose a small `useAgentUi` (or inline handler) that, for `kind === "select_session"`, opens `SessionsPanel`, awaits the user's choice, and calls `agentReplyUi(request_id, choice)`; extensible for future kinds
-- [ ] 6.4 `send`: detect leading `/` and route to `slash-commands` `matchInput`; otherwise call `agentSend(sessionId, text)` and append a user `ChatMessage`
-- [ ] 6.5 `cancel`: call `agentCancel(sessionId)`; UI reverts on the eventual `Error { message: "cancelled" }`
-- [ ] 6.6 `newSession`: set `busy=false` + `pendingConfirm=false`, call `agentNewSession`, swap `sessionId`, reset `messages` to `[]`, refresh `sessions`
-- [ ] 6.7 `restore(id)`: call `agentLoadSession(id, workingFolder)`, map `ChatRow[]` into `ChatMessage[]`, set `messages`, switch `sessionId`, close `sessionsOpen`
-- [ ] 6.8 `loadSessions`: call `agentListSessions(workingFolder)` and populate `sessions`; exposed for SessionsPanel refresh
-- [ ] 6.9 `onUnmounted`: unlisten both `agent:event` and `agent:ui_request` subscriptions
-- [ ] 6.10 Vitest: `useAgentSession` driven by a mocked `agent:event` stream produces the correct `messages` shape for a TextDelta → ToolCall → ToolResult → Done sequence
+- [x] 6.1 Create `packages/gui/src/composables/useAgentSession.ts` exposing refs `sessionId`, `messages`, `busy`, `pendingConfirm`, `sessionsOpen`, `sessions`, `sessionsQuery`, and methods `boot(workingFolder)`, `send(text)`, `cancel()`, `newSession()`, `restore(id)`, `loadSessions()`
+- [x] 6.2 In `boot`: call `agentNewSession(workingFolder)`, store `sessionId`, subscribe to `agent:event`, filter by `payload.session_id === sessionId.value`, dispatch each event type (accumulate `TextDelta` into the in-progress assistant message; append `ToolCall`/`ToolResult` blocks; seal on `Done`; append error + clear `busy` on `Error`)
+- [x] 6.3 In `boot`: also subscribe to `agent:ui_request` and expose a small `useAgentUi` (or inline handler) that, for `kind === "select_session"`, opens `SessionsPanel`, awaits the user's choice, and calls `agentReplyUi(request_id, choice)`; extensible for future kinds
+- [x] 6.4 `send`: detect leading `/` and route to `slash-commands` `matchInput`; otherwise call `agentSend(sessionId, text)` and append a user `ChatMessage`
+- [x] 6.5 `cancel`: call `agentCancel(sessionId)`; UI reverts on the eventual `Error { message: "cancelled" }`
+- [x] 6.6 `newSession`: set `busy=false` + `pendingConfirm=false`, call `agentNewSession`, swap `sessionId`, reset `messages` to `[]`, refresh `sessions`
+- [x] 6.7 `restore(id)`: call `agentLoadSession(id, workingFolder)`, map `ChatRow[]` into `ChatMessage[]`, set `messages`, switch `sessionId`, close `sessionsOpen`
+- [x] 6.8 `loadSessions`: call `agentListSessions(workingFolder)` and populate `sessions`; exposed for SessionsPanel refresh
+- [x] 6.9 `onUnmounted`: unlisten both `agent:event` and `agent:ui_request` subscriptions
+- [x] 6.10 Vitest: `useAgentSession` driven by a mocked `agent:event` stream produces the correct `messages` shape for a TextDelta → ToolCall → ToolResult → Done sequence
 
 ## 7. Frontend components
 

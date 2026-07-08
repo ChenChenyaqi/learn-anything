@@ -18,6 +18,8 @@ export interface AppConfig {
   model: string;
   base_url: string | null;
   last_working_folder: string | null;
+  /** Plaintext LLM API key, stored alongside the rest of the config. */
+  api_key: string | null;
 }
 
 /** One readable v1 topic inside a working folder, mirrored from `project::TopicSummary`. */
@@ -33,24 +35,27 @@ export interface ProjectInfo {
   topics: TopicSummary[];
 }
 
-/* ── keychain (OS keychain) ─────────────────────────────────────────── */
-
-/** Whether a key is currently stored (decides setup vs. chat view). */
-export const hasKey = (): Promise<boolean> => invoke('has_key');
-
-/** Masked preview of the stored key (e.g. `sk-…7X2J`), or `null` if none. */
-export const loadKey = (): Promise<string | null> => invoke('load_key');
-
-/** Store the API key in the OS keychain. */
-export const saveKey = (key: string): Promise<void> => invoke('save_key', { key });
-
-/** Delete the stored API key. */
-export const deleteKey = (): Promise<void> => invoke('delete_key');
-
-/* ── appData config (non-secret) ────────────────────────────────────── */
+/* ── appData config (provider, model, base_url, working folder, api_key) ─ */
 
 export const getConfig = (): Promise<AppConfig> => invoke('get_config');
 export const setConfig = (config: AppConfig): Promise<void> => invoke('set_config', { config });
+
+/* ── key display helper ────────────────────────────────────────────── */
+
+/**
+ * Produce a non-secret preview of a key for display, e.g. `sk-…7X2J`.
+ *
+ * The raw key now lives in plaintext config (the opencode / claude code
+ * convention); masking is purely a display-layer courtesy to avoid
+ * shoulder-surfing / screenshots. Short keys are fully hidden, longer ones
+ * show only the first 3 and last 4 characters.
+ */
+export function maskKey(key: string): string {
+  const chars = [...key];
+  const len = chars.length;
+  if (len <= 8) return `•••• (${len} chars)`;
+  return `${chars.slice(0, 3).join('')}…${chars.slice(len - 4).join('')}`;
+}
 
 /* ── working-folder selection / validation / creation ───────────────── */
 

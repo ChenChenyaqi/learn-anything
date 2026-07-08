@@ -42,9 +42,34 @@ export async function createSessionLifecycle(config: BootConfig): Promise<Sessio
     modelRegistry,
   });
 
-  const model = services.modelRegistry.find(config.provider, config.model);
+  let model = services.modelRegistry.find(config.provider, config.model);
   if (!model) {
-    throw new Error(`sidecar: model not found for provider "${config.provider}": ${config.model}`);
+    const api = config.provider === 'anthropic' ? 'anthropic-messages' : 'openai-completions';
+    const baseUrl =
+      config.baseUrl ??
+      (config.provider === 'anthropic' ? 'https://api.anthropic.com' : 'https://api.openai.com/v1');
+    modelRegistry.registerProvider(config.provider, {
+      baseUrl,
+      apiKey: config.apiKey,
+      api,
+      models: [
+        {
+          id: config.model,
+          name: config.model,
+          reasoning: false,
+          input: ['text'],
+          cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
+          contextWindow: 128000,
+          maxTokens: 16384,
+        },
+      ],
+    });
+    model = services.modelRegistry.find(config.provider, config.model);
+    if (!model) {
+      throw new Error(
+        `sidecar: model not found for provider "${config.provider}": ${config.model}`,
+      );
+    }
   }
   services.settingsManager.setDefaultModelAndProvider(config.provider, config.model);
 

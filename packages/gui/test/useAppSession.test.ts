@@ -1,17 +1,15 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { useAppSession } from '@/composables/useAppSession';
-import { getConfig, hasKey, loadKey } from '@/lib/commands';
+import { getConfig, maskKey } from '@/lib/commands';
 import type { AppConfig } from '@/lib/commands';
 
-vi.mock('@/lib/commands', () => ({
-  getConfig: vi.fn(),
-  hasKey: vi.fn(),
-  loadKey: vi.fn(),
-}));
+// Keep `maskKey` real (it's a pure fn); only stub the IPC call `getConfig`.
+vi.mock('@/lib/commands', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/commands')>();
+  return { ...actual, getConfig: vi.fn() };
+});
 
 const mockGetConfig = vi.mocked(getConfig);
-const mockHasKey = vi.mocked(hasKey);
-const mockLoadKey = vi.mocked(loadKey);
 
 function cfg(overrides: Partial<AppConfig> = {}): AppConfig {
   return {
@@ -19,6 +17,7 @@ function cfg(overrides: Partial<AppConfig> = {}): AppConfig {
     model: 'gpt-4o',
     base_url: null,
     last_working_folder: null,
+    api_key: null,
     ...overrides,
   };
 }
@@ -26,13 +25,10 @@ function cfg(overrides: Partial<AppConfig> = {}): AppConfig {
 describe('useAppSession', () => {
   beforeEach(() => {
     mockGetConfig.mockReset();
-    mockHasKey.mockReset();
-    mockLoadKey.mockReset();
   });
 
   describe('boot', () => {
-    it('routes to setup when no key is stored', async () => {
-      mockHasKey.mockResolvedValue(false);
+    it('routes to setup when config has no api_key', async () => {
       mockGetConfig.mockResolvedValue(cfg());
       const openFolder = vi.fn();
       const { view, keyPreview, boot } = useAppSession({ openFolder });
@@ -44,24 +40,21 @@ describe('useAppSession', () => {
       expect(openFolder).not.toHaveBeenCalled();
     });
 
-    it('routes to main and loads the key preview when a key exists', async () => {
-      mockHasKey.mockResolvedValue(true);
-      mockGetConfig.mockResolvedValue(cfg());
-      mockLoadKey.mockResolvedValue('sk-…7X2J');
+    it('routes to main and masks the key when api_key is present', async () => {
+      const key = 'sk-abcd-1234-WXYZ';
+      mockGetConfig.mockResolvedValue(cfg({ api_key: key }));
       const openFolder = vi.fn();
       const { view, keyPreview, boot } = useAppSession({ openFolder });
 
       await boot();
 
       expect(view.value).toBe('main');
-      expect(keyPreview.value).toBe('sk-…7X2J');
+      expect(keyPreview.value).toBe(maskKey(key));
       expect(openFolder).not.toHaveBeenCalled();
     });
 
     it('opens the remembered folder on boot', async () => {
-      mockHasKey.mockResolvedValue(true);
-      mockGetConfig.mockResolvedValue(cfg({ last_working_folder: '/proj' }));
-      mockLoadKey.mockResolvedValue('sk-…');
+      mockGetConfig.mockResolvedValue(cfg({ api_key: 'sk-x', last_working_folder: '/proj' }));
       const openFolder = vi.fn();
       const { boot } = useAppSession({ openFolder });
 
@@ -70,9 +63,8 @@ describe('useAppSession', () => {
       expect(openFolder).toHaveBeenCalledWith('/proj');
     });
 
-    it('treats a keychain probe failure as "no key"', async () => {
-      mockHasKey.mockRejectedValue(new Error('keychain locked'));
-      mockGetConfig.mockResolvedValue(cfg());
+    it('treats a config read failure as "no key"', async () => {
+      mockGetConfig.mockRejectedValue(new Error('disk read failed'));
       const { view, boot } = useAppSession({ openFolder: vi.fn() });
 
       await boot();
@@ -82,9 +74,9 @@ describe('useAppSession', () => {
   });
 
   describe('refreshAfterSave', () => {
-    it('reloads key/config, reopens the folder, and goes to main', async () => {
-      mockLoadKey.mockResolvedValue('sk-…new');
-      mockGetConfig.mockResolvedValue(cfg({ last_working_folder: '/proj' }));
+    it('reloads config, reopens the folder, and goes to main', async () => {
+      const key = 'sk-abcd-1234-WXYZ';
+      mockGetConfig.mockResolvedValue(cfg({ api_key: key, last_working_folder: '/proj' }));
       const openFolder = vi.fn();
       const { view, config, keyPreview, refreshAfterSave } = useAppSession({
         openFolder,
@@ -92,15 +84,14 @@ describe('useAppSession', () => {
 
       await refreshAfterSave();
 
-      expect(keyPreview.value).toBe('sk-…new');
+      expect(keyPreview.value).toBe(maskKey(key));
       expect(config.value?.last_working_folder).toBe('/proj');
       expect(openFolder).toHaveBeenCalledWith('/proj');
       expect(view.value).toBe('main');
     });
 
     it('skips opening when no folder is configured', async () => {
-      mockLoadKey.mockResolvedValue(null);
-      mockGetConfig.mockResolvedValue(cfg());
+      mockGetConfig.mockResolvedValue(cfg({ api_key: 'sk-x' }));
       const openFolder = vi.fn();
       const { refreshAfterSave } = useAppSession({ openFolder });
 

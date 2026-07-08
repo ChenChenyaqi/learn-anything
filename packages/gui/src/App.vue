@@ -10,6 +10,7 @@ import { onMounted } from 'vue';
 import SetupScreen from './components/SetupScreen.vue';
 import AppHeader from './components/AppHeader.vue';
 import TopicList from './components/TopicList.vue';
+import AgentChat from './components/AgentChat.vue';
 import { useDarkMode } from './composables/useDarkMode';
 import { useWorkingFolder } from './composables/useWorkingFolder';
 import { useAppSession } from './composables/useAppSession';
@@ -56,7 +57,7 @@ onMounted(session.boot);
     </div>
 
     <!-- Main: folder + chat surface. -->
-    <div v-else class="flex min-h-screen flex-col">
+    <div v-else class="flex h-screen flex-col">
       <AppHeader
         :config="config"
         :project="project"
@@ -65,7 +66,7 @@ onMounted(session.boot);
         @settings="view = 'setup'"
       />
 
-      <section class="flex-1 p-6">
+      <section class="flex-1 overflow-hidden p-6">
         <!-- Folder not yet chosen. -->
         <div
           v-if="!config?.last_working_folder && !projectError"
@@ -93,8 +94,13 @@ onMounted(session.boot);
           </button>
         </div>
 
-        <!-- Folder open: list readable topics + chat surface. -->
-        <TopicList v-else-if="project" :project="project" />
+        <!-- Folder open: topics list + agent panel. -->
+        <div v-else-if="project" class="flex h-full gap-6">
+          <div class="flex-1 overflow-y-auto">
+            <TopicList :project="project" />
+          </div>
+          <AgentChat :working-folder="config?.last_working_folder ?? null" class="w-100 shrink-0" />
+        </div>
       </section>
     </div>
   </main>

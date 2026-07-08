@@ -1,5 +1,5 @@
 import { computed, ref } from 'vue';
-import { type AppConfig, type Provider, saveKey, setConfig } from '../lib/commands';
+import { type AppConfig, type Provider, setConfig } from '../lib/commands';
 
 // State machine for the API-key setup form, pulled out of SetupScreen.vue so
 // the component is pure markup.
@@ -46,15 +46,13 @@ export function useSetupForm(opts: {
     saving.value = true;
     status.value = { kind: 'idle', text: 'Saving…' };
     try {
-      if (newKey !== '') {
-        await saveKey(newKey);
-      }
-      // Preserve the existing working folder when editing settings later.
+      // Preserve the existing key + working folder when editing settings later.
       const config: AppConfig = {
         provider: provider.value,
         model: modelTrim,
         base_url: normalizedBaseUrl(),
         last_working_folder: opts.config()?.last_working_folder ?? null,
+        api_key: newKey !== '' ? newKey : (opts.config()?.api_key ?? null),
       };
       await setConfig(config);
       opts.onSaved();

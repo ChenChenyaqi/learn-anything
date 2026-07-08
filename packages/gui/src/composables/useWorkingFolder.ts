@@ -7,7 +7,7 @@ import { type ProjectInfo, createProject, openProject, pickProjectDir } from '..
 // operations, pulled out of App.vue so the shell only orchestrates. `chooseFolder`
 // returns the picked path (or `null` on cancel) and deliberately does NOT touch
 // app config — the caller updates `last_working_folder` itself, keeping this
-// composable free of the config/keychain concern.
+// composable free of the config concern.
 export function useWorkingFolder() {
   const project = ref<ProjectInfo | null>(null);
   const projectError = ref('');
@@ -30,6 +30,7 @@ export function useWorkingFolder() {
 
   /** Open the native picker, then validate + scaffold. Returns the picked
    *  path, or `null` if the user cancelled. */
+
   async function chooseFolder(): Promise<string | null> {
     folderBusy.value = true;
     projectError.value = '';

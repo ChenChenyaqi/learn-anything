@@ -10,7 +10,6 @@ use tokio::process::{Child, ChildStdout};
 use tokio::sync::{oneshot, Mutex};
 
 use crate::config::{self, Provider};
-use crate::keychain;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
@@ -103,9 +102,21 @@ pub struct SidecarHandle {
     pub state: Arc<SidecarState>,
 }
 
-pub enum SidecarBoot {
-    Ready(SidecarHandle),
-    Failed(String),
+/// Lazily-initialized sidecar state.
+///
+/// The sidecar process is NOT spawned in `setup` (which runs outside the Tokio
+/// runtime). Instead, it boots on the first `agent_new_session` call — a Tauri
+/// async command that already executes inside the runtime context.
+pub struct SidecarBoot {
+    inner: Mutex<Option<Result<SidecarHandle, String>>>,
+}
+
+impl Default for SidecarBoot {
+    fn default() -> Self {
+        Self {
+            inner: Mutex::new(None),
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -224,10 +235,10 @@ fn parse_stdout_line(line: &str) -> Result<StdoutLine, String> {
 fn sidecar_entry() -> Result<PathBuf, String> {
     if cfg!(debug_assertions) {
         let manifest_dir = env!("CARGO_MANIFEST_DIR");
-        let path = PathBuf::from(manifest_dir).join("../../sidecar/dist/sidecar.js");
+        let path = PathBuf::from(manifest_dir).join("../sidecar/dist/sidecar.js");
         if !path.exists() {
             return Err(format!(
-                "Sidecar entry not found at {}. Run `pnpm --filter learn-anything-sidecar build` first.",
+                "Sidecar entry not found at {}. Run `pnpm run build:sidecar` first.",
                 path.display()
             ));
         }
@@ -421,10 +432,25 @@ fn resolve_cwd_from(
         .ok_or_else(|| "No working folder set. Choose a project folder first.".into())
 }
 
-fn require_handle(boot: &SidecarBoot) -> Result<&SidecarHandle, String> {
-    match boot {
-        SidecarBoot::Ready(h) => Ok(h),
-        SidecarBoot::Failed(e) => Err(e.clone()),
+/// Boot the sidecar if it hasn't been booted yet, then return its state.
+async fn get_or_boot(boot: &SidecarBoot, app: &AppHandle) -> Result<Arc<SidecarState>, String> {
+    let mut guard = boot.inner.lock().await;
+    if guard.is_none() {
+        *guard = Some(boot_sidecar(app));
+    }
+    match guard.as_ref().unwrap() {
+        Ok(handle) => Ok(handle.state.clone()),
+        Err(e) => Err(e.clone()),
+    }
+}
+
+/// Return the sidecar state without booting. Errors if not yet booted.
+async fn require_state(boot: &SidecarBoot) -> Result<Arc<SidecarState>, String> {
+    let guard = boot.inner.lock().await;
+    match guard.as_ref() {
+        Some(Ok(handle)) => Ok(handle.state.clone()),
+        Some(Err(e)) => Err(e.clone()),
+        None => Err("Sidecar not initialized. Start a new session first.".into()),
     }
 }
 
@@ -434,8 +460,7 @@ pub async fn agent_new_session(
     boot: tauri::State<'_, SidecarBoot>,
     working_folder: Option<String>,
 ) -> Result<NewSessionResult, String> {
-    let handle = require_handle(&boot)?;
-    let state = &handle.state;
+    let state = get_or_boot(&boot, &app).await?;
 
     let (tx, rx) = oneshot::channel();
     {
@@ -448,10 +473,11 @@ pub async fn agent_new_session(
 
     let mut booted = state.booted.lock().await;
     if !*booted {
-        let api_key = keychain::read_key()
-            .map_err(|e| e.to_string())?
-            .ok_or("No API key stored. Add your key in Settings first.")?;
         let config = config::load_config(&app).map_err(|e| e.to_string())?;
+        let api_key = config
+            .api_key
+            .clone()
+            .ok_or("No API key set. Add your key in Settings first.")?;
         let cwd = resolve_cwd(&app, working_folder)?;
         let provider = match config.provider {
             Provider::OpenAi => "openai",
@@ -465,12 +491,12 @@ pub async fn agent_new_session(
             "cwd": cwd,
             "sessionId": null,
         });
-        write_frame(state, frame).await?;
+        write_frame(&state, frame).await?;
         *booted = true;
     } else {
         drop(booted);
         let frame = serde_json::json!({ "kind": "slash_command", "text": "/new" });
-        write_frame(state, frame).await?;
+        write_frame(&state, frame).await?;
     }
 
     let session_id = tokio::time::timeout(std::time::Duration::from_secs(30), rx)
@@ -494,9 +520,9 @@ pub async fn agent_send(
     session_id: String,
     text: String,
 ) -> Result<(), String> {
-    let handle = require_handle(&boot)?;
+    let state = require_state(&boot).await?;
     {
-        let sessions = handle.state.sessions.lock().await;
+        let sessions = state.sessions.lock().await;
         if !sessions.contains_key(&session_id) {
             return Err(format!("Session {session_id} is not active"));
         }
@@ -506,7 +532,7 @@ pub async fn agent_send(
         "sessionId": session_id,
         "text": text,
     });
-    write_frame(&handle.state, frame).await
+    write_frame(&state, frame).await
 }
 
 #[tauri::command]
@@ -514,12 +540,12 @@ pub async fn agent_cancel(
     boot: tauri::State<'_, SidecarBoot>,
     session_id: String,
 ) -> Result<(), String> {
-    let handle = require_handle(&boot)?;
+    let state = require_state(&boot).await?;
     let frame = serde_json::json!({
         "kind": "cancel",
         "sessionId": session_id,
     });
-    write_frame(&handle.state, frame).await
+    write_frame(&state, frame).await
 }
 
 #[tauri::command]
@@ -528,23 +554,22 @@ pub async fn agent_list_sessions(
     boot: tauri::State<'_, SidecarBoot>,
     working_folder: Option<String>,
 ) -> Result<Vec<SessionMeta>, String> {
-    let handle = require_handle(&boot)?;
+    let state = require_state(&boot).await?;
     let cwd = match resolve_cwd(&app, working_folder) {
         Ok(cwd) => cwd,
         Err(_) => return Ok(vec![]),
     };
 
-    let request_id = next_request_id(&handle.state.reply_counter);
+    let request_id = next_request_id(&state.reply_counter);
     let (tx, rx) = oneshot::channel();
-    handle
-        .state
+    state
         .pending_list
         .lock()
         .await
         .insert(request_id.clone(), tx);
 
     let frame = serde_json::json!({ "kind": "list_sessions", "cwd": cwd, "requestId": request_id });
-    write_frame(&handle.state, frame).await?;
+    write_frame(&state, frame).await?;
 
     let sessions = tokio::time::timeout(std::time::Duration::from_secs(15), rx)
         .await
@@ -561,13 +586,12 @@ pub async fn agent_load_session(
     session_id: String,
     working_folder: Option<String>,
 ) -> Result<Vec<ChatRow>, String> {
-    let handle = require_handle(&boot)?;
+    let state = require_state(&boot).await?;
     let cwd = resolve_cwd(&app, working_folder)?;
 
-    let request_id = next_request_id(&handle.state.reply_counter);
+    let request_id = next_request_id(&state.reply_counter);
     let (tx, rx) = oneshot::channel();
-    handle
-        .state
+    state
         .pending_load
         .lock()
         .await
@@ -579,7 +603,7 @@ pub async fn agent_load_session(
         "cwd": cwd,
         "requestId": request_id,
     });
-    write_frame(&handle.state, frame).await?;
+    write_frame(&state, frame).await?;
 
     let result = tokio::time::timeout(std::time::Duration::from_secs(15), rx)
         .await
@@ -599,13 +623,13 @@ pub async fn agent_reply_ui(
     request_id: String,
     value: serde_json::Value,
 ) -> Result<(), String> {
-    let handle = require_handle(&boot)?;
+    let state = require_state(&boot).await?;
     let frame = serde_json::json!({
         "kind": "ui_response",
         "requestId": request_id,
         "value": value,
     });
-    write_frame(&handle.state, frame).await
+    write_frame(&state, frame).await
 }
 
 #[cfg(test)]
@@ -1065,25 +1089,39 @@ mod tests {
         assert!(err.contains("project folder"));
     }
 
-    #[test]
-    fn require_handle_failed_returns_error() {
-        let boot = SidecarBoot::Failed("Node not found".into());
-        let result = require_handle(&boot);
-        assert!(result.is_err());
+    #[tokio::test]
+    async fn require_state_not_booted_returns_error() {
+        let boot = SidecarBoot::default();
+        let result = require_state(&boot).await;
         match result {
-            Err(msg) => assert!(msg.contains("Node not found")),
-            Ok(_) => unreachable!(),
+            Err(msg) => assert!(msg.contains("not initialized")),
+            Ok(_) => panic!("expected error"),
         }
     }
 
     #[tokio::test]
-    async fn require_handle_ready_succeeds() {
+    async fn require_state_with_failed_boot_returns_error() {
+        let boot = SidecarBoot {
+            inner: Mutex::new(Some(Err("Node not found".into()))),
+        };
+        let result = require_state(&boot).await;
+        match result {
+            Err(msg) => assert!(msg.contains("Node not found")),
+            Ok(_) => panic!("expected error"),
+        }
+    }
+
+    #[tokio::test]
+    async fn require_state_with_ready_handle_succeeds() {
         let state = make_test_state();
         let handle = SidecarHandle {
             child: Mutex::new(tokio::process::Command::new("true").spawn().unwrap()),
             state,
         };
-        let boot = SidecarBoot::Ready(handle);
-        assert!(require_handle(&boot).is_ok());
+        let boot = SidecarBoot {
+            inner: Mutex::new(Some(Ok(handle))),
+        };
+        let result = require_state(&boot).await;
+        assert!(result.is_ok());
     }
 }

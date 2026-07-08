@@ -1,8 +1,9 @@
-//! Non-secret application config, persisted as JSON in the OS app-data dir.
+//! Application config, persisted as JSON in the OS app-data dir.
 //!
-//! Only settings that are NOT secret live here: provider, model id, optional
-//! `base_url`, and the last chosen working folder. The API key itself is kept
-//! in the OS keychain (see [`crate::keychain`]) and is NEVER written here.
+//! Holds the provider, model id, optional `base_url`, the last chosen working
+//! folder, and the LLM API key. The key is stored in plaintext here (the same
+//! convention as opencode / claude code): it is read by the agent sidecar on
+//! session boot.
 
 use std::path::PathBuf;
 
@@ -43,6 +44,10 @@ pub struct AppConfig {
     pub base_url: Option<String>,
     /// The last chosen working folder (Phase 1 stores only one).
     pub last_working_folder: Option<String>,
+    /// The LLM API key. Plaintext, read by the agent sidecar on session boot.
+    /// `None` means "not yet configured" — the frontend routes to the setup
+    /// screen in that case.
+    pub api_key: Option<String>,
 }
 
 impl AppConfig {
@@ -63,6 +68,11 @@ impl AppConfig {
             }
             if url::Url::parse(trimmed).is_err() {
                 return Err(format!("base_url is not a valid URL: {trimmed}"));
+            }
+        }
+        if let Some(key) = &self.api_key {
+            if key.trim().is_empty() {
+                return Err("api_key must not be empty when present".into());
             }
         }
         Ok(())
@@ -177,6 +187,7 @@ mod tests {
         assert!(cfg.model.is_empty());
         assert!(cfg.base_url.is_none());
         assert!(cfg.last_working_folder.is_none());
+        assert!(cfg.api_key.is_none());
     }
 
     #[test]
@@ -186,6 +197,7 @@ mod tests {
             model: "claude-sonnet-4-20250514".into(),
             base_url: Some("https://proxy.example.com".into()),
             last_working_folder: Some("/home/me/learn".into()),
+            api_key: Some("sk-secret".into()),
         };
         let json = serde_json::to_string(&cfg).unwrap();
         // Provider serializes to lowercase per its serde rename.
@@ -195,6 +207,7 @@ mod tests {
         assert_eq!(back.model, "claude-sonnet-4-20250514");
         assert_eq!(back.base_url.as_deref(), Some("https://proxy.example.com"));
         assert_eq!(back.last_working_folder.as_deref(), Some("/home/me/learn"));
+        assert_eq!(back.api_key.as_deref(), Some("sk-secret"));
     }
 
     #[test]
@@ -257,6 +270,26 @@ mod tests {
     fn validate_accepts_absent_base_url() {
         let cfg = AppConfig {
             model: "claude-sonnet-4-20250514".into(),
+            ..Default::default()
+        };
+        assert!(cfg.validate().is_ok());
+    }
+
+    #[test]
+    fn validate_rejects_blank_api_key() {
+        let cfg = AppConfig {
+            model: "gpt-4o".into(),
+            api_key: Some("   ".into()),
+            ..Default::default()
+        };
+        assert!(cfg.validate().unwrap_err().contains("api_key"));
+    }
+
+    #[test]
+    fn validate_accepts_present_api_key() {
+        let cfg = AppConfig {
+            model: "gpt-4o".into(),
+            api_key: Some("sk-real".into()),
             ..Default::default()
         };
         assert!(cfg.validate().is_ok());

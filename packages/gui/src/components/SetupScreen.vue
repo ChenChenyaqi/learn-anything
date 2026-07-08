@@ -2,10 +2,9 @@
 // API-key setup screen — pure markup.
 //
 // All form state (fields, save, validation) lives in `useSetupForm`;
-// this component just binds it to inputs and emits `saved` upward. The key
-// itself is never persisted in plaintext: it goes to the OS keychain via
-// `save_key`; only provider/model/base_url reach `set_config`. Provider
-// verification moves to the agent sidecar's session boot.
+// this component just binds it to inputs and emits `saved` upward. The key is
+// stored in plaintext alongside the rest of the config (`set_config`); the
+// masked `existingKeyPreview` is display-only.
 
 import { type AppConfig } from '../lib/commands';
 import { useSetupForm } from '../composables/useSetupForm';

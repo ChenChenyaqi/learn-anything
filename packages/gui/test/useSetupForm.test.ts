@@ -1,15 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ref } from 'vue';
 import { useSetupForm } from '@/composables/useSetupForm';
-import { saveKey, setConfig } from '@/lib/commands';
+import { setConfig } from '@/lib/commands';
 import type { AppConfig } from '@/lib/commands';
 
 vi.mock('@/lib/commands', () => ({
-  saveKey: vi.fn(),
   setConfig: vi.fn(),
 }));
 
-const mockSaveKey = vi.mocked(saveKey);
 const mockSetConfig = vi.mocked(setConfig);
 
 function cfg(overrides: Partial<AppConfig> = {}): AppConfig {
@@ -18,6 +16,7 @@ function cfg(overrides: Partial<AppConfig> = {}): AppConfig {
     model: '',
     base_url: null,
     last_working_folder: null,
+    api_key: null,
     ...overrides,
   };
 }
@@ -37,7 +36,6 @@ function makeForm(overrides: { config?: AppConfig | null; preview?: string | nul
 
 describe('useSetupForm', () => {
   beforeEach(() => {
-    mockSaveKey.mockReset();
     mockSetConfig.mockReset();
   });
 
@@ -64,13 +62,12 @@ describe('useSetupForm', () => {
     it('rejects an empty model', async () => {
       const { form, onSaved } = makeForm({ config: cfg({ model: '' }) });
       await form.onSave();
-      expect(mockSaveKey).not.toHaveBeenCalled();
+      expect(mockSetConfig).not.toHaveBeenCalled();
       expect(onSaved).not.toHaveBeenCalled();
       expect(form.status.value).toMatchObject({ kind: 'error' });
     });
 
-    it('saves the key, writes config (preserving the folder), and notifies', async () => {
-      mockSaveKey.mockResolvedValue(undefined);
+    it('writes the key into config (preserving the folder) and notifies', async () => {
       mockSetConfig.mockResolvedValue(undefined);
       const { form, onSaved } = makeForm({
         config: cfg({ last_working_folder: '/keep' }),
@@ -80,27 +77,31 @@ describe('useSetupForm', () => {
 
       await form.onSave();
 
-      expect(mockSaveKey).toHaveBeenCalledWith('sk-new');
       expect(mockSetConfig).toHaveBeenCalledWith(
-        expect.objectContaining({ model: 'gpt-4o', last_working_folder: '/keep' }),
+        expect.objectContaining({
+          model: 'gpt-4o',
+          last_working_folder: '/keep',
+          api_key: 'sk-new',
+        }),
       );
       expect(onSaved).toHaveBeenCalled();
     });
 
-    it('keeps the existing key when the field is left blank', async () => {
+    it('preserves the existing api_key when the field is left blank', async () => {
       mockSetConfig.mockResolvedValue(undefined);
-      const { form, onSaved } = makeForm({ preview: 'sk-…' });
+      const { form, onSaved } = makeForm({
+        config: cfg({ model: 'gpt-4o', api_key: 'sk-old' }),
+        preview: 'sk-…',
+      });
       form.key.value = '   ';
 
       await form.onSave();
 
-      expect(mockSaveKey).not.toHaveBeenCalled();
-      expect(mockSetConfig).toHaveBeenCalled();
+      expect(mockSetConfig).toHaveBeenCalledWith(expect.objectContaining({ api_key: 'sk-old' }));
       expect(onSaved).toHaveBeenCalled();
     });
 
     it('surfaces a save failure and does not notify', async () => {
-      mockSaveKey.mockResolvedValue(undefined);
       mockSetConfig.mockRejectedValue(new Error('disk full'));
       const { form, onSaved } = makeForm();
       form.key.value = 'sk';

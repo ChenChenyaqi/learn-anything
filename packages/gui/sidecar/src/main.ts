@@ -2,6 +2,7 @@ import { readSync } from 'node:fs';
 import { z } from 'zod';
 import { runRequestLoop } from './request-loop.ts';
 import { createSessionLifecycle, type BootConfig } from './session-lifecycle.ts';
+import { log, maskKey } from './stdout-writer.ts';
 
 const BootConfigSchema = z.object({
   apiKey: z.string().min(1),
@@ -43,11 +44,14 @@ function readFirstFrameSync(): { line: string; rest: Buffer } {
 async function main(): Promise<void> {
   const { line, rest } = readFirstFrameSync();
   const config: BootConfig = BootConfigSchema.parse(JSON.parse(line));
+  log(
+    `boot ok (provider=${config.provider}, model=${config.model}, cwd=${config.cwd}, apiKey=${maskKey(config.apiKey)})`,
+  );
   const { runtime } = await createSessionLifecycle(config);
   runRequestLoop({ runtime, cwd: config.cwd }, rest);
 }
 
 main().catch((err) => {
-  process.stderr.write(`sidecar: fatal: ${String(err)}\n`);
+  log(`fatal: ${String(err)}`);
   process.exit(1);
 });

@@ -27,6 +27,8 @@ anyhow.workspace = true
 tokio = { workspace = true, features = ["sync", "process", "io-util", "time", "macros", "rt"] }
 # Parses/validates the optional `base_url` in `set_config`.
 url = "2"
+# Local-time `%H:%M:%S` timestamps for sidecar stderr logs.
+chrono = { workspace = true }
 
 [dev-dependencies]
 # Sandboxed temp dirs for the `project` module filesystem tests.

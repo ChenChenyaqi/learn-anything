@@ -2,7 +2,7 @@ import { SessionManager, type AgentSessionRuntime } from '@earendil-works/pi-cod
 import { type TextContent } from '@earendil-works/pi-ai';
 import { z } from 'zod';
 import { handleSlash, type SlashContext } from './slash-commands.ts';
-import { emitLine } from './stdout-writer.ts';
+import { emitLine, log } from './stdout-writer.ts';
 import { subscribeSession } from './session-lifecycle.ts';
 import { toSessionMeta, type ChatBlock, type ChatRow } from './types.ts';
 
@@ -119,6 +119,21 @@ async function loadSessionRows(sessionId: string, cwd: string): Promise<ChatRow[
   return messagesToChatRows(messages);
 }
 
+function describeInbound(frame: AgentRequest): string {
+  switch (frame.kind) {
+    case 'user_message':
+    case 'slash_command':
+      return ` (${frame.text.length} chars)`;
+    case 'cancel':
+      return '';
+    case 'switch_session':
+    case 'load_session':
+      return ` (sid=${frame.sessionId}, req=${frame.requestId})`;
+    case 'list_sessions':
+      return ` (req=${frame.requestId})`;
+  }
+}
+
 export function runRequestLoop(deps: RequestLoopDeps, initialRest: Buffer): void {
   const { runtime, cwd } = deps;
 
@@ -131,6 +146,7 @@ export function runRequestLoop(deps: RequestLoopDeps, initialRest: Buffer): void
   const slashContext: SlashContext = { runtime, cwd };
 
   const dispatch = async (frame: AgentRequest): Promise<void> => {
+    log(`dispatch ${frame.kind}`);
     switch (frame.kind) {
       case 'user_message': {
         if (frame.text.startsWith('/')) {
@@ -199,18 +215,19 @@ export function runRequestLoop(deps: RequestLoopDeps, initialRest: Buffer): void
     try {
       parsed = JSON.parse(line);
     } catch (err) {
-      process.stderr.write(`sidecar: rejected malformed stdin frame: ${String(err)}\n`);
+      log(`rejected malformed stdin frame: ${String(err)}`);
       return;
     }
     const result = AgentRequestSchema.safeParse(parsed);
     if (!result.success) {
-      process.stderr.write(`sidecar: rejected invalid stdin frame: ${result.error.message}\n`);
+      log(`rejected invalid stdin frame: ${result.error.message}`);
       return;
     }
     const frame = result.data;
+    log(`← stdin   ${frame.kind}${describeInbound(frame)}`);
     const run = (): Promise<void> =>
       dispatch(frame).catch((err) => {
-        process.stderr.write(`sidecar: frame handler error: ${String(err)}\n`);
+        log(`frame handler error: ${String(err)}`);
       });
     if (
       frame.kind === 'user_message' ||
@@ -241,6 +258,7 @@ export function runRequestLoop(deps: RequestLoopDeps, initialRest: Buffer): void
   });
 
   process.stdin.on('end', () => {
+    log('← stdin   EOF, disposing session');
     runtime.session.dispose();
     process.exit(0);
   });

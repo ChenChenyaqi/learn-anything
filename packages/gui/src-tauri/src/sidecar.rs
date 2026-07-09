@@ -232,6 +232,131 @@ fn parse_stdout_line(line: &str) -> Result<StdoutLine, String> {
     }
 }
 
+fn now_hms() -> String {
+    chrono::Local::now().format("%H:%M:%S").to_string()
+}
+
+fn log(msg: impl std::fmt::Display) {
+    eprintln!("{} [rust] {msg}", now_hms());
+}
+
+fn mask_key(key: &str) -> String {
+    let len = key.chars().count();
+    if len <= 4 {
+        "***".to_string()
+    } else {
+        format!("***{}", key.chars().skip(len - 4).collect::<String>())
+    }
+}
+
+fn describe_outgoing(frame: &serde_json::Value) -> String {
+    if let Some(kind) = frame.get("kind").and_then(|v| v.as_str()) {
+        match kind {
+            "user_message" => {
+                let text = frame.get("text").and_then(|v| v.as_str()).unwrap_or("");
+                let sid = frame.get("sessionId").and_then(|v| v.as_str()).unwrap_or("-");
+                format!("→ node  user_message (sid={sid}, {} chars)", text.chars().count())
+            }
+            "slash_command" => {
+                let text = frame.get("text").and_then(|v| v.as_str()).unwrap_or("");
+                format!("→ node  slash_command ({text})")
+            }
+            "cancel" => {
+                let sid = frame.get("sessionId").and_then(|v| v.as_str()).unwrap_or("-");
+                format!("→ node  cancel (sid={sid})")
+            }
+            "list_sessions" => {
+                let req = frame.get("requestId").and_then(|v| v.as_str()).unwrap_or("?");
+                let cwd = frame.get("cwd").and_then(|v| v.as_str()).unwrap_or("?");
+                format!("→ node  list_sessions (req={req}, cwd={cwd})")
+            }
+            "load_session" | "switch_session" => {
+                let sid = frame.get("sessionId").and_then(|v| v.as_str()).unwrap_or("?");
+                let req = frame.get("requestId").and_then(|v| v.as_str()).unwrap_or("?");
+                format!("→ node  {kind} (sid={sid}, req={req})")
+            }
+            _ => format!("→ node  {kind}"),
+        }
+    } else if frame.get("apiKey").is_some() {
+        let provider = frame.get("provider").and_then(|v| v.as_str()).unwrap_or("?");
+        let model = frame.get("model").and_then(|v| v.as_str()).unwrap_or("?");
+        let cwd = frame.get("cwd").and_then(|v| v.as_str()).unwrap_or("?");
+        let key = frame.get("apiKey").and_then(|v| v.as_str()).unwrap_or("");
+        format!(
+            "→ node  boot (provider={provider}, model={model}, cwd={cwd}, apiKey={})",
+            mask_key(key)
+        )
+    } else {
+        "→ node  (frame)".to_string()
+    }
+}
+
+fn describe_agent_event(event: &AgentEvent) -> String {
+    match event {
+        AgentEvent::TextDelta { delta } => {
+            format!("text_delta, {} chars", delta.chars().count())
+        }
+        AgentEvent::ToolCall { id, name, .. } => format!("tool_call, id={id}, name={name}"),
+        AgentEvent::ToolResult {
+            id,
+            name,
+            status,
+            result,
+        } => match result {
+            Some(r) => format!(
+                "tool_result, id={id}, name={name}, {status}, {} chars",
+                r.chars().count()
+            ),
+            None => format!("tool_result, id={id}, name={name}, {status}"),
+        },
+        AgentEvent::Done => "done".to_string(),
+        AgentEvent::Error { message } => format!("error, {message}"),
+    }
+}
+
+fn describe_incoming(line: &StdoutLine) -> String {
+    match line {
+        StdoutLine::AgentEvent { session_id, event } => format!(
+            "← node  agent_event (sid={session_id}, {})",
+            describe_agent_event(event)
+        ),
+        StdoutLine::SessionId(id) => format!("← node  session_id ({id})"),
+        StdoutLine::SwitchSessionReply {
+            request_id,
+            session_id,
+            ok,
+        } => format!("← node  switch_session_reply (req={request_id}, sid={session_id}, ok={ok})"),
+        StdoutLine::ListSessionsReply {
+            request_id,
+            sessions,
+        } => format!(
+            "← node  list_sessions_reply (req={request_id}, {} sessions)",
+            sessions.len()
+        ),
+        StdoutLine::LoadSessionReply {
+            request_id,
+            session_id,
+            rows,
+            found,
+        } => format!(
+            "← node  load_session_reply (req={request_id}, sid={session_id}, {} rows, found={found})",
+            rows.len()
+        ),
+    }
+}
+
+fn is_suppressed(line: &StdoutLine) -> bool {
+    matches!(
+        line,
+        StdoutLine::AgentEvent {
+            event: AgentEvent::TextDelta { .. }
+                | AgentEvent::ToolCall { .. }
+                | AgentEvent::ToolResult { .. },
+            ..
+        }
+    )
+}
+
 fn sidecar_entry() -> Result<PathBuf, String> {
     if cfg!(debug_assertions) {
         let manifest_dir = env!("CARGO_MANIFEST_DIR");
@@ -259,6 +384,12 @@ pub fn boot_sidecar(app: &AppHandle) -> Result<SidecarHandle, String> {
         .kill_on_drop(true)
         .spawn()
         .map_err(|e| format!("Failed to spawn Node sidecar: {e}"))?;
+
+    log(format!(
+        "spawn node pid={} entry={}",
+        child.id().unwrap_or(0),
+        entry.display()
+    ));
 
     let stdin: StdinWriter = Box::new(
         child
@@ -324,61 +455,81 @@ where
                     continue;
                 }
                 match parse_stdout_line(trimmed) {
-                    Ok(StdoutLine::AgentEvent { session_id, event }) => {
-                        *state.last_session_id.lock().await = Some(session_id.clone());
-                        emit(
-                            "agent:event",
-                            serde_json::json!({ "session_id": session_id, "event": event }),
-                        );
-                    }
-                    Ok(StdoutLine::SessionId(id)) => {
-                        *state.last_session_id.lock().await = Some(id.clone());
-                        if let Some(tx) = state.boot_tx.lock().await.take() {
-                            let _ = tx.send(id);
+                    Ok(line) => {
+                        if !is_suppressed(&line) {
+                            log(describe_incoming(&line));
                         }
-                    }
-                    Ok(StdoutLine::SwitchSessionReply {
-                        request_id,
-                        session_id,
-                        ok,
-                    }) => {
-                        if let Some(tx) = state.pending_switch.lock().await.remove(&request_id) {
-                            let _ = tx.send(ok);
+                        match line {
+                            StdoutLine::AgentEvent { session_id, event } => {
+                                *state.last_session_id.lock().await = Some(session_id.clone());
+                                emit(
+                                    "agent:event",
+                                    serde_json::json!({ "session_id": session_id, "event": event }),
+                                );
+                            }
+                            StdoutLine::SessionId(id) => {
+                                *state.last_session_id.lock().await = Some(id.clone());
+                                if let Some(tx) = state.boot_tx.lock().await.take() {
+                                    log(format!("boot_tx resolved → {id}"));
+                                    let _ = tx.send(id);
+                                }
+                            }
+                            StdoutLine::SwitchSessionReply {
+                                request_id,
+                                session_id,
+                                ok,
+                            } => {
+                                if let Some(tx) =
+                                    state.pending_switch.lock().await.remove(&request_id)
+                                {
+                                    log(format!(
+                                        "pending_switch resolved (req={request_id}, ok={ok})"
+                                    ));
+                                    let _ = tx.send(ok);
+                                }
+                                let _ = session_id;
+                            }
+                            StdoutLine::ListSessionsReply {
+                                request_id,
+                                sessions,
+                            } => {
+                                if let Some(tx) =
+                                    state.pending_list.lock().await.remove(&request_id)
+                                {
+                                    log(format!("pending_list resolved (req={request_id})"));
+                                    let _ = tx.send(sessions);
+                                }
+                            }
+                            StdoutLine::LoadSessionReply {
+                                request_id,
+                                session_id,
+                                rows,
+                                found,
+                            } => {
+                                if let Some(tx) =
+                                    state.pending_load.lock().await.remove(&request_id)
+                                {
+                                    log(format!("pending_load resolved (req={request_id})"));
+                                    let _ = tx.send(LoadSessionResult { rows, found });
+                                }
+                                let _ = session_id;
+                            }
                         }
-                        let _ = session_id;
-                    }
-                    Ok(StdoutLine::ListSessionsReply {
-                        request_id,
-                        sessions,
-                    }) => {
-                        if let Some(tx) = state.pending_list.lock().await.remove(&request_id) {
-                            let _ = tx.send(sessions);
-                        }
-                    }
-                    Ok(StdoutLine::LoadSessionReply {
-                        request_id,
-                        session_id,
-                        rows,
-                        found,
-                    }) => {
-                        if let Some(tx) = state.pending_load.lock().await.remove(&request_id) {
-                            let _ = tx.send(LoadSessionResult { rows, found });
-                        }
-                        let _ = session_id;
                     }
                     Err(e) => {
-                        eprintln!("sidecar: unparseable stdout line: {e}");
+                        log(format!("unparseable stdout line: {e}"));
                     }
                 }
             }
             Err(e) => {
-                eprintln!("sidecar: stdout read error: {e}");
+                log(format!("stdout read error: {e}"));
                 break;
             }
         }
     }
 
     let last = state.last_session_id.lock().await.clone();
+    log(format!("stdout EOF (last={last:?})"));
     if let Some(sid) = last {
         emit(
             "agent:event",
@@ -391,6 +542,7 @@ where
 }
 
 async fn write_frame(state: &SidecarState, frame: serde_json::Value) -> Result<(), String> {
+    log(describe_outgoing(&frame));
     let mut stdin = state.stdin.lock().await;
     write_frame_to(&mut *stdin, frame).await
 }
@@ -456,6 +608,7 @@ pub async fn agent_new_session(
     boot: tauri::State<'_, SidecarBoot>,
     working_folder: Option<String>,
 ) -> Result<NewSessionResult, String> {
+    log("cmd agent_new_session");
     let state = get_or_boot(&boot, &app).await?;
 
     let (tx, rx) = oneshot::channel();
@@ -516,6 +669,10 @@ pub async fn agent_send(
     session_id: String,
     text: String,
 ) -> Result<(), String> {
+    log(format!(
+        "cmd agent_send (sid={session_id}, {} chars)",
+        text.chars().count()
+    ));
     let state = require_state(&boot).await?;
     {
         let sessions = state.sessions.lock().await;
@@ -536,6 +693,7 @@ pub async fn agent_cancel(
     boot: tauri::State<'_, SidecarBoot>,
     session_id: String,
 ) -> Result<(), String> {
+    log(format!("cmd agent_cancel (sid={session_id})"));
     let state = require_state(&boot).await?;
     let frame = serde_json::json!({
         "kind": "cancel",
@@ -550,6 +708,7 @@ pub async fn agent_list_sessions(
     boot: tauri::State<'_, SidecarBoot>,
     working_folder: Option<String>,
 ) -> Result<Vec<SessionMeta>, String> {
+    log("cmd agent_list_sessions");
     let state = require_state(&boot).await?;
     let cwd = match resolve_cwd(&app, working_folder) {
         Ok(cwd) => cwd,
@@ -582,6 +741,7 @@ pub async fn agent_load_session(
     session_id: String,
     working_folder: Option<String>,
 ) -> Result<Vec<ChatRow>, String> {
+    log(format!("cmd agent_load_session (sid={session_id})"));
     let state = require_state(&boot).await?;
     let cwd = resolve_cwd(&app, working_folder)?;
 
@@ -620,6 +780,7 @@ pub async fn agent_switch_session(
     session_id: String,
     working_folder: Option<String>,
 ) -> Result<(), String> {
+    log(format!("cmd agent_switch_session (sid={session_id})"));
     let state = require_state(&boot).await?;
     let cwd = resolve_cwd(&app, working_folder)?;
 

@@ -77,7 +77,7 @@ describe('sidecar integration spawn (3.9)', () => {
       JSON.stringify({ kind: 'slash_command', text: '/help' }),
     ]);
 
-    expect(stderr).toBe('');
+    expect(stderr).not.toMatch(/fatal|rejected/i);
     const lines = parseLines(stdout);
 
     expect(exitCode).toBe(0);

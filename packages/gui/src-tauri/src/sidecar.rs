@@ -90,9 +90,9 @@ pub struct SidecarState {
     pub sessions: Mutex<HashMap<String, ActiveSession>>,
     pub last_session_id: Mutex<Option<String>>,
     pub boot_tx: Mutex<Option<oneshot::Sender<String>>>,
-    pub ui_replies: Mutex<HashMap<String, oneshot::Sender<serde_json::Value>>>,
     pub pending_list: Mutex<HashMap<String, oneshot::Sender<Vec<SessionMeta>>>>,
     pub pending_load: Mutex<HashMap<String, oneshot::Sender<LoadSessionResult>>>,
+    pub pending_switch: Mutex<HashMap<String, oneshot::Sender<bool>>>,
     pub booted: Mutex<bool>,
     pub reply_counter: AtomicU64,
 }
@@ -126,11 +126,6 @@ enum StdoutLine {
         event: AgentEvent,
     },
     SessionId(String),
-    UiRequest {
-        request_id: String,
-        kind: String,
-        payload: serde_json::Value,
-    },
     ListSessionsReply {
         request_id: String,
         sessions: Vec<SessionMeta>,
@@ -140,6 +135,11 @@ enum StdoutLine {
         session_id: String,
         rows: Vec<ChatRow>,
         found: bool,
+    },
+    SwitchSessionReply {
+        request_id: String,
+        session_id: String,
+        ok: bool,
     },
 }
 
@@ -157,22 +157,22 @@ fn parse_stdout_line(line: &str) -> Result<StdoutLine, String> {
                     .to_string();
                 Ok(StdoutLine::SessionId(id))
             }
-            "ui_request" => {
+            "switch_session_reply" => {
                 let request_id = v
-                    .get("request_id")
+                    .get("requestId")
                     .and_then(|s| s.as_str())
-                    .ok_or("ui_request missing request_id")?
+                    .ok_or("switch_session_reply missing requestId")?
                     .to_string();
-                let kind = v
-                    .get("kind")
+                let session_id = v
+                    .get("session_id")
                     .and_then(|s| s.as_str())
-                    .ok_or("ui_request missing kind")?
+                    .ok_or("switch_session_reply missing session_id")?
                     .to_string();
-                let payload = v.get("payload").cloned().unwrap_or_default();
-                Ok(StdoutLine::UiRequest {
+                let ok = v.get("ok").and_then(|b| b.as_bool()).unwrap_or(false);
+                Ok(StdoutLine::SwitchSessionReply {
                     request_id,
-                    kind,
-                    payload,
+                    session_id,
+                    ok,
                 })
             }
             "list_sessions_reply" => {
@@ -276,9 +276,9 @@ pub fn boot_sidecar(app: &AppHandle) -> Result<SidecarHandle, String> {
         sessions: Mutex::new(HashMap::new()),
         last_session_id: Mutex::new(None),
         boot_tx: Mutex::new(None),
-        ui_replies: Mutex::new(HashMap::new()),
         pending_list: Mutex::new(HashMap::new()),
         pending_load: Mutex::new(HashMap::new()),
+        pending_switch: Mutex::new(HashMap::new()),
         booted: Mutex::new(false),
         reply_counter: AtomicU64::new(0),
     });
@@ -337,19 +337,15 @@ where
                             let _ = tx.send(id);
                         }
                     }
-                    Ok(StdoutLine::UiRequest {
+                    Ok(StdoutLine::SwitchSessionReply {
                         request_id,
-                        kind,
-                        payload,
+                        session_id,
+                        ok,
                     }) => {
-                        emit(
-                            "agent:ui_request",
-                            serde_json::json!({
-                                "request_id": request_id,
-                                "kind": kind,
-                                "payload": payload,
-                            }),
-                        );
+                        if let Some(tx) = state.pending_switch.lock().await.remove(&request_id) {
+                            let _ = tx.send(ok);
+                        }
+                        let _ = session_id;
                     }
                     Ok(StdoutLine::ListSessionsReply {
                         request_id,
@@ -618,18 +614,41 @@ pub async fn agent_load_session(
 }
 
 #[tauri::command]
-pub async fn agent_reply_ui(
+pub async fn agent_switch_session(
+    app: AppHandle,
     boot: tauri::State<'_, SidecarBoot>,
-    request_id: String,
-    value: serde_json::Value,
+    session_id: String,
+    working_folder: Option<String>,
 ) -> Result<(), String> {
     let state = require_state(&boot).await?;
+    let cwd = resolve_cwd(&app, working_folder)?;
+
+    let request_id = next_request_id(&state.reply_counter);
+    let (tx, rx) = oneshot::channel();
+    state
+        .pending_switch
+        .lock()
+        .await
+        .insert(request_id.clone(), tx);
+
     let frame = serde_json::json!({
-        "kind": "ui_response",
+        "kind": "switch_session",
+        "sessionId": session_id,
+        "cwd": cwd,
         "requestId": request_id,
-        "value": value,
     });
-    write_frame(&state, frame).await
+    write_frame(&state, frame).await?;
+
+    let ok = tokio::time::timeout(std::time::Duration::from_secs(15), rx)
+        .await
+        .map_err(|_| "Sidecar did not reply to switch_session within 15s".to_string())?
+        .map_err(|_| "Reply channel was dropped".to_string())?;
+
+    if !ok {
+        return Err(format!("Session {session_id} was not found or could not be switched"));
+    }
+
+    Ok(())
 }
 
 #[cfg(test)]
@@ -642,9 +661,9 @@ mod tests {
             sessions: Mutex::new(HashMap::new()),
             last_session_id: Mutex::new(None),
             boot_tx: Mutex::new(None),
-            ui_replies: Mutex::new(HashMap::new()),
             pending_list: Mutex::new(HashMap::new()),
             pending_load: Mutex::new(HashMap::new()),
+            pending_switch: Mutex::new(HashMap::new()),
             booted: Mutex::new(false),
             reply_counter: AtomicU64::new(0),
         })
@@ -739,20 +758,20 @@ mod tests {
     }
 
     #[test]
-    fn parse_ui_request() {
-        let line = r#"{"type":"ui_request","request_id":"r1","kind":"select_session","payload":{"sessions":[]}}"#;
+    fn parse_switch_session_reply() {
+        let line = r#"{"type":"switch_session_reply","requestId":"req-2","session_id":"s5","ok":true}"#;
         let parsed = parse_stdout_line(line).unwrap();
         match parsed {
-            StdoutLine::UiRequest {
+            StdoutLine::SwitchSessionReply {
                 request_id,
-                kind,
-                payload,
+                session_id,
+                ok,
             } => {
-                assert_eq!(request_id, "r1");
-                assert_eq!(kind, "select_session");
-                assert!(payload.get("sessions").is_some());
+                assert_eq!(request_id, "req-2");
+                assert_eq!(session_id, "s5");
+                assert!(ok);
             }
-            other => panic!("expected UiRequest, got {other:?}"),
+            other => panic!("expected SwitchSessionReply, got {other:?}"),
         }
     }
 
@@ -924,22 +943,23 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn write_frame_to_ui_response_has_correct_shape() {
+    async fn write_frame_to_switch_session_has_correct_shape() {
         use tokio::io::AsyncReadExt;
         let (mut rx, mut tx) = tokio::io::duplex(1024);
         let frame = serde_json::json!({
-            "kind": "ui_response",
-            "requestId": "r1",
-            "value": "choice-42",
+            "kind": "switch_session",
+            "sessionId": "s5",
+            "cwd": "/proj",
+            "requestId": "req-0",
         });
         write_frame_to(&mut tx, frame).await.unwrap();
         tx.shutdown().await.unwrap();
         let mut buf = String::new();
         rx.read_to_string(&mut buf).await.unwrap();
         let parsed: serde_json::Value = serde_json::from_str(buf.trim()).unwrap();
-        assert_eq!(parsed["kind"], "ui_response");
-        assert_eq!(parsed["requestId"], "r1");
-        assert_eq!(parsed["value"], "choice-42");
+        assert_eq!(parsed["kind"], "switch_session");
+        assert_eq!(parsed["sessionId"], "s5");
+        assert_eq!(parsed["requestId"], "req-0");
     }
 
     #[tokio::test]
@@ -1027,31 +1047,21 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn pump_reader_forwards_ui_request() {
+    async fn pump_reader_routes_switch_reply_by_request_id() {
         let state = make_test_state();
-        let emitted = std::sync::Arc::new(std::sync::Mutex::new(
-            Vec::<(String, serde_json::Value)>::new(),
-        ));
-        let emit = {
-            let emitted = emitted.clone();
-            move |event: &str, payload: serde_json::Value| {
-                emitted.lock().unwrap().push((event.into(), payload));
-            }
-        };
+        let (tx, rx) = oneshot::channel();
+        state.pending_switch.lock().await.insert("req-3".into(), tx);
 
-        let input = b"{\"type\":\"ui_request\",\"request_id\":\"r1\",\"kind\":\"select_session\",\"payload\":{\"sessions\":[]}}\n";
+        let input =
+            b"{\"type\":\"switch_session_reply\",\"requestId\":\"req-3\",\"session_id\":\"s5\",\"ok\":true}\n";
         let mut reader = BufReader::new(&input[..]);
+        let emit = |_: &str, _: serde_json::Value| {};
 
         pump_reader(&state, &mut reader, emit).await;
 
-        let events = emitted.lock().unwrap();
-        assert!(events.iter().any(|(e, _)| e == "agent:ui_request"));
-        let ui_req = events
-            .iter()
-            .find(|(e, _)| e == "agent:ui_request")
-            .unwrap();
-        assert_eq!(ui_req.1["request_id"], "r1");
-        assert_eq!(ui_req.1["kind"], "select_session");
+        let ok = rx.await.unwrap();
+        assert!(ok);
+        assert!(state.pending_switch.lock().await.is_empty());
     }
 
     #[tokio::test]

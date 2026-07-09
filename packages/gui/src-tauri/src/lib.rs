@@ -5,8 +5,8 @@ pub mod sidecar;
 use config::{get_config, set_config};
 use project::{create_project, open_project, pick_project_dir};
 use sidecar::{
-    agent_cancel, agent_list_sessions, agent_load_session, agent_new_session, agent_reply_ui,
-    agent_send,
+    agent_cancel, agent_list_sessions, agent_load_session, agent_new_session,
+    agent_send, agent_switch_session,
 };
 use tauri::Manager;
 
@@ -32,7 +32,7 @@ pub fn run() {
             agent_cancel,
             agent_list_sessions,
             agent_load_session,
-            agent_reply_ui,
+            agent_switch_session,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

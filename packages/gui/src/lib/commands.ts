@@ -106,6 +106,8 @@ export const agentLoadSession = (
   workingFolder?: string | null,
 ): Promise<ChatRow[]> => invoke('agent_load_session', { sessionId, workingFolder });
 
-/** Reply to a sidecar `ui_request` (e.g. session picker). */
-export const agentReplyUi = (requestId: string, value: unknown): Promise<void> =>
-  invoke('agent_reply_ui', { requestId, value });
+/** Switch the sidecar's active session to `sessionId` (awaits confirmation). */
+export const agentSwitchSession = (
+  sessionId: string,
+  workingFolder?: string | null,
+): Promise<void> => invoke('agent_switch_session', { sessionId, workingFolder });

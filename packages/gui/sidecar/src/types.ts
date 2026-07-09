@@ -8,21 +8,9 @@ export interface AgentEventJsonL {
   event: AgentEvent;
 }
 
-export type UiRequestKind = 'select_session';
-
-export interface SelectSessionPayload {
-  sessions: SessionMeta[];
-}
-
 export type StdoutLine =
   | AgentEventJsonL
   | { type: 'session_id'; session_id: string }
-  | {
-      type: 'ui_request';
-      request_id: string;
-      kind: UiRequestKind;
-      payload: SelectSessionPayload;
-    }
   | { type: 'list_sessions_reply'; requestId: string; sessions: SessionMeta[] }
   | {
       type: 'load_session_reply';
@@ -30,6 +18,12 @@ export type StdoutLine =
       session_id: string;
       rows: ChatRow[];
       found: boolean;
+    }
+  | {
+      type: 'switch_session_reply';
+      requestId: string;
+      session_id: string;
+      ok: boolean;
     };
 
 export function toSessionMeta(info: SessionInfo): SessionMeta {

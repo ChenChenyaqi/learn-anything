@@ -7,8 +7,8 @@ import {
   agentListSessions,
   agentLoadSession,
   agentNewSession,
-  agentReplyUi,
   agentSend,
+  agentSwitchSession,
 } from '@/lib/commands';
 import type { ChatMessage, ChatRow, SessionMeta } from '@/lib/commands';
 
@@ -18,7 +18,7 @@ vi.mock('@/lib/commands', () => ({
   agentCancel: vi.fn(),
   agentListSessions: vi.fn(),
   agentLoadSession: vi.fn(),
-  agentReplyUi: vi.fn(),
+  agentSwitchSession: vi.fn(),
 }));
 
 vi.mock('@tauri-apps/api/event', () => ({
@@ -30,7 +30,7 @@ const mockAgentSend = vi.mocked(agentSend);
 const mockAgentCancel = vi.mocked(agentCancel);
 const mockAgentListSessions = vi.mocked(agentListSessions);
 const mockAgentLoadSession = vi.mocked(agentLoadSession);
-const mockAgentReplyUi = vi.mocked(agentReplyUi);
+const mockAgentSwitchSession = vi.mocked(agentSwitchSession);
 const mockListen = vi.mocked(listen);
 
 function meta(overrides: Partial<SessionMeta> = {}): SessionMeta {
@@ -87,7 +87,7 @@ describe('useAgentSession', () => {
     mockAgentCancel.mockReset();
     mockAgentListSessions.mockReset();
     mockAgentLoadSession.mockReset();
-    mockAgentReplyUi.mockReset();
+    mockAgentSwitchSession.mockReset();
     mockListen.mockReset();
   });
 
@@ -107,7 +107,6 @@ describe('useAgentSession', () => {
       expect(mockAgentNewSession).toHaveBeenCalledWith('/proj');
       expect(mockAgentListSessions).toHaveBeenCalledWith('/proj');
       expect(mockListen).toHaveBeenCalledWith('agent:event', expect.any(Function));
-      expect(mockListen).toHaveBeenCalledWith('agent:ui_request', expect.any(Function));
 
       scope.stop();
     });
@@ -122,7 +121,7 @@ describe('useAgentSession', () => {
       await boot('/proj');
       await boot('/proj');
 
-      expect(mockListen).toHaveBeenCalledTimes(2);
+      expect(mockListen).toHaveBeenCalledTimes(1);
 
       scope.stop();
     });
@@ -141,17 +140,14 @@ describe('useAgentSession', () => {
       deferred.resolve(() => {});
       await Promise.all([boot1, boot2]);
 
-      expect(mockListen).toHaveBeenCalledTimes(2);
+      expect(mockListen).toHaveBeenCalledTimes(1);
 
       scope.stop();
     });
 
-    it('calls both unlisten functions on scope disposal', async () => {
-      const unlistenFns = [vi.fn(), vi.fn()];
-      let callIdx = 0;
-      mockListen.mockImplementation(() => {
-        return Promise.resolve(unlistenFns[callIdx++]);
-      });
+    it('calls the unlisten function on scope disposal', async () => {
+      const unlisten = vi.fn();
+      mockListen.mockImplementation(() => Promise.resolve(unlisten));
       mockAgentNewSession.mockResolvedValue({ session_id: 's1' });
       mockAgentListSessions.mockResolvedValue([]);
 
@@ -159,13 +155,11 @@ describe('useAgentSession', () => {
       const { boot } = scope.run(() => useAgentSession())!;
       await boot('/proj');
 
-      expect(unlistenFns[0]).not.toHaveBeenCalled();
-      expect(unlistenFns[1]).not.toHaveBeenCalled();
+      expect(unlisten).not.toHaveBeenCalled();
 
       scope.stop();
 
-      expect(unlistenFns[0]).toHaveBeenCalledTimes(1);
-      expect(unlistenFns[1]).toHaveBeenCalledTimes(1);
+      expect(unlisten).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -442,68 +436,45 @@ describe('useAgentSession', () => {
   });
 
   describe('closeSessions', () => {
-    it('closes the panel and clears a stale pendingUiRequestId', async () => {
-      mockAgentLoadSession.mockResolvedValue([]);
-      mockAgentReplyUi.mockResolvedValue(undefined);
-      const { session, emit, scope } = setupComposable();
+    it('closes the panel', async () => {
+      const { session, scope } = setupComposable();
       await session.boot('/proj');
-
-      emit('agent:ui_request', {
-        request_id: 'req-0',
-        kind: 'select_session',
-        payload: { sessions: [meta({ id: 's2' })] },
-      });
-      expect(session.sessionsOpen.value).toBe(true);
+      session.sessionsOpen.value = true;
 
       session.closeSessions();
 
       expect(session.sessionsOpen.value).toBe(false);
-
-      mockAgentLoadSession.mockResolvedValue([]);
-      await session.restore('other-session');
-      expect(mockAgentReplyUi).not.toHaveBeenCalled();
       scope.stop();
     });
   });
 
   describe('restore', () => {
-    it('loads rows, sets messages, switches sessionId, closes overlay', async () => {
+    it('switches the sidecar session, then loads rows and flips sessionId', async () => {
       const rows: ChatRow[] = [
         { role: 'user', text: 'hi' },
         { role: 'assistant', blocks: [{ type: 'text', text: 'hello' }] },
       ];
-      mockAgentLoadSession.mockResolvedValue(rows);
+      const switchOrder: string[] = [];
+      mockAgentSwitchSession.mockImplementation(async () => {
+        switchOrder.push('switch');
+      });
+      mockAgentLoadSession.mockImplementation(async () => {
+        switchOrder.push('load');
+        return rows;
+      });
       const { session, scope } = setupComposable();
       await session.boot('/proj');
       session.sessionsOpen.value = true;
 
       await session.restore('old-session');
 
+      // switch must happen before load (await confirmation before showing).
+      expect(switchOrder).toEqual(['switch', 'load']);
+      expect(mockAgentSwitchSession).toHaveBeenCalledWith('old-session', '/proj');
       expect(mockAgentLoadSession).toHaveBeenCalledWith('old-session', '/proj');
       expect(session.messages.value).toEqual(rows);
       expect(session.sessionId.value).toBe('old-session');
       expect(session.sessionsOpen.value).toBe(false);
-      scope.stop();
-    });
-
-    it('replies to a pending ui_request before restoring', async () => {
-      mockAgentLoadSession.mockResolvedValue([]);
-      mockAgentReplyUi.mockResolvedValue(undefined);
-      const { session, emit, scope } = setupComposable();
-      await session.boot('/proj');
-
-      emit('agent:ui_request', {
-        request_id: 'req-0',
-        kind: 'select_session',
-        payload: { sessions: [meta({ id: 's2' })] },
-      });
-
-      expect(session.sessionsOpen.value).toBe(true);
-      expect(session.sessions.value).toHaveLength(1);
-
-      await session.restore('s2');
-
-      expect(mockAgentReplyUi).toHaveBeenCalledWith('req-0', 's2');
       scope.stop();
     });
   });

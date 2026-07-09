@@ -86,20 +86,6 @@ describe('sidecar integration spawn (3.9)', () => {
     expect(lines.some((l) => (l.event as { type?: string })?.type === 'done')).toBe(true);
   }, 20_000);
 
-  it('emits ui_request on /sessions and handles EOF cleanly', async () => {
-    const { exitCode, stdout, stderr } = await spawnAndFeed([
-      BOOT_FRAME,
-      JSON.stringify({ kind: 'slash_command', text: '/sessions' }),
-    ]);
-
-    expect(stderr).toBe('');
-    const lines = parseLines(stdout);
-
-    expect(exitCode).toBe(0);
-    expect(lines.some((l) => l.type === 'session_id')).toBe(true);
-    expect(lines.some((l) => l.type === 'ui_request')).toBe(true);
-  }, 20_000);
-
   afterAll(() => {
     rmSync(FAKE_HOME, { recursive: true, force: true });
     rmSync(FAKE_CWD, { recursive: true, force: true });

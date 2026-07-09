@@ -22,9 +22,10 @@ const AgentRequestSchema = z.discriminatedUnion('kind', [
     sessionId: z.string().nullable().optional(),
   }),
   z.object({
-    kind: z.literal('ui_response'),
+    kind: z.literal('switch_session'),
+    sessionId: z.string(),
+    cwd: z.string().nullable().optional(),
     requestId: z.string(),
-    value: z.unknown(),
   }),
   z.object({
     kind: z.literal('list_sessions'),
@@ -120,36 +121,6 @@ async function loadSessionRows(sessionId: string, cwd: string): Promise<ChatRow[
 
 export function runRequestLoop(deps: RequestLoopDeps, initialRest: Buffer): void {
   const { runtime, cwd } = deps;
-  const waitMap = new Map<
-    string,
-    { resolve: (value: unknown) => void; reject: (error: Error) => void }
-  >();
-
-  const awaitUiResponse = (requestId: string, timeoutMs = 30_000): Promise<unknown> =>
-    new Promise<unknown>((resolve, reject) => {
-      const timer = setTimeout(() => {
-        if (waitMap.delete(requestId)) {
-          reject(new Error(`sidecar: ui_response timed out: ${requestId}`));
-        }
-      }, timeoutMs);
-      waitMap.set(requestId, {
-        resolve: (value) => {
-          clearTimeout(timer);
-          resolve(value);
-        },
-        reject: (error) => {
-          clearTimeout(timer);
-          reject(error);
-        },
-      });
-    });
-
-  const rejectAllPending = (error: Error): void => {
-    for (const [id, pending] of waitMap) {
-      waitMap.delete(id);
-      pending.reject(error);
-    }
-  };
 
   emitLine({ type: 'session_id', session_id: runtime.session.sessionId });
   subscribeSession(runtime.session);
@@ -157,7 +128,7 @@ export function runRequestLoop(deps: RequestLoopDeps, initialRest: Buffer): void
     subscribeSession(newSession);
   });
 
-  const slashContext: SlashContext = { runtime, cwd, awaitUiResponse };
+  const slashContext: SlashContext = { runtime, cwd };
 
   const dispatch = async (frame: AgentRequest): Promise<void> => {
     switch (frame.kind) {
@@ -176,18 +147,23 @@ export function runRequestLoop(deps: RequestLoopDeps, initialRest: Buffer): void
         return;
       }
       case 'cancel': {
-        rejectAllPending(new Error('sidecar: session cancelled'));
         await runtime.session.abort();
         return;
       }
-      case 'ui_response': {
-        const pending = waitMap.get(frame.requestId);
-        if (!pending) {
-          process.stderr.write(`sidecar: ui_response for unknown requestId "${frame.requestId}"\n`);
-          return;
+      case 'switch_session': {
+        const sessions = await SessionManager.list(frame.cwd ?? cwd);
+        const target = sessions.find((s) => s.id === frame.sessionId);
+        let ok = false;
+        if (target) {
+          const { cancelled } = await runtime.switchSession(target.path);
+          ok = !cancelled;
         }
-        waitMap.delete(frame.requestId);
-        pending.resolve(frame.value);
+        emitLine({
+          type: 'switch_session_reply',
+          requestId: frame.requestId,
+          session_id: frame.sessionId,
+          ok,
+        });
         return;
       }
       case 'list_sessions': {
@@ -236,7 +212,11 @@ export function runRequestLoop(deps: RequestLoopDeps, initialRest: Buffer): void
       dispatch(frame).catch((err) => {
         process.stderr.write(`sidecar: frame handler error: ${String(err)}\n`);
       });
-    if (frame.kind === 'user_message' || frame.kind === 'slash_command') {
+    if (
+      frame.kind === 'user_message' ||
+      frame.kind === 'slash_command' ||
+      frame.kind === 'switch_session'
+    ) {
       promptChain = promptChain.then(run);
     } else {
       void run();
@@ -261,7 +241,6 @@ export function runRequestLoop(deps: RequestLoopDeps, initialRest: Buffer): void
   });
 
   process.stdin.on('end', () => {
-    rejectAllPending(new Error('sidecar: stdin closed'));
     runtime.session.dispose();
     process.exit(0);
   });

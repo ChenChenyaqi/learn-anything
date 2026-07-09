@@ -5,8 +5,8 @@ import {
   agentListSessions,
   agentLoadSession,
   agentNewSession,
-  agentReplyUi,
   agentSend,
+  agentSwitchSession,
 } from '../lib/commands';
 import type { AgentEvent, ChatBlock, ChatMessage, SessionMeta } from '../lib/commands';
 import { matchInput, type SlashCommandContext } from '../lib/slash-commands';
@@ -23,8 +23,6 @@ export function useAgentSession() {
   let workingFolder: string | null = null;
   let assistantInProgress = false;
   let unlistenEvent: (() => void) | null = null;
-  let unlistenUiRequest: (() => void) | null = null;
-  let pendingUiRequestId: string | null = null;
   let listenersPromise: Promise<void> | null = null;
 
   /* ── event dispatch ──────────────────────────────────────────────── */
@@ -92,17 +90,6 @@ export function useAgentSession() {
     }
   }
 
-  function handleUiRequest(payload: { request_id: string; kind: string; payload: unknown }) {
-    if (payload.kind === 'select_session') {
-      pendingUiRequestId = payload.request_id;
-      const data = payload.payload as { sessions?: SessionMeta[] };
-      if (data?.sessions) {
-        sessions.value = data.sessions;
-      }
-      sessionsOpen.value = true;
-    }
-  }
-
   /* ── slash-command context ───────────────────────────────────────── */
 
   function buildSlashCtx(): SlashCommandContext {
@@ -127,11 +114,6 @@ export function useAgentSession() {
           'agent:event',
           (e) => handleAgentEvent(e.payload),
         );
-        unlistenUiRequest = await listen<{
-          request_id: string;
-          kind: string;
-          payload: unknown;
-        }>('agent:ui_request', (e) => handleUiRequest(e.payload));
       })();
     }
     return listenersPromise;
@@ -200,10 +182,10 @@ export function useAgentSession() {
   }
 
   async function restore(id: string) {
-    if (pendingUiRequestId) {
-      await agentReplyUi(pendingUiRequestId, id);
-      pendingUiRequestId = null;
-    }
+    // Switch the sidecar's active session FIRST (await confirmation), so
+    // subsequent prompts route to the right session and event session_ids
+    // match `sessionId.value` below.
+    await agentSwitchSession(id, workingFolder);
     messages.value = await agentLoadSession(id, workingFolder);
     sessionId.value = id;
     sessionsOpen.value = false;
@@ -216,7 +198,6 @@ export function useAgentSession() {
 
   function closeSessions() {
     sessionsOpen.value = false;
-    pendingUiRequestId = null;
   }
 
   /* ── cleanup ─────────────────────────────────────────────────────── */
@@ -224,7 +205,6 @@ export function useAgentSession() {
   if (getCurrentScope()) {
     onScopeDispose(() => {
       unlistenEvent?.();
-      unlistenUiRequest?.();
     });
   }
 

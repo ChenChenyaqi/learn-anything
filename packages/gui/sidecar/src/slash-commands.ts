@@ -1,18 +1,14 @@
-import { randomUUID } from 'node:crypto';
-import { SessionManager, type AgentSessionRuntime } from '@earendil-works/pi-coding-agent';
-import { toSessionMeta, type SessionMeta } from './types.ts';
-import { emitAgentEvent, emitLine, emitUiRequest } from './stdout-writer.ts';
+import { type AgentSessionRuntime } from '@earendil-works/pi-coding-agent';
+import { emitAgentEvent, emitLine } from './stdout-writer.ts';
 
 export interface SlashContext {
   runtime: AgentSessionRuntime;
   cwd: string;
-  awaitUiResponse: (requestId: string, timeoutMs?: number) => Promise<unknown>;
 }
 
 const HELP_TEXT = [
   'Available commands:',
   '/new — Start a fresh session',
-  '/sessions — List and switch to a previous session',
   '/compact [instructions] — Compact conversation history',
   '/model [name] — Cycle or set the active model',
   '/clear — Alias for /new',
@@ -46,21 +42,6 @@ export async function handleSlash(text: string, ctx: SlashContext): Promise<bool
     case 'clear': {
       const { cancelled } = await ctx.runtime.newSession();
       if (!cancelled) emitSessionId(ctx);
-      return true;
-    }
-    case 'sessions': {
-      const sessions = await SessionManager.list(ctx.cwd);
-      const metas: SessionMeta[] = sessions.map(toSessionMeta);
-      const requestId = randomUUID();
-      emitUiRequest(requestId, 'select_session', { sessions: metas });
-      const selected = await ctx.awaitUiResponse(requestId);
-      if (typeof selected === 'string') {
-        const target = sessions.find((s) => s.id === selected);
-        if (target) {
-          const { cancelled } = await ctx.runtime.switchSession(target.path);
-          if (!cancelled) emitSessionId(ctx);
-        }
-      }
       return true;
     }
     case 'compact': {

@@ -40,3 +40,13 @@ export function readScript(name: ScriptName): string {
 export function getScriptsDir(): string {
   return join(__dirname, 'scripts');
 }
+
+/**
+ * Read the `find-docs` SKILL.md content from `dist/skills/find-docs.md`.
+ *
+ * This file is copied from `src/skills/find-docs.md` by
+ * `scripts/copy-assets.mjs` during build (tsc does not copy .md files).
+ */
+export function readFindDocsSkill(): string {
+  return readFileSync(join(__dirname, 'skills', 'find-docs.md'), 'utf8');
+}

@@ -9,11 +9,12 @@ import { generateCommands, CommandAdapterRegistry } from './command-generation/i
 import { getSkillTemplates, getCommandContents, generateSkillContent } from './shared/index.js';
 import type { SupportedLocale } from '../i18n/types.js';
 import { getMessages } from '../i18n/index.js';
-import { CONTEXT7_GUIDANCE } from './templates/context7-guidance.js';
 import {
   readScript,
   resolveInstructions,
   findPatternResolver,
+  isDocVerificationWorkflow,
+  injectContext7Guidance,
   type ScriptName,
 } from '@learn-anything/shared';
 
@@ -221,7 +222,7 @@ export class InitCommand {
       const scriptResolver = findPatternResolver(entry.dirName);
       const content = generateSkillContent(entry.template, VERSION, (instr) => {
         const resolved = resolveInstructions(instr, scriptResolver);
-        return this.context7Enabled && isDocVerificationTemplate(entry.workflowId)
+        return this.context7Enabled && isDocVerificationWorkflow(entry.workflowId)
           ? injectContext7Guidance(resolved)
           : resolved;
       });
@@ -294,17 +295,4 @@ export class InitCommand {
       await FileSystemUtils.writeFile(filePath, cmd.fileContent);
     }
   }
-}
-
-const DOC_VERIFICATION_WORKFLOWS = new Set(['topic', 'explain', 'practice', 'quiz']);
-
-function isDocVerificationTemplate(workflowId: string): boolean {
-  return DOC_VERIFICATION_WORKFLOWS.has(workflowId);
-}
-
-function injectContext7Guidance(instructions: string): string {
-  const marker = '\n## Command:';
-  const index = instructions.indexOf(marker);
-  if (index === -1) return instructions + CONTEXT7_GUIDANCE;
-  return instructions.slice(0, index) + CONTEXT7_GUIDANCE + instructions.slice(index);
 }

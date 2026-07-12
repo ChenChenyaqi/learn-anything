@@ -8,7 +8,13 @@
  */
 
 export * from './templates/index.js';
-export { readScript, getScriptsDir, ALL_SCRIPT_NAMES, type ScriptName } from './script-access.js';
+export {
+  readScript,
+  getScriptsDir,
+  ALL_SCRIPT_NAMES,
+  readFindDocsSkill,
+  type ScriptName,
+} from './script-access.js';
 export {
   resolveInstructions,
   findPatternResolver,
@@ -26,3 +32,11 @@ export {
   generateSkillContent,
   type SkillTemplateEntry,
 } from './skill-content.js';
+
+export {
+  CONTEXT7_GUIDANCE,
+  CONTEXT7_GUIDANCE_SKILL,
+  isDocVerificationWorkflow,
+  injectContext7Guidance,
+  injectContext7GuidanceForSkill,
+} from './context7-guidance.js';

@@ -19,10 +19,13 @@
 import {
   readScript,
   ALL_SCRIPT_NAMES,
+  readFindDocsSkill,
   resolveInstructions,
   absolutePathResolver,
   getSkillTemplateEntries,
   generateSkillContent,
+  isDocVerificationWorkflow,
+  injectContext7GuidanceForSkill,
 } from '@learn-anything/shared';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -66,11 +69,21 @@ export function setupSkillFiles(appDataDir: string, scriptsDir: string): string 
   for (const entry of getSkillTemplateEntries()) {
     const skillDir = join(skillsDir, entry.dirName);
     mkdirSync(skillDir, { recursive: true });
-    const content = generateSkillContent(entry.template, 'gui-sidecar', (instr) =>
-      resolveInstructions(instr, absolutePathResolver(scriptsDir)),
-    );
+    const content = generateSkillContent(entry.template, 'gui-sidecar', (instr) => {
+      const resolved = resolveInstructions(instr, absolutePathResolver(scriptsDir));
+      return isDocVerificationWorkflow(entry.workflowId)
+        ? injectContext7GuidanceForSkill(resolved)
+        : resolved;
+    });
     writeFileSync(join(skillDir, 'SKILL.md'), content);
   }
+
+  // find-docs skill — Context7 documentation lookup via the ctx7 CLI.
+  // No template; the SKILL.md content is read verbatim from the shared
+  // package (copied at build time from src/skills/find-docs.md).
+  const findDocsDir = join(skillsDir, 'find-docs');
+  mkdirSync(findDocsDir, { recursive: true });
+  writeFileSync(join(findDocsDir, 'SKILL.md'), readFindDocsSkill());
 
   return skillsDir;
 }
@@ -106,5 +119,5 @@ export function buildLearnInstruction(commandName: string, args: string): string
   if (!isLearnCommand(commandName)) return null;
   const skillName = commandToSkillName(commandName);
   const argPart = args ? ` for: ${args}` : '';
-  return `Please use the "${skillName}" skill${argPart}. Read the skill's SKILL.md file and follow its workflow instructions precisely.`;
+  return `Use the "${skillName}" skill${argPart}.`;
 }

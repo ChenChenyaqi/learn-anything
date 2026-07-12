@@ -11,6 +11,7 @@ import { useAgentSession } from '@/components/agent-chat/useAgentSession.ts';
 import { matchInput, type SlashCommand } from '@/components/agent-chat/slash-commands.ts';
 import { slashPill, btnPrimary, btnSecondary, fieldControl } from '@/lib/ui.ts';
 import SlashMenu from './SlashMenu.vue';
+import StreamingMarkdownBlock from './StreamingMarkdownBlock.vue';
 import ToolCallCard from './ToolCallCard.vue';
 import SessionsPanel from './SessionsPanel.vue';
 
@@ -39,6 +40,10 @@ function onSlashSelect(index: number) {
   if (!cmd) return;
   input.value = '';
   session.send('/' + cmd.name);
+}
+
+function isMessageDone(i: number): boolean {
+  return i < session.messages.value.length - 1 || !session.busy.value;
 }
 
 /* ── keyboard ───────────────────────────────────────────────────── */
@@ -151,12 +156,11 @@ onMounted(() => {
             <!-- Assistant message -->
             <div v-else class="flex flex-col gap-1.5">
               <template v-for="(block, j) in msg.blocks" :key="j">
-                <p
+                <StreamingMarkdownBlock
                   v-if="block.type === 'text'"
-                  class="m-0 max-w-[92%] whitespace-pre-wrap text-sm text-(--color-ink)"
-                >
-                  {{ block.text }}
-                </p>
+                  :text="block.text"
+                  :done="isMessageDone(i)"
+                />
                 <ToolCallCard
                   v-else
                   :name="block.name"

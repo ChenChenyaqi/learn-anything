@@ -14,6 +14,7 @@ import AgentChat from './components/agent-chat/AgentChat.vue';
 import { useDarkMode } from './composables/useDarkMode';
 import { useWorkingFolder } from './composables/useWorkingFolder';
 import { useAppSession } from './composables/useAppSession';
+import { useAgentPanelResize } from './composables/useAgentPanelResize';
 import { btnGhost, btnPrimary, btnSecondary } from './lib/ui';
 
 useDarkMode();
@@ -30,6 +31,8 @@ async function chooseFolder() {
 }
 
 onMounted(session.boot);
+
+const { width: panelWidth, resizing, start: startResize } = useAgentPanelResize();
 </script>
 
 <template>
@@ -95,11 +98,25 @@ onMounted(session.boot);
         </div>
 
         <!-- Folder open: topics list + agent panel. -->
-        <div v-else-if="project" class="flex h-full gap-6">
-          <div class="flex-1 overflow-y-auto">
+        <div v-else-if="project" class="flex h-full">
+          <div class="flex-1 overflow-y-auto pr-2">
             <TopicList :project="project" />
           </div>
-          <AgentChat :working-folder="config?.last_working_folder ?? null" class="w-100 shrink-0" />
+          <div
+            class="relative w-4 h-full shrink-0 cursor-col-resize group"
+            style="touch-action: none"
+            @mousedown="startResize"
+          >
+            <div
+              class="absolute inset-y-0 left-1/2 w-px -translate-x-1/2 bg-(--color-rule) transition-colors group-hover:bg-(--color-accent)"
+              :class="{ 'bg-(--color-accent)': resizing }"
+            />
+          </div>
+          <AgentChat
+            :working-folder="config?.last_working_folder ?? null"
+            class="shrink-0 pl-2"
+            :style="{ width: panelWidth + 'px' }"
+          />
         </div>
       </section>
     </div>

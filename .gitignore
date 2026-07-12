@@ -2,6 +2,7 @@ node_modules/
 dist/
 .env
 *.tsbuildinfo
+.vscode
 
 # user local setting
 .claude

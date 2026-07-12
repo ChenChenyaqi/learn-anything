@@ -5,7 +5,7 @@
 // the keyboard (↑↓ Enter Esc on the textarea) and passes the current highlight
 // `index` + filtered `commands`. Row clicks emit `select`.
 
-import type { SlashCommand } from '../lib/slash-commands';
+import type { SlashCommand } from './slash-commands';
 
 defineProps<{
   commands: SlashCommand[];
@@ -23,7 +23,7 @@ const emit = defineEmits<{
 <template>
   <div
     v-if="commands.length > 0"
-    class="slash-menu mb-1 overflow-hidden rounded-[var(--radius-card)] border border-(--color-rule) bg-(--color-bg-elv) text-sm shadow-sm"
+    class="slash-menu mb-1 overflow-hidden rounded-(--radius-card) border border-(--color-rule) bg-(--color-bg-elv) text-sm shadow-sm"
   >
     <button
       v-for="(cmd, i) in commands"
@@ -31,9 +31,7 @@ const emit = defineEmits<{
       type="button"
       :class="[
         'flex w-full items-center gap-3 border-l-2 px-3 py-2 text-left transition-colors',
-        i === index
-          ? 'border-(--color-accent) bg-(--color-accent-soft)'
-          : 'border-transparent',
+        i === index ? 'border-(--color-accent) bg-(--color-accent-soft)' : 'border-transparent',
       ]"
       @click="emit('select', i)"
     >

@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { relativeTime } from '@/lib/time';
+import { relativeTime } from '@/components/agent-chat/time';
 
 describe('relativeTime', () => {
   beforeEach(() => {

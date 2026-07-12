@@ -10,7 +10,7 @@ import { onMounted } from 'vue';
 import SetupScreen from './components/SetupScreen.vue';
 import AppHeader from './components/AppHeader.vue';
 import TopicList from './components/TopicList.vue';
-import AgentChat from './components/AgentChat.vue';
+import AgentChat from './components/agent-chat/AgentChat.vue';
 import { useDarkMode } from './composables/useDarkMode';
 import { useWorkingFolder } from './composables/useWorkingFolder';
 import { useAppSession } from './composables/useAppSession';

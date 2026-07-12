@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { effectScope } from 'vue';
 import { listen } from '@tauri-apps/api/event';
-import { useAgentSession } from '@/composables/useAgentSession';
+import { useAgentSession } from '@/components/agent-chat/useAgentSession';
 import {
   agentCancel,
   agentListSessions,

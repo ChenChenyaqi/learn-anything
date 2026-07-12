@@ -1,4 +1,4 @@
-import type { ChatMessage } from './commands';
+import type { ChatMessage } from '@/lib/commands';
 
 /**
  * Context passed to `SlashCommand.run`. Built fresh at call time by the

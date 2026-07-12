@@ -6,9 +6,9 @@
 // case-insensitive title substring.
 
 import { computed, ref } from 'vue';
-import type { SessionMeta } from '../lib/commands';
-import { relativeTime } from '../lib/time';
-import { btnGhost, fieldControl } from '../lib/ui';
+import type { SessionMeta } from '@/lib/commands';
+import { relativeTime } from '@/components/agent-chat/time';
+import { btnGhost, fieldControl } from '@/lib/ui';
 
 const props = defineProps<{
   sessions: SessionMeta[];
@@ -56,10 +56,7 @@ function timeAgo(iso: string): string {
 
     <!-- List -->
     <div class="flex-1 overflow-y-auto">
-      <p
-        v-if="filtered.length === 0"
-        class="py-8 text-center text-sm text-(--color-pencil)"
-      >
+      <p v-if="filtered.length === 0" class="py-8 text-center text-sm text-(--color-pencil)">
         No sessions yet — back and type <span class="font-mono">/new</span> to start.
       </p>
       <ul v-else class="flex flex-col">

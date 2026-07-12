@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
-import { SLASH_COMMANDS, matchInput } from '@/lib/slash-commands';
-import type { SlashCommandContext } from '@/lib/slash-commands';
+import { SLASH_COMMANDS, matchInput } from '@/components/agent-chat/slash-commands';
+import type { SlashCommandContext } from '@/components/agent-chat/slash-commands';
 
 const noopCtx: SlashCommandContext = {
   messages: [],

@@ -7,9 +7,9 @@ import {
   agentNewSession,
   agentSend,
   agentSwitchSession,
-} from '../lib/commands';
-import type { AgentEvent, ChatBlock, ChatMessage, SessionMeta } from '../lib/commands';
-import { matchInput, type SlashCommandContext } from '../lib/slash-commands';
+} from '@/lib/commands';
+import type { AgentEvent, ChatBlock, ChatMessage, SessionMeta } from '@/lib/commands';
+import { matchInput, type SlashCommandContext } from './slash-commands';
 
 export function useAgentSession() {
   const sessionId = ref<string | null>(null);

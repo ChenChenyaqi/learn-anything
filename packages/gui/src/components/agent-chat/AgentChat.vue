@@ -7,9 +7,9 @@
 // near-stateless — everything flows through the composable.
 
 import { computed, nextTick, onMounted, ref, watch } from 'vue';
-import { useAgentSession } from '../composables/useAgentSession';
-import { matchInput, type SlashCommand } from '../lib/slash-commands';
-import { slashPill, btnPrimary, btnSecondary, btnGhost, fieldControl } from '../lib/ui';
+import { useAgentSession } from '@/components/agent-chat/useAgentSession.ts';
+import { matchInput, type SlashCommand } from '@/components/agent-chat/slash-commands.ts';
+import { slashPill, btnPrimary, btnSecondary, btnGhost, fieldControl } from '@/lib/ui.ts';
 import SlashMenu from './SlashMenu.vue';
 import ToolCallCard from './ToolCallCard.vue';
 import SessionsPanel from './SessionsPanel.vue';
@@ -101,10 +101,7 @@ async function scrollToBottom() {
   }
 }
 
-watch(
-  () => session.messages.value.length,
-  scrollToBottom,
-);
+watch(() => session.messages.value.length, scrollToBottom);
 
 watch(session.messages, scrollToBottom, { deep: true });
 
@@ -124,7 +121,9 @@ onMounted(() => {
       <span class="text-sm font-semibold">Agent</span>
       <div class="ml-auto flex items-center gap-1">
         <button type="button" :class="slashPill" @click="session.send('/new')">◇ new</button>
-        <button type="button" :class="slashPill" @click="session.send('/sessions')">▤ sessions</button>
+        <button type="button" :class="slashPill" @click="session.send('/sessions')">
+          ▤ sessions
+        </button>
       </div>
     </div>
 
@@ -148,15 +147,13 @@ onMounted(() => {
           Type <span class="font-mono">&nbsp;/&nbsp;</span> for commands, or just ask.
         </div>
 
-        <div
-          v-else
-          ref="transcriptEl"
-          class="flex h-full flex-col gap-3 overflow-y-auto py-3"
-        >
+        <div v-else ref="transcriptEl" class="flex h-full flex-col gap-3 overflow-y-auto py-3">
           <template v-for="(msg, i) in session.messages.value" :key="i">
             <!-- User message -->
             <div v-if="msg.role === 'user'" class="flex justify-end">
-              <div class="max-w-[85%] whitespace-pre-wrap rounded-lg bg-(--color-accent) px-3 py-2 text-sm text-white">
+              <div
+                class="max-w-[85%] whitespace-pre-wrap rounded-lg bg-(--color-accent) px-3 py-2 text-sm text-white"
+              >
                 {{ msg.text }}
               </div>
             </div>
@@ -190,8 +187,12 @@ onMounted(() => {
       class="flex items-center gap-2 border-t border-(--color-rule) px-3 py-2 text-xs text-(--color-pencil)"
     >
       <span class="flex-1">Start a fresh session? Current chat will be saved to history.</span>
-      <button type="button" :class="[btnGhost, 'px-2 py-0.5']" @click="onCancelConfirm">cancel</button>
-      <button type="button" :class="[btnSecondary, 'px-2 py-0.5']" @click="onConfirmNew">confirm</button>
+      <button type="button" :class="[btnGhost, 'px-2 py-0.5']" @click="onCancelConfirm">
+        cancel
+      </button>
+      <button type="button" :class="[btnSecondary, 'px-2 py-0.5']" @click="onConfirmNew">
+        confirm
+      </button>
     </div>
 
     <!-- Input row -->

@@ -6,7 +6,6 @@ const noopCtx: SlashCommandContext = {
   messages: [],
   newSession: () => {},
   setSessionsOpen: () => {},
-  setPendingConfirm: () => {},
 };
 
 describe('matchInput', () => {
@@ -52,30 +51,24 @@ describe('matchInput', () => {
 describe('/new command', () => {
   const cmd = SLASH_COMMANDS.find((c) => c.name === 'new')!;
 
-  it('creates a session immediately when the transcript is empty', () => {
+  it('does nothing when the transcript is empty', () => {
     const newSession = vi.fn();
-    const setPendingConfirm = vi.fn();
     cmd.run({
       ...noopCtx,
       messages: [],
       newSession,
-      setPendingConfirm,
     });
-    expect(newSession).toHaveBeenCalledTimes(1);
-    expect(setPendingConfirm).not.toHaveBeenCalled();
+    expect(newSession).not.toHaveBeenCalled();
   });
 
-  it('raises confirm when the transcript has messages', () => {
+  it('creates a session immediately when the transcript has messages', () => {
     const newSession = vi.fn();
-    const setPendingConfirm = vi.fn();
     cmd.run({
       ...noopCtx,
       messages: [{ role: 'user', text: 'hi' }],
       newSession,
-      setPendingConfirm,
     });
-    expect(setPendingConfirm).toHaveBeenCalledWith(true);
-    expect(newSession).not.toHaveBeenCalled();
+    expect(newSession).toHaveBeenCalledTimes(1);
   });
 });
 

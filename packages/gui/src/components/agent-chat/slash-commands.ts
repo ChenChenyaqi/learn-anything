@@ -4,15 +4,14 @@ import type { ChatMessage } from '@/lib/commands';
  * Context passed to `SlashCommand.run`. Built fresh at call time by the
  * composable so `messages` reflects the current transcript.
  *
- * `setSessionsOpen` / `setPendingConfirm` are setter callbacks (not writable
- * ref fields): the composable adapts its reactive refs to this interface,
+ * `setSessionsOpen` is a setter callback (not a writable ref field): the
+ * composable adapts its reactive refs to this interface,
  * e.g. `setSessionsOpen: (v) => { sessionsOpen.value = v; }`.
  */
 export interface SlashCommandContext {
   messages: ChatMessage[];
   newSession: () => void | Promise<void>;
   setSessionsOpen: (open: boolean) => void;
-  setPendingConfirm: (confirm: boolean) => void;
 }
 
 export interface SlashCommand {
@@ -26,11 +25,8 @@ export const SLASH_COMMANDS: SlashCommand[] = [
     name: 'new',
     description: 'Start a fresh session',
     run: (ctx) => {
-      if (ctx.messages.length > 0) {
-        ctx.setPendingConfirm(true);
-      } else {
-        return ctx.newSession();
-      }
+      if (ctx.messages.length === 0) return;
+      return ctx.newSession();
     },
   },
   {

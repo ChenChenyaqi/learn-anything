@@ -15,7 +15,6 @@ export function useAgentSession() {
   const sessionId = ref<string | null>(null);
   const messages = ref<ChatMessage[]>([]);
   const busy = ref(false);
-  const pendingConfirm = ref(false);
   const sessionsOpen = ref(false);
   const sessions = ref<SessionMeta[]>([]);
   const sessionsQuery = ref('');
@@ -99,9 +98,6 @@ export function useAgentSession() {
       setSessionsOpen: (v: boolean) => {
         sessionsOpen.value = v;
       },
-      setPendingConfirm: (v: boolean) => {
-        pendingConfirm.value = v;
-      },
     };
   }
 
@@ -128,7 +124,6 @@ export function useAgentSession() {
     sessionId.value = result.session_id;
     messages.value = [];
     busy.value = false;
-    pendingConfirm.value = false;
     sessionsOpen.value = false;
     assistantInProgress = false;
     sessions.value = await agentListSessions(workingFolder);
@@ -173,7 +168,6 @@ export function useAgentSession() {
 
   async function newSession() {
     busy.value = false;
-    pendingConfirm.value = false;
     assistantInProgress = false;
     const result = await agentNewSession(workingFolder);
     sessionId.value = result.session_id;
@@ -212,7 +206,6 @@ export function useAgentSession() {
     sessionId,
     messages,
     busy,
-    pendingConfirm,
     sessionsOpen,
     sessions,
     sessionsQuery,

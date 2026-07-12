@@ -338,6 +338,18 @@ describe('useAgentSession', () => {
       await session.send('/new');
 
       expect(mockAgentSend).not.toHaveBeenCalled();
+      expect(mockAgentNewSession).toHaveBeenCalledTimes(1);
+      scope.stop();
+    });
+
+    it('creates a new session via /new when the transcript has messages', async () => {
+      const { session, scope } = setupComposable();
+      await session.boot('/proj');
+      session.messages.value.push({ role: 'user', text: 'hello' });
+
+      await session.send('/new');
+
+      expect(mockAgentSend).not.toHaveBeenCalled();
       expect(mockAgentNewSession).toHaveBeenCalledTimes(2);
       scope.stop();
     });
@@ -489,14 +501,12 @@ describe('useAgentSession', () => {
 
       session.messages.value.push({ role: 'user', text: 'old' });
       session.busy.value = true;
-      session.pendingConfirm.value = true;
 
       await session.newSession();
 
       expect(session.sessionId.value).toBe('s2');
       expect(session.messages.value).toEqual([]);
       expect(session.busy.value).toBe(false);
-      expect(session.pendingConfirm.value).toBe(false);
       scope.stop();
     });
   });

@@ -2,14 +2,14 @@
 // AgentChat — right-panel agent surface.
 //
 // Composes `useAgentSession` for all state (no direct event subscriptions).
-// Owns the input textarea, slash-menu keyboard handling, confirm-chip rendering,
-// and the transcript / sessions-overlay swap. Child components are stateless or
-// near-stateless — everything flows through the composable.
+// Owns the input textarea, slash-menu keyboard handling, and the transcript /
+// sessions-overlay swap. Child components are stateless or near-stateless —
+// everything flows through the composable.
 
 import { computed, nextTick, onMounted, ref, watch } from 'vue';
 import { useAgentSession } from '@/components/agent-chat/useAgentSession.ts';
 import { matchInput, type SlashCommand } from '@/components/agent-chat/slash-commands.ts';
-import { slashPill, btnPrimary, btnSecondary, btnGhost, fieldControl } from '@/lib/ui.ts';
+import { slashPill, btnPrimary, btnSecondary, fieldControl } from '@/lib/ui.ts';
 import SlashMenu from './SlashMenu.vue';
 import ToolCallCard from './ToolCallCard.vue';
 import SessionsPanel from './SessionsPanel.vue';
@@ -80,16 +80,6 @@ function onSend() {
   if (!text || session.busy.value) return;
   input.value = '';
   session.send(text);
-}
-
-/* ── confirm chip ───────────────────────────────────────────────── */
-
-function onConfirmNew() {
-  session.newSession();
-}
-
-function onCancelConfirm() {
-  session.pendingConfirm.value = false;
 }
 
 /* ── auto-scroll ────────────────────────────────────────────────── */
@@ -179,20 +169,6 @@ onMounted(() => {
           </template>
         </div>
       </template>
-    </div>
-
-    <!-- Confirm chip -->
-    <div
-      v-if="session.pendingConfirm.value"
-      class="flex items-center gap-2 border-t border-(--color-rule) px-3 py-2 text-xs text-(--color-pencil)"
-    >
-      <span class="flex-1">Start a fresh session? Current chat will be saved to history.</span>
-      <button type="button" :class="[btnGhost, 'px-2 py-0.5']" @click="onCancelConfirm">
-        cancel
-      </button>
-      <button type="button" :class="[btnSecondary, 'px-2 py-0.5']" @click="onConfirmNew">
-        confirm
-      </button>
     </div>
 
     <!-- Input row -->

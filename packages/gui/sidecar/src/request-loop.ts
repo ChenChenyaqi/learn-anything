@@ -1,122 +1,19 @@
+// The stdin pump: reads newline-delimited command frames, dispatches them to
+// the agent runtime, and serialises prompts onto a single chain so that
+// prompts / session switches never overlap.
+
 import { SessionManager, type AgentSessionRuntime } from '@earendil-works/pi-coding-agent';
-import { type TextContent } from '@earendil-works/pi-ai';
-import { z } from 'zod';
+
 import { handleSlash, type SlashContext } from './slash-commands.ts';
-import { emitLine, log } from './stdout-writer.ts';
+import { loadSessionRows, toSessionMeta } from './session-history.ts';
+import { log } from './log.ts';
+import { emitLine } from './stdout-writer.ts';
 import { subscribeSession } from './session-lifecycle.ts';
-import { toSessionMeta, type ChatBlock, type ChatRow } from './types.ts';
-
-const AgentRequestSchema = z.discriminatedUnion('kind', [
-  z.object({
-    kind: z.literal('user_message'),
-    text: z.string(),
-    sessionId: z.string().nullable().optional(),
-  }),
-  z.object({
-    kind: z.literal('slash_command'),
-    text: z.string(),
-    sessionId: z.string().nullable().optional(),
-  }),
-  z.object({
-    kind: z.literal('cancel'),
-    sessionId: z.string().nullable().optional(),
-  }),
-  z.object({
-    kind: z.literal('switch_session'),
-    sessionId: z.string(),
-    cwd: z.string().nullable().optional(),
-    requestId: z.string(),
-  }),
-  z.object({
-    kind: z.literal('list_sessions'),
-    cwd: z.string(),
-    requestId: z.string(),
-  }),
-  z.object({
-    kind: z.literal('load_session'),
-    sessionId: z.string(),
-    cwd: z.string().nullable().optional(),
-    requestId: z.string(),
-  }),
-]);
-type AgentRequest = z.infer<typeof AgentRequestSchema>;
-
-type SessionMessages = ReturnType<SessionManager['buildSessionContext']>['messages'];
+import { AgentRequestSchema, type AgentRequest } from './wire.ts';
 
 export interface RequestLoopDeps {
   runtime: AgentSessionRuntime;
   cwd: string;
-}
-
-function isText(content: unknown): content is TextContent {
-  return (
-    typeof content === 'object' &&
-    content !== null &&
-    (content as { type?: string }).type === 'text'
-  );
-}
-
-function joinText(contents: Array<{ type: string }>): string {
-  return contents
-    .filter(isText)
-    .map((part) => (part as TextContent).text)
-    .join('');
-}
-
-function messagesToChatRows(messages: SessionMessages): ChatRow[] {
-  const toolOutcomes = new Map<string, { status: 'ok' | 'error'; result: string | null }>();
-  for (const message of messages) {
-    if (message.role === 'toolResult') {
-      toolOutcomes.set(message.toolCallId, {
-        status: message.isError ? 'error' : 'ok',
-        result: joinText(message.content),
-      });
-    }
-  }
-
-  const rows: ChatRow[] = [];
-  for (const message of messages) {
-    if (message.role === 'user') {
-      const text =
-        typeof message.content === 'string' ? message.content : joinText(message.content);
-      rows.push({ role: 'user', text });
-      continue;
-    }
-    if (message.role === 'assistant') {
-      const blocks: ChatBlock[] = [];
-      for (const part of message.content) {
-        if (part.type === 'text') {
-          blocks.push({ type: 'text', text: part.text });
-          continue;
-        }
-        if (part.type === 'toolCall') {
-          const outcome = toolOutcomes.get(part.id);
-          if (!outcome) continue;
-          blocks.push({
-            type: 'tool_call',
-            id: part.id,
-            name: part.name,
-            args: part.arguments,
-            status: outcome.status,
-            result: outcome.result,
-          });
-        }
-      }
-      if (blocks.length > 0) {
-        rows.push({ role: 'assistant', blocks });
-      }
-    }
-  }
-  return rows;
-}
-
-async function loadSessionRows(sessionId: string, cwd: string): Promise<ChatRow[] | null> {
-  const sessions = await SessionManager.list(cwd);
-  const target = sessions.find((info) => info.id === sessionId);
-  if (!target) return null;
-  const manager = SessionManager.open(target.path);
-  const { messages } = manager.buildSessionContext();
-  return messagesToChatRows(messages);
 }
 
 function describeInbound(frame: AgentRequest): string {

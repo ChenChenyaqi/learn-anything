@@ -1,5 +1,5 @@
 import type { AgentSessionEvent } from '@earendil-works/pi-coding-agent';
-import type { AgentEvent, AgentEventJsonL } from './types.ts';
+import type { AgentEvent, AgentEventJsonL } from './wire.ts';
 
 export function mapPiEvent(sessionId: string, event: AgentSessionEvent): AgentEventJsonL | null {
   switch (event.type) {

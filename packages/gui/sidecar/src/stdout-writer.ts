@@ -1,21 +1,8 @@
-import type { AgentEvent, StdoutLine } from './types.ts';
+// Outbound emission: writing newline-delimited JSON frames to stdout and
+// human-readable trace lines to stderr. Logging infra lives in `./log.ts`.
 
-function hhmmss(): string {
-  const d = new Date();
-  return [d.getHours(), d.getMinutes(), d.getSeconds()]
-    .map((n) => String(n).padStart(2, '0'))
-    .join(':');
-}
-
-export function log(msg: string): void {
-  process.stderr.write(`${hhmmss()} [node] ${msg}\n`);
-}
-
-export function maskKey(key: string): string {
-  const chars = [...key];
-  if (chars.length <= 4) return '***';
-  return '***' + chars.slice(-4).join('');
-}
+import { log } from './log.ts';
+import type { AgentEvent, StdoutLine } from './wire.ts';
 
 function describeAgentEvent(event: AgentEvent): string {
   switch (event.type) {
@@ -50,6 +37,7 @@ function describeOutbound(payload: StdoutLine): string {
   }
 }
 
+// High-frequency streaming events are too noisy to log per-line.
 function isSuppressedEvent(payload: StdoutLine): boolean {
   return (
     'event' in payload &&

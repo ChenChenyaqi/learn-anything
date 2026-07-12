@@ -1,17 +1,9 @@
 import { readSync } from 'node:fs';
-import { z } from 'zod';
-import { runRequestLoop } from './request-loop.ts';
-import { createSessionLifecycle, type BootConfig } from './session-lifecycle.ts';
-import { log, maskKey } from './stdout-writer.ts';
 
-const BootConfigSchema = z.object({
-  apiKey: z.string().min(1),
-  provider: z.string().min(1),
-  baseUrl: z.string().min(1).nullable().optional(),
-  model: z.string().min(1),
-  cwd: z.string().min(1),
-  sessionId: z.string().nullable().optional(),
-});
+import { log, maskKey } from './log.ts';
+import { runRequestLoop } from './request-loop.ts';
+import { createSessionLifecycle } from './session-lifecycle.ts';
+import { BootConfigSchema } from './wire.ts';
 
 function readFirstFrameSync(): { line: string; rest: Buffer } {
   const chunks: Buffer[] = [];
@@ -43,7 +35,7 @@ function readFirstFrameSync(): { line: string; rest: Buffer } {
 
 async function main(): Promise<void> {
   const { line, rest } = readFirstFrameSync();
-  const config: BootConfig = BootConfigSchema.parse(JSON.parse(line));
+  const config = BootConfigSchema.parse(JSON.parse(line));
   log(
     `boot ok (provider=${config.provider}, model=${config.model}, cwd=${config.cwd}, apiKey=${maskKey(config.apiKey)})`,
   );

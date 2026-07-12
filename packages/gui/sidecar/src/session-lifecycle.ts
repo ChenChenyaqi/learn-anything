@@ -11,20 +11,49 @@ import {
 } from '@earendil-works/pi-coding-agent';
 import { mapPiEvent } from './agent-event-adapter.ts';
 import { emitAgentEvent } from './stdout-writer.ts';
+import { type BootConfig } from './wire.ts';
 
 const BUILT_IN_TOOLS = ['read', 'write', 'edit', 'bash', 'grep', 'find', 'ls'];
 
-export interface BootConfig {
-  apiKey: string;
-  provider: string;
-  baseUrl?: string | null;
-  model: string;
-  cwd: string;
-  sessionId?: string | null;
-}
-
 export interface SessionLifecycle {
   runtime: AgentSessionRuntime;
+}
+
+type ModelRegistryInstance = ReturnType<typeof ModelRegistry.create>;
+
+/**
+ * Ensure `config.model` is resolvable for `config.provider`. The pi registry
+ * may already know it; otherwise register a permissive fallback provider
+ * entry so unknown/custom model ids still work against the configured (or
+ * provider-default) base URL.
+ */
+function ensureModelAvailable(registry: ModelRegistryInstance, config: BootConfig): void {
+  if (registry.find(config.provider, config.model)) return;
+
+  const api = config.provider === 'anthropic' ? 'anthropic-messages' : 'openai-completions';
+  const baseUrl =
+    config.baseUrl ??
+    (config.provider === 'anthropic' ? 'https://api.anthropic.com' : 'https://api.openai.com/v1');
+  registry.registerProvider(config.provider, {
+    baseUrl,
+    apiKey: config.apiKey,
+    api,
+    models: [
+      {
+        id: config.model,
+        name: config.model,
+        reasoning: false,
+        input: ['text'],
+        cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
+        contextWindow: 128000,
+        maxTokens: 16384,
+      },
+    ],
+  });
+
+  if (!registry.find(config.provider, config.model)) {
+    throw new Error(`sidecar: model not found for provider "${config.provider}": ${config.model}`);
+  }
 }
 
 export async function createSessionLifecycle(config: BootConfig): Promise<SessionLifecycle> {
@@ -42,35 +71,7 @@ export async function createSessionLifecycle(config: BootConfig): Promise<Sessio
     modelRegistry,
   });
 
-  let model = services.modelRegistry.find(config.provider, config.model);
-  if (!model) {
-    const api = config.provider === 'anthropic' ? 'anthropic-messages' : 'openai-completions';
-    const baseUrl =
-      config.baseUrl ??
-      (config.provider === 'anthropic' ? 'https://api.anthropic.com' : 'https://api.openai.com/v1');
-    modelRegistry.registerProvider(config.provider, {
-      baseUrl,
-      apiKey: config.apiKey,
-      api,
-      models: [
-        {
-          id: config.model,
-          name: config.model,
-          reasoning: false,
-          input: ['text'],
-          cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
-          contextWindow: 128000,
-          maxTokens: 16384,
-        },
-      ],
-    });
-    model = services.modelRegistry.find(config.provider, config.model);
-    if (!model) {
-      throw new Error(
-        `sidecar: model not found for provider "${config.provider}": ${config.model}`,
-      );
-    }
-  }
+  ensureModelAvailable(services.modelRegistry, config);
   services.settingsManager.setDefaultModelAndProvider(config.provider, config.model);
 
   const sessionManager = SessionManager.create(

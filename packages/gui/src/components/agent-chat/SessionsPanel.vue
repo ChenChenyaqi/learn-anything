@@ -55,7 +55,7 @@ function timeAgo(iso: string): string {
     />
 
     <!-- List -->
-    <div class="flex-1 overflow-y-auto">
+    <div class="flex-1 overflow-y-auto overflow-x-hidden">
       <p v-if="filtered.length === 0" class="py-8 text-center text-sm text-(--color-pencil)">
         No sessions yet — back and type <span class="font-mono">/new</span> to start.
       </p>

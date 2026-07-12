@@ -29,6 +29,12 @@ tokio = { workspace = true, features = ["sync", "process", "io-util", "time", "m
 url = "2"
 # Local-time `%H:%M:%S` timestamps for sidecar stderr logs.
 chrono = { workspace = true }
+# Recursive filesystem watcher for `site_api` — emits `site://reload` when
+# `.learn/topics/` changes so the dashboard can refresh like `serve.mjs` SSE.
+notify = "8"
+# `^#{1,6}\s+` heading extraction for the search index (must skip fenced code
+# blocks; same heuristic as the Node `extractHeadings`).
+regex = "1"
 
 [dev-dependencies]
 # Sandboxed temp dirs for the `project` module filesystem tests.

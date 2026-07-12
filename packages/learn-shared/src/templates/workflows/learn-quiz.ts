@@ -107,8 +107,7 @@ This file is the single persisted artifact — answers and explanations live onl
 After writing each deck, validate it:
 
 \`\`\`bash
-VSCRIPT=$(find . -path '*/learn-anything-quiz/scripts/validate-quiz.mjs' -print -quit 2>/dev/null)
-node "$VSCRIPT" <the deck path you just wrote>
+{{LEARN_SCRIPT:validate-quiz <the deck path you just wrote>}}
 \`\`\`
 
 validate-quiz.mjs checks the deck against the v1 schema (field types, type↔gradeable consistency, required sub-fields). Fix errors in the deck and re-run until it passes, before presenting questions.
@@ -139,8 +138,7 @@ ${STATE_UPDATE_TABLE}
 After updating state.json, run render.mjs:
 
 \`\`\`bash
-SCRIPT=$(find . -path '*/learn-anything-quiz/scripts/render.mjs' -print -quit 2>/dev/null)
-node "$SCRIPT" ./.learn/topics/<topic-name>
+{{LEARN_SCRIPT:render ./.learn/topics/<topic-name>}}
 \`\`\`
 
 render.mjs validates state.json against the v1 schema — fix errors and re-run render.mjs if validation fails.

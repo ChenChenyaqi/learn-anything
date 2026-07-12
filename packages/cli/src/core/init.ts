@@ -10,7 +10,12 @@ import { getSkillTemplates, getCommandContents, generateSkillContent } from './s
 import type { SupportedLocale } from '../i18n/types.js';
 import { getMessages } from '../i18n/index.js';
 import { CONTEXT7_GUIDANCE } from './templates/context7-guidance.js';
-import { readScript, type ScriptName } from '@learn-anything/shared';
+import {
+  readScript,
+  resolveInstructions,
+  findPatternResolver,
+  type ScriptName,
+} from '@learn-anything/shared';
 
 const require = createRequire(import.meta.url);
 const { version: VERSION } = require('../../package.json');
@@ -213,13 +218,13 @@ export class InitCommand {
     for (const entry of skillTemplates) {
       const skillDir = path.join(resolvedPath, tool.skillsDir!, 'skills', entry.dirName);
       const skillFile = path.join(skillDir, 'SKILL.md');
-      const content = generateSkillContent(
-        entry.template,
-        VERSION,
-        this.context7Enabled && isDocVerificationTemplate(entry.workflowId)
-          ? injectContext7Guidance
-          : undefined,
-      );
+      const scriptResolver = findPatternResolver(entry.dirName);
+      const content = generateSkillContent(entry.template, VERSION, (instr) => {
+        const resolved = resolveInstructions(instr, scriptResolver);
+        return this.context7Enabled && isDocVerificationTemplate(entry.workflowId)
+          ? injectContext7Guidance(resolved)
+          : resolved;
+      });
       await FileSystemUtils.writeFile(skillFile, content);
 
       const scriptsDir = path.join(skillDir, 'scripts');

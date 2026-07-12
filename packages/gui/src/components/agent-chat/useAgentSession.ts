@@ -137,7 +137,7 @@ export function useAgentSession() {
       const result = matchInput(trimmed);
       if (result) {
         const cmd = result.matches.find((c) => c.name === result.query);
-        if (cmd) {
+        if (cmd && cmd.run) {
           await cmd.run(buildSlashCtx());
           return;
         }

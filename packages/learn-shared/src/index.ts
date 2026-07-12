@@ -9,7 +9,20 @@
 
 export * from './templates/index.js';
 export { readScript, getScriptsDir, ALL_SCRIPT_NAMES, type ScriptName } from './script-access.js';
+export {
+  resolveInstructions,
+  findPatternResolver,
+  absolutePathResolver,
+  type ScriptPathResolver,
+  type ScriptInvocation,
+} from './script-resolver.js';
 
 // Re-export functions from standalone scripts that are also used
 // programmatically (not just executed via `node script.mjs`).
 export { render } from './scripts/render.mjs';
+
+export {
+  getSkillTemplateEntries,
+  generateSkillContent,
+  type SkillTemplateEntry,
+} from './skill-content.js';

@@ -30,6 +30,7 @@ pub(super) struct BootFrame {
     pub model: String,
     pub cwd: String,
     pub session_id: Option<String>,
+    pub app_data_dir: String,
 }
 
 /// Every post-boot message, discriminated by `kind` (snake_case tag values).
@@ -81,10 +82,11 @@ fn mask_key(key: &str) -> String {
 impl OutgoingFrame for BootFrame {
     fn describe(&self) -> String {
         format!(
-            "→ node  boot (provider={}, model={}, cwd={}, apiKey={})",
+            "→ node  boot (provider={}, model={}, cwd={}, appDataDir={}, apiKey={})",
             self.provider,
             self.model,
             self.cwd,
+            self.app_data_dir,
             mask_key(&self.api_key)
         )
     }
@@ -551,10 +553,11 @@ mod tests {
             model: "gpt-4o".into(),
             cwd: "/proj".into(),
             session_id: None,
+            app_data_dir: "/appdata".into(),
         };
         assert_eq!(
             serde_json::to_string(&frame).unwrap(),
-            r#"{"apiKey":"sk-secret","provider":"openai","baseUrl":null,"model":"gpt-4o","cwd":"/proj","sessionId":null}"#
+            r#"{"apiKey":"sk-secret","provider":"openai","baseUrl":null,"model":"gpt-4o","cwd":"/proj","sessionId":null,"appDataDir":"/appdata"}"#
         );
     }
 
@@ -567,9 +570,11 @@ mod tests {
             model: "claude".into(),
             cwd: "/c".into(),
             session_id: Some("existing".into()),
+            app_data_dir: "/appdata".into(),
         };
         let v: serde_json::Value = serde_json::to_value(&frame).unwrap();
         assert_eq!(v["baseUrl"], "https://example.com");
         assert_eq!(v["sessionId"], "existing");
+        assert_eq!(v["appDataDir"], "/appdata");
     }
 }

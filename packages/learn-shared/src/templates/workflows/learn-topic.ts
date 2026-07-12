@@ -85,15 +85,13 @@ Based on your expert understanding of "<topic-name>", generate a hierarchical kn
 ### Step 4: Run render.mjs and init-sessions.mjs
 
 \`\`\`bash
-SCRIPT=$(find . -path '*/learn-anything-topic/scripts/render.mjs' -print -quit 2>/dev/null)
-node "$SCRIPT" ./.learn/topics/<topic-name>
+{{LEARN_SCRIPT:render ./.learn/topics/<topic-name>}}
 \`\`\`
 
 render.mjs validates state.json against the v1 schema and generates knowledge-map.md. If validation fails, fix state.json and re-run render.mjs. Do NOT manually write knowledge-map.md.
 
 \`\`\`bash
-SCRIPT=$(find . -path '*/learn-anything-topic/scripts/init-sessions.mjs' -print -quit 2>/dev/null)
-node "$SCRIPT" ./.learn/topics/<topic-name>
+{{LEARN_SCRIPT:init-sessions ./.learn/topics/<topic-name>}}
 \`\`\`
 
 init-sessions.mjs reads state.json and creates domain subdirectories under \`sessions/\` (based on each domain's \`slug\`). This organizes future learning session files by domain. Safe to re-run — existing directories are skipped.
@@ -139,8 +137,7 @@ Read \`./.learn/topics/<topic-name>/state.json\` — state.json is the single so
 ### Step 2.5: Run init-sessions.mjs to ensure domain directories exist
 
 \`\`\`bash
-SCRIPT=$(find . -path '*/learn-anything-topic/scripts/init-sessions.mjs' -print -quit 2>/dev/null)
-node "$SCRIPT" ./.learn/topics/<topic-name>
+{{LEARN_SCRIPT:init-sessions ./.learn/topics/<topic-name>}}
 \`\`\`
 
 This ensures domain subdirectories under \`sessions/\` are created (in case they were not created before or new domains were added). Safe to re-run.

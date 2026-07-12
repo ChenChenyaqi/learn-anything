@@ -36,6 +36,7 @@ const emit = defineEmits<{
       @click="emit('select', i)"
     >
       <span class="font-mono text-(--color-ink)">/{{ cmd.name }}</span>
+      <span v-if="cmd.argumentHint" class="font-mono text-xs text-(--color-pencil)">{{ cmd.argumentHint }}</span>
       <span class="text-(--color-pencil)">{{ cmd.description }}</span>
     </button>
   </div>

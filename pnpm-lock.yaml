@@ -172,6 +172,9 @@ importers:
       '@earendil-works/pi-coding-agent':
         specifier: 0.80.3
         version: 0.80.3(ws@8.21.0)(zod@3.25.76)
+      '@learn-anything/shared':
+        specifier: workspace:*
+        version: link:../../learn-shared
       '@sinclair/typebox':
         specifier: 0.34.49
         version: 0.34.49

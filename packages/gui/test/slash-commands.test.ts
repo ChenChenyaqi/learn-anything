@@ -53,7 +53,7 @@ describe('/new command', () => {
 
   it('does nothing when the transcript is empty', () => {
     const newSession = vi.fn();
-    cmd.run({
+    cmd.run!({
       ...noopCtx,
       messages: [],
       newSession,
@@ -63,7 +63,7 @@ describe('/new command', () => {
 
   it('creates a session immediately when the transcript has messages', () => {
     const newSession = vi.fn();
-    cmd.run({
+    cmd.run!({
       ...noopCtx,
       messages: [{ role: 'user', text: 'hi' }],
       newSession,
@@ -77,7 +77,7 @@ describe('/sessions command', () => {
 
   it('opens the sessions overlay', () => {
     const setSessionsOpen = vi.fn();
-    cmd.run({ ...noopCtx, setSessionsOpen });
+    cmd.run!({ ...noopCtx, setSessionsOpen });
     expect(setSessionsOpen).toHaveBeenCalledWith(true);
   });
 });

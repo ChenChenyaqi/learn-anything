@@ -17,6 +17,7 @@ const BOOT_FRAME = JSON.stringify({
   baseUrl: null,
   model: 'gpt-4o',
   cwd: FAKE_CWD,
+  appDataDir: FAKE_HOME,
 });
 
 interface SpawnResult {

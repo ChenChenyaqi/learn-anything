@@ -3,6 +3,7 @@ import { readSync } from 'node:fs';
 import { log, maskKey } from './log.ts';
 import { runRequestLoop } from './request-loop.ts';
 import { createSessionLifecycle } from './session-lifecycle.ts';
+import { setupScriptsDir, setupSkillFiles } from './learn-skills/index.ts';
 import { BootConfigSchema } from './wire.ts';
 
 function readFirstFrameSync(): { line: string; rest: Buffer } {
@@ -39,6 +40,8 @@ async function main(): Promise<void> {
   log(
     `boot ok (provider=${config.provider}, model=${config.model}, cwd=${config.cwd}, apiKey=${maskKey(config.apiKey)})`,
   );
+  const scriptsDir = setupScriptsDir(config.appDataDir);
+  setupSkillFiles(config.appDataDir, scriptsDir);
   const { runtime } = await createSessionLifecycle(config);
   runRequestLoop({ runtime, cwd: config.cwd }, rest);
 }

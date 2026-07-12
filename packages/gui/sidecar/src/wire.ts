@@ -24,6 +24,7 @@ export const BootConfigSchema = z.object({
   model: z.string().min(1),
   cwd: z.string().min(1),
   sessionId: z.string().nullable().optional(),
+  appDataDir: z.string().default(''),
 });
 export type BootConfig = z.infer<typeof BootConfigSchema>;
 

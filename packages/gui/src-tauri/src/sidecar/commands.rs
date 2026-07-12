@@ -1,6 +1,6 @@
 //! The `#[tauri::command]` entry points exposed to the frontend.
 
-use tauri::AppHandle;
+use tauri::{AppHandle, Manager};
 use tokio::sync::oneshot;
 
 use crate::config::{self, Provider};
@@ -37,6 +37,11 @@ pub async fn agent_new_session(
             .clone()
             .ok_or("No API key set. Add your key in Settings first.")?;
         let cwd = resolve_cwd(&app, working_folder)?;
+        let app_data_dir = app
+            .path()
+            .app_data_dir()
+            .map(|p| p.to_string_lossy().to_string())
+            .unwrap_or_default();
         let provider = match config.provider {
             Provider::OpenAi => "openai".to_string(),
             Provider::Anthropic => "anthropic".to_string(),
@@ -48,6 +53,7 @@ pub async fn agent_new_session(
             model: config.model,
             cwd,
             session_id: None,
+            app_data_dir,
         };
         write_frame(&state, frame).await?;
         *booted = true;

@@ -17,7 +17,14 @@ export interface SlashCommandContext {
 export interface SlashCommand {
   name: string;
   description: string;
-  run: (ctx: SlashCommandContext) => void | Promise<void>;
+  /** Hint shown in the menu, e.g. "<topic-name>". */
+  argumentHint?: string;
+  /** If true, selecting the command inserts it into the input for the
+   *  user to type arguments, rather than sending immediately. */
+  takesArgs?: boolean;
+  /** If present, the command is handled locally (UI-only). If absent,
+   *  the raw text is forwarded to the agent sidecar. */
+  run?: (ctx: SlashCommandContext) => void | Promise<void>;
 }
 
 export const SLASH_COMMANDS: SlashCommand[] = [
@@ -33,6 +40,42 @@ export const SLASH_COMMANDS: SlashCommand[] = [
     name: 'sessions',
     description: 'Browse past sessions',
     run: (ctx) => ctx.setSessionsOpen(true),
+  },
+  {
+    name: 'learn-topic',
+    description: 'Initialize or load a learning topic',
+    argumentHint: '<topic-name>',
+    takesArgs: true,
+  },
+  {
+    name: 'learn-explain',
+    description: 'Deep-dive into a concept',
+    argumentHint: '<concept-name>',
+    takesArgs: true,
+  },
+  {
+    name: 'learn-practice',
+    description: 'Hands-on coding practice',
+    argumentHint: '<concept-name>',
+    takesArgs: true,
+  },
+  {
+    name: 'learn-quiz',
+    description: 'Quick text Q&A quiz',
+    argumentHint: '<concept-or-domain>',
+    takesArgs: true,
+  },
+  {
+    name: 'learn-review',
+    description: 'Review learning progress',
+    argumentHint: '[topic-name]',
+    takesArgs: true,
+  },
+  {
+    name: 'learn-status',
+    description: 'Visualize learning state',
+    argumentHint: '[topic-name]',
+    takesArgs: true,
   },
 ];
 

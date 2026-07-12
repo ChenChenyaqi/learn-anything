@@ -135,8 +135,7 @@ Session file format:
 
 **E) Run render.mjs**:
 \`\`\`bash
-SCRIPT=$(find . -path '*/learn-anything-explain/scripts/render.mjs' -print -quit 2>/dev/null)
-node "$SCRIPT" ./.learn/topics/<topic-name>
+{{LEARN_SCRIPT:render ./.learn/topics/<topic-name>}}
 \`\`\`
 render.mjs validates state.json against the v1 schema — fix errors and re-run render.mjs if validation fails.
 

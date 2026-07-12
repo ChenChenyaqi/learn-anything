@@ -217,9 +217,9 @@ describe('Skill Template Content Quality', () => {
     expect(t.instructions).toContain('priority = (1 - confidence)');
   });
 
-  it('status template should reference status.mjs script', () => {
+  it('status template should reference status script via placeholder', () => {
     const t = getLearnStatusSkillTemplate();
-    expect(t.instructions).toContain('status.mjs');
+    expect(t.instructions).toContain('LEARN_SCRIPT:status');
     expect(t.instructions).toContain('heatmap');
   });
 

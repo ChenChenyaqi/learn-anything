@@ -38,8 +38,12 @@ watch(slashMatches, () => {
 function onSlashSelect(index: number) {
   const cmd = slashMatches.value[index];
   if (!cmd) return;
-  input.value = '';
-  session.send('/' + cmd.name);
+  if (cmd.takesArgs) {
+    input.value = '/' + cmd.name + ' ';
+  } else {
+    input.value = '';
+    session.send('/' + cmd.name);
+  }
 }
 
 function isMessageDone(i: number): boolean {

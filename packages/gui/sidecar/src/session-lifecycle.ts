@@ -12,6 +12,7 @@ import {
 import { mapPiEvent } from './agent-event-adapter.ts';
 import { emitAgentEvent } from './stdout-writer.ts';
 import { type BootConfig } from './wire.ts';
+import { join } from 'node:path';
 
 const BUILT_IN_TOOLS = ['read', 'write', 'edit', 'bash', 'grep', 'find', 'ls'];
 
@@ -69,6 +70,12 @@ export async function createSessionLifecycle(config: BootConfig): Promise<Sessio
     cwd: config.cwd,
     authStorage,
     modelRegistry,
+    resourceLoaderOptions: {
+      additionalSkillPaths: config.appDataDir ? [join(config.appDataDir, 'skills')] : [],
+      appendSystemPrompt: [
+        'The Learn Anything skill system helps users learn through structured workflows (topic setup, explanation, practice, quizzes, review, status). When a user expresses intent to learn, explain, practice, or review a topic, use the appropriate learn-anything-* skill by reading its SKILL.md file.',
+      ],
+    },
   });
 
   ensureModelAvailable(services.modelRegistry, config);

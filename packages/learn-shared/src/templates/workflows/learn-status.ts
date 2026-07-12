@@ -25,14 +25,12 @@ Use the Bash tool to run the status script (located in the scripts/ directory ne
 
 **Single topic (detailed heatmap):**
 \`\`\`bash
-SCRIPT=$(find . -path '*/learn-anything-status/scripts/status.mjs' -print -quit 2>/dev/null)
-node "$SCRIPT" --locale <locale> ./.learn/topics/<topic-name>
+{{LEARN_SCRIPT:status --locale <locale> ./.learn/topics/<topic-name>}}
 \`\`\`
 
 **All topics (summary by topic):**
 \`\`\`bash
-SCRIPT=$(find . -path '*/learn-anything-status/scripts/status.mjs' -print -quit 2>/dev/null)
-node "$SCRIPT" --all --locale <locale> ./.learn/topics
+{{LEARN_SCRIPT:status --all --locale <locale> ./.learn/topics}}
 \`\`\`
 
 The script reads state.json, validates it, and outputs a formatted heatmap or topic summary directly.

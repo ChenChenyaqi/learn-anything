@@ -1,23 +1,14 @@
-export type { SkillTemplate, CommandTemplate } from './types.js';
+export type { SkillTemplate, CommandTemplate } from '@learn-anything/shared';
 
-export {
-  getLearnTopicSkillTemplate,
-  getLearnTopicCommandTemplate,
-} from './workflows/learn-topic.js';
+export { getLearnTopicSkillTemplate, getLearnTopicCommandTemplate } from '@learn-anything/shared';
 export {
   getLearnExplainSkillTemplate,
   getLearnExplainCommandTemplate,
-} from './workflows/learn-explain.js';
+} from '@learn-anything/shared';
 export {
   getLearnPracticeSkillTemplate,
   getLearnPracticeCommandTemplate,
-} from './workflows/learn-practice.js';
-export {
-  getLearnReviewSkillTemplate,
-  getLearnReviewCommandTemplate,
-} from './workflows/learn-review.js';
-export {
-  getLearnStatusSkillTemplate,
-  getLearnStatusCommandTemplate,
-} from './workflows/learn-status.js';
-export { getLearnQuizSkillTemplate, getLearnQuizCommandTemplate } from './workflows/learn-quiz.js';
+} from '@learn-anything/shared';
+export { getLearnReviewSkillTemplate, getLearnReviewCommandTemplate } from '@learn-anything/shared';
+export { getLearnStatusSkillTemplate, getLearnStatusCommandTemplate } from '@learn-anything/shared';
+export { getLearnQuizSkillTemplate, getLearnQuizCommandTemplate } from '@learn-anything/shared';

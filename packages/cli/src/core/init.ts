@@ -2,7 +2,6 @@ import path from 'path';
 import chalk from 'chalk';
 import * as fs from 'fs';
 import { createRequire } from 'module';
-import { fileURLToPath } from 'url';
 import { FileSystemUtils } from '../utils/file-system.js';
 import { AI_TOOLS, AIToolOption, LEARN_DIR } from './config.js';
 import { isInteractive } from '../utils/interactive.js';
@@ -11,6 +10,7 @@ import { getSkillTemplates, getCommandContents, generateSkillContent } from './s
 import type { SupportedLocale } from '../i18n/types.js';
 import { getMessages } from '../i18n/index.js';
 import { CONTEXT7_GUIDANCE } from './templates/context7-guidance.js';
+import { readScript, type ScriptName } from '@learn-anything/shared';
 
 const require = createRequire(import.meta.url);
 const { version: VERSION } = require('../../package.json');
@@ -271,15 +271,10 @@ export class InitCommand {
     }
   }
 
-  /** Read a compiled script from dist/scripts/ (bundled alongside this module). */
+  /** Read a compiled script from the shared package. */
   private readCompiledScript(filename: string): string {
-    const scriptPath = path.resolve(
-      path.dirname(fileURLToPath(import.meta.url)),
-      '..',
-      'scripts',
-      filename,
-    );
-    return fs.readFileSync(scriptPath, 'utf-8');
+    const name = filename.replace('.mjs', '') as ScriptName;
+    return readScript(name);
   }
 
   private async generateCommandsForTool(resolvedPath: string, tool: AIToolOption): Promise<void> {

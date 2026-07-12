@@ -1,0 +1,29 @@
+{
+  "name": "@learn-anything/shared",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Shared learn-anything templates, workflow constants, and standalone scripts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "devDependencies": {
+    "vitest": "^3.2.4"
+  }
+}

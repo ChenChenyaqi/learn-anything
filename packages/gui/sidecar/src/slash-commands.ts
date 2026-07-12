@@ -6,15 +6,6 @@ export interface SlashContext {
   cwd: string;
 }
 
-const HELP_TEXT = [
-  'Available commands:',
-  '/new — Start a fresh session',
-  '/compact [instructions] — Compact conversation history',
-  '/model [name] — Cycle or set the active model',
-  '/clear — Alias for /new',
-  '/help — Show this help',
-].join('\n');
-
 function parseSlash(text: string): { command: string; args: string } {
   const trimmed = text.trim();
   if (!trimmed.startsWith('/')) return { command: '', args: '' };
@@ -47,36 +38,6 @@ export async function handleSlash(text: string, ctx: SlashContext): Promise<bool
     case 'compact': {
       await ctx.runtime.session.compact(args || undefined);
       emitText(ctx, 'Session compacted.');
-      return true;
-    }
-    case 'help': {
-      emitText(ctx, HELP_TEXT);
-      return true;
-    }
-    case 'model': {
-      const session = ctx.runtime.session;
-      if (!args) {
-        const result = await session.cycleModel();
-        if (result?.model) {
-          emitText(ctx, `Switched to ${result.model.provider}/${result.model.id}`);
-        } else {
-          emitText(ctx, 'No other models available.');
-        }
-      } else {
-        const currentModel = session.model;
-        if (!currentModel) {
-          emitText(ctx, 'No model currently active.');
-          return true;
-        }
-        const registry = ctx.runtime.services.modelRegistry;
-        const model = registry.find(currentModel.provider, args);
-        if (model) {
-          await session.setModel(model);
-          emitText(ctx, `Switched to ${model.provider}/${model.id}`);
-        } else {
-          emitText(ctx, `Model "${args}" not found for provider "${currentModel.provider}".`);
-        }
-      }
       return true;
     }
     default:

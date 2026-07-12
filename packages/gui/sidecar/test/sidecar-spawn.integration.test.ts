@@ -71,10 +71,10 @@ describe('sidecar integration spawn (3.9)', () => {
     execSync('node build.mjs', { cwd: SIDECAR_DIR });
   }, 30_000);
 
-  it('boots with a fake stdin frame and emits text_delta on /help', async () => {
+  it('boots with a fake stdin frame and emits session_id on /new', async () => {
     const { exitCode, stdout, stderr } = await spawnAndFeed([
       BOOT_FRAME,
-      JSON.stringify({ kind: 'slash_command', text: '/help' }),
+      JSON.stringify({ kind: 'slash_command', text: '/new' }),
     ]);
 
     expect(stderr).not.toMatch(/fatal|rejected/i);
@@ -82,8 +82,6 @@ describe('sidecar integration spawn (3.9)', () => {
 
     expect(exitCode).toBe(0);
     expect(lines.some((l) => l.type === 'session_id')).toBe(true);
-    expect(lines.some((l) => (l.event as { type?: string })?.type === 'text_delta')).toBe(true);
-    expect(lines.some((l) => (l.event as { type?: string })?.type === 'done')).toBe(true);
   }, 20_000);
 
   afterAll(() => {

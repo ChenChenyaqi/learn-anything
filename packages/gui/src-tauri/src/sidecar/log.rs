@@ -13,6 +13,9 @@ fn now_hms() -> String {
 }
 
 pub(super) fn log(msg: impl std::fmt::Display) {
+    if !cfg!(debug_assertions) {
+        return;
+    }
     eprintln!("{} [rust] {msg}", now_hms());
 }
 

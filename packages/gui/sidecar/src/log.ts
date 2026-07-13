@@ -9,6 +9,7 @@ function hhmmss(): string {
 }
 
 export function log(msg: string): void {
+  if (process.env.SIDECAR_LOG === '0') return;
   process.stderr.write(`${hhmmss()} [node] ${msg}\n`);
 }
 

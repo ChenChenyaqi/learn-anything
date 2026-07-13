@@ -37,6 +37,7 @@ pub(super) fn boot_sidecar(app: &AppHandle) -> Result<SidecarHandle, String> {
         .stdout(std::process::Stdio::piped())
         .stderr(std::process::Stdio::inherit())
         .kill_on_drop(true)
+        .env("SIDECAR_LOG", if cfg!(debug_assertions) { "1" } else { "0" })
         .spawn()
         .map_err(|e| format!("Failed to spawn Node sidecar: {e}"))?;
 

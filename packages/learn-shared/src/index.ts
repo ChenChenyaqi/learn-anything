@@ -4,7 +4,7 @@
  *
  * Consumed by:
  * - packages/cli     — skill/command file generation, script copying
- * - packages/gui/sidecar — inline prompt construction, temp-dir script setup
+ * - packages/gui/sidecar — inline prompt construction, app-data-dir script setup
  */
 
 export * from './templates/index.js';

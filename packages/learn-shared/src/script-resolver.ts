@@ -12,7 +12,7 @@
  * CLI resolves to a two-line find-and-run pattern using the find
  * command to locate the script inside the skill directory.
  *
- * Sidecar resolves to a one-liner with an absolute temp path.
+ * Sidecar resolves to a one-liner with an absolute app-data-dir path.
  */
 
 import { join } from 'node:path';
@@ -46,10 +46,10 @@ export function findPatternResolver(skillDir: string): ScriptPathResolver {
 /**
  * Sidecar resolver — generates a one-liner with an absolute path.
  *
- * Scripts are written to a temp directory at boot, so the AI can
+ * Scripts are written to an app-data directory at boot, so the AI can
  * invoke them directly without `find`.
  *
- * @param scriptsDir - absolute path to the temp scripts directory
+ * @param scriptsDir - absolute path to the app-data scripts directory
  */
 export function absolutePathResolver(scriptsDir: string): ScriptPathResolver {
   return ({ scriptName, args }) => {

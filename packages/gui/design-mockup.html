@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Learn Anything — Desktop UI Mockup</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* ---- Design tokens (mirrors packages/gui/src/styles/main.css) ---- */
+  :root {
+    --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "PingFang SC", "Noto Sans SC", sans-serif;
+    --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", "Menlo", monospace;
+    --color-text-1: #3c3c43;
+    --color-text-2: #67676c;
+    --color-text-3: #929295;
+    --color-bg: #ffffff;
+    --color-bg-alt: #f6f6f7;
+    --color-bg-soft: #f6f6f7;
+    --color-bg-elv: #ffffff;
+    --color-border: #c2c2c4;
+    --color-divider: #e2e2e3;
+    --color-brand-1: #cc4428;
+    --color-brand-2: #d94e34;
+    --color-brand-3: #e0604a;
+    --color-brand-soft: rgba(217 78 52 / 0.14);
+    --color-mastered: #18794e;
+    --color-progress: #915930;
+
+    --color-page: var(--color-bg);
+    --color-ink: var(--color-text-1);
+    --color-pencil: var(--color-text-2);
+    --color-rule: var(--color-divider);
+    --color-surface: var(--color-bg-soft);
+    --color-surface-hover: var(--color-bg-alt);
+    --color-accent: var(--color-brand-2);
+    --color-accent-soft: var(--color-brand-soft);
+  }
+  .dark {
+    --color-text-1: #dfdfd6;
+    --color-text-2: #98989f;
+    --color-text-3: #6a6a71;
+    --color-bg: #1b1b1f;
+    --color-bg-alt: #161618;
+    --color-bg-soft: #202127;
+    --color-bg-elv: #202127;
+    --color-border: #3c3f44;
+    --color-divider: #2e2e32;
+    --color-brand-1: #f0705a;
+    --color-brand-2: #e85d44;
+    --color-brand-3: #d94e34;
+    --color-brand-soft: rgba(232 93 68 / 0.16);
+    --color-mastered: #3dd68c;
+    --color-progress: #f9b44e;
+  }
+  html, body { height: 100%; }
+  body {
+    font-family: var(--font-sans);
+    color: var(--color-ink);
+    background: var(--color-bg);
+    -webkit-font-smoothing: antialiased;
+  }
+  * { scrollbar-width: thin; scrollbar-color: var(--color-border) transparent; }
+  *::-webkit-scrollbar { width: 6px; height: 6px; }
+  *::-webkit-scrollbar-track { background: transparent; }
+  *::-webkit-scrollbar-thumb { background-color: var(--color-border); border-radius: 3px; }
+  .font-mono { font-family: var(--font-mono); }
+  ::selection { background: var(--color-accent-soft); }
+  :focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+
+  /* view switch */
+  .view { display: none; }
+  .view.active { display: flex; }
+
+  /* topic/concept rows: notebook-margin hover */
+  .row-margin { border-left: 2px solid transparent; }
+  .row-margin:hover { border-left-color: var(--color-accent); }
+
+  /* status dot */
+  .dot { width: 7px; height: 7px; border-radius: 9999px; display: inline-block; flex: none; }
+  .dot-mastered { background: var(--color-mastered); }
+  .dot-progress { background: var(--color-progress); }
+  .dot-unexplored { background: var(--color-border); }
+  .dot-needs    { background: var(--color-accent); }
+
+  /* mastery bar */
+  .bar { height: 3px; border-radius: 9999px; background: var(--color-divider); overflow: hidden; }
+  .bar > i { display: block; height: 100%; background: var(--color-accent); }
+
+  /* heatmap squares */
+  .hm-sq { width: 16px; height: 16px; border-radius: 3px; display:inline-block; }
+  .bg-mastered { background: var(--color-mastered); }
+  .bg-progress { background: var(--color-progress); }
+  .bg-needs { background: var(--color-accent); }
+  .bg-unexplored { background: var(--color-border); }
+
+  /* ---- file tree ---- */
+  details > summary { list-style: none; cursor: pointer; }
+  details > summary::-webkit-details-marker { display: none; }
+  summary .tri { display:inline-block; width: 12px; color: var(--color-text-3); transition: transform .12s; }
+  details[open] summary .tri { transform: rotate(90deg); }
+  .tree-leaf { border-left: 2px solid transparent; }
+  .tree-leaf:hover { background: var(--color-surface-hover); }
+  .tree-leaf.active { border-left-color: var(--color-accent); background: var(--color-surface); color: var(--color-ink); }
+  .tree-leaf.active .leaf-name { font-weight: 500; }
+
+  /* ---- editor tabs ---- */
+  .tab { border-top: 2px solid transparent; }
+  .tab.active { border-top-color: var(--color-accent); background: var(--color-page); color: var(--color-ink); }
+
+  /* ---- code block ---- */
+  .code { font-family: var(--font-mono); font-size: 13px; line-height: 1.65; }
+  .code .row { display: flex; }
+  .code .ln { width: 3rem; flex: none; text-align: right; padding-right: 1rem; color: var(--color-text-3); background: var(--color-bg-alt); user-select: none; }
+  .code .lc { white-space: pre; padding-right: 1.5rem; flex: 1; }
+  .code .row:first-child .ln { padding-top: .6rem; }
+  .code .row:first-child .lc { padding-top: .6rem; }
+  .code .row:last-child .ln { padding-bottom: .6rem; }
+  .code .row:last-child .lc { padding-bottom: .6rem; }
+  .kw  { color: var(--color-accent); }
+  .str { color: var(--color-mastered); }
+  .ty  { color: var(--color-progress); }
+  .cmt { color: var(--color-text-3); font-style: italic; }
+  .fnname { color: var(--color-ink); font-weight: 500; }
+
+  /* ---- note prose ---- */
+  .prose { color: var(--color-ink); font-size: 0.95rem; line-height: 1.75; }
+  .prose p { margin: 0 0 1rem; }
+  .prose h2 { margin: 2.2rem 0 0.9rem; font-size: 1.05rem; font-weight: 600; padding-left: 0.6rem; border-left: 2px solid var(--color-accent); }
+  .prose h3 { margin: 1.5rem 0 0.6rem; font-size: 0.95rem; font-weight: 600; }
+  .prose strong { color: var(--color-accent); font-weight: 600; }
+  .prose code { font-family: var(--font-mono); font-size: 0.8rem; background: var(--color-bg-alt); padding: 0.1rem 0.35rem; border-radius: 4px; }
+  .prose pre { background: var(--color-bg-alt); padding: 0.85rem 1rem; border-radius: 8px; overflow-x: auto; margin: 0 0 1.2rem; }
+  .prose pre code { background: none; padding: 0; }
+  .prose ol { margin: 0 0 1.1rem; padding-left: 1.4rem; }
+  .prose ol li { margin: 0.3rem 0; }
+  .prose blockquote { margin: 0 0 1.2rem; padding: 0.1rem 0 0.9rem; border-left: 2px solid var(--color-rule); color: var(--color-pencil); }
+  .prose hr { border: 0; border-top: 1px solid var(--color-rule); margin: 1.8rem 0; }
+
+  /* edit mode toggle for notes */
+  .note-body .prose { display: block; }
+  .note-body .raw   { display: none; }
+  .note-body.editing .prose { display: none; }
+  .note-body.editing .raw   { display: block; }
+  .raw textarea { width: 100%; min-height: 30rem; background: transparent; border: 0; outline: 0; resize: none; font-family: var(--font-mono); font-size: 13px; line-height: 1.7; color: var(--color-ink); }
+
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.35} }
+  @media (prefers-reduced-motion: reduce) { *,*::before,*::after { animation-duration: .01ms !important; } }
+</style>
+</head>
+<body class="bg-[var(--color-page)] text-[var(--color-ink)]">
+
+<div class="flex h-screen flex-col">
+
+  <!-- ===== AppHeader ===== -->
+  <header class="flex items-center gap-4 border-b border-[var(--color-rule)] px-5 py-3">
+    <span class="text-base font-semibold tracking-tight">Learn Anything</span>
+    <div class="ml-auto flex items-center gap-2.5">
+      <span class="max-w-[22rem] truncate font-mono text-xs text-[var(--color-pencil)]">~/projects/learning-rust</span>
+      <button class="inline-flex items-center justify-center rounded-lg border border-[var(--color-rule)] bg-[var(--color-surface)] px-3 py-1.5 text-xs text-[var(--color-ink)] transition-colors hover:bg-[var(--color-surface-hover)]">Change folder</button>
+      <button class="inline-flex items-center justify-center rounded-lg border border-transparent px-3 py-1.5 text-xs text-[var(--color-pencil)] transition-colors hover:text-[var(--color-ink)]">Settings</button>
+      <button id="theme" class="inline-flex items-center justify-center rounded-lg border border-transparent px-2 py-1.5 text-xs text-[var(--color-pencil)] transition-colors hover:text-[var(--color-ink)]" title="Toggle theme">◐</button>
+    </div>
+  </header>
+
+  <!-- ===== Main split ===== -->
+  <section class="flex-1 overflow-hidden p-6">
+    <div class="flex h-full">
+
+      <!-- ===== LEFT: main interface ===== -->
+      <div class="flex-1 min-w-0 overflow-hidden">
+
+        <!-- ============ VIEW: OVERVIEW (default landing) ============ -->
+        <div id="overview" class="view active h-full overflow-y-auto pr-6 flex-col">
+
+          <div class="mb-8 flex items-end justify-between">
+            <div>
+              <h1 class="m-0 text-2xl font-semibold tracking-tight">Your learning</h1>
+              <p class="mt-1.5 font-mono text-xs text-[var(--color-pencil)]">4 topics · 18 concepts · 7 mastered · overall 39%</p>
+            </div>
+            <button class="inline-flex items-center gap-1.5 rounded-lg border bg-[var(--color-accent)] border-[var(--color-accent)] px-3.5 py-1.5 text-sm text-white transition-opacity hover:opacity-90">
+              <span class="text-base leading-none">+</span> New topic
+            </button>
+          </div>
+
+          <!-- overall mastery -->
+          <div class="mb-8">
+            <div class="bar"><i style="width:39%"></i></div>
+          </div>
+
+          <ul class="m-0 flex flex-col list-none p-0">
+            <!-- topic 01 -->
+            <li class="row-margin pl-4 -ml-4 py-3.5 transition-colors hover:bg-[var(--color-surface-hover)] rounded-r-lg cursor-pointer" data-go-topic>
+              <div class="flex items-baseline gap-4">
+                <span class="font-mono text-xs text-[var(--color-text-3)] w-6">01</span>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center justify-between gap-4">
+                    <h3 class="m-0 text-base font-semibold">Rust</h3>
+                    <span class="font-mono text-xs text-[var(--color-pencil)]">3/12 mastered · 25%</span>
+                  </div>
+                  <div class="bar mt-2"><i style="width:25%"></i></div>
+                  <p class="m-0 mt-1.5 text-xs text-[var(--color-pencil)]">Ownership, borrowing, async, traits</p>
+                </div>
+              </div>
+            </li>
+            <!-- topic 02 -->
+            <li class="row-margin pl-4 -ml-4 py-3.5 transition-colors hover:bg-[var(--color-surface-hover)] rounded-r-lg cursor-pointer" data-go-topic>
+              <div class="flex items-baseline gap-4">
+                <span class="font-mono text-xs text-[var(--color-text-3)] w-6">02</span>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center justify-between gap-4">
+                    <h3 class="m-0 text-base font-semibold">React</h3>
+                    <span class="font-mono text-xs text-[var(--color-pencil)]">2/5 mastered · 40%</span>
+                  </div>
+                  <div class="bar mt-2"><i style="width:40%"></i></div>
+                  <p class="m-0 mt-1.5 text-xs text-[var(--color-pencil)]">Hooks, suspense, server components</p>
+                </div>
+              </div>
+            </li>
+            <!-- topic 03 -->
+            <li class="row-margin pl-4 -ml-4 py-3.5 transition-colors hover:bg-[var(--color-surface-hover)] rounded-r-lg cursor-pointer" data-go-topic>
+              <div class="flex items-baseline gap-4">
+                <span class="font-mono text-xs text-[var(--color-text-3)] w-6">03</span>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center justify-between gap-4">
+                    <h3 class="m-0 text-base font-semibold">Distributed Systems</h3>
+                    <span class="font-mono text-xs text-[var(--color-pencil)]">2/6 mastered · 33%</span>
+                  </div>
+                  <div class="bar mt-2"><i style="width:33%"></i></div>
+                  <p class="m-0 mt-1.5 text-xs text-[var(--color-pencil)]">Consensus, replication, partitions</p>
+                </div>
+              </div>
+            </li>
+            <!-- topic 04 -->
+            <li class="row-margin pl-4 -ml-4 py-3.5 transition-colors hover:bg-[var(--color-surface-hover)] rounded-r-lg cursor-pointer" data-go-topic>
+              <div class="flex items-baseline gap-4">
+                <span class="font-mono text-xs text-[var(--color-text-3)] w-6">04</span>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center justify-between gap-4">
+                    <h3 class="m-0 text-base font-semibold">PostgreSQL</h3>
+                    <span class="font-mono text-xs text-[var(--color-pencil)]">0/4 mastered · not started</span>
+                  </div>
+                  <div class="bar mt-2"><i style="width:0%"></i></div>
+                  <p class="m-0 mt-1.5 text-xs text-[var(--color-pencil)]">Indexes, transactions, query plans</p>
+                </div>
+              </div>
+            </li>
+          </ul>
+
+          <p class="mt-10 max-w-md text-sm text-[var(--color-pencil)]">
+            Pick a topic to open its workspace, or ask the agent to &nbsp;<span class="font-mono text-[var(--color-ink)]">/learn-topic</span>&nbsp; something new.
+          </p>
+        </div>
+
+        <!-- ============ VIEW: IDE WORKSPACE ============ -->
+        <div id="ide" class="view h-full">
+
+          <!-- file tree -->
+          <aside class="w-60 shrink-0 overflow-y-auto border-r border-[var(--color-rule)] pr-2">
+            <button id="backToOverview" class="mb-3 inline-flex items-center gap-1 font-mono text-xs text-[var(--color-pencil)] transition-colors hover:text-[var(--color-ink)]">← All topics</button>
+
+            <div class="mb-3 px-2 text-sm font-semibold">Rust</div>
+
+            <!-- knowledge map virtual entry -->
+            <div class="tree-leaf flex items-center gap-2 rounded-r-lg px-2 py-1.5 text-sm cursor-pointer transition-colors" data-open="map">
+              <span class="text-[var(--color-accent)]">◇</span>
+              <span class="leaf-name">Knowledge Map</span>
+            </div>
+
+            <details open class="mt-1">
+              <summary class="flex items-center gap-1 rounded-r-lg px-2 py-1.5 text-sm text-[var(--color-ink)] hover:bg-[var(--color-surface-hover)]">
+                <span class="tri">▸</span><span>Basics</span>
+                <span class="ml-auto font-mono text-[10px] text-[var(--color-text-3)]">2/4</span>
+              </summary>
+              <div class="mb-1 ml-3 border-l border-[var(--color-rule)] pl-2">
+
+                <div class="mt-1 px-2 font-mono text-[10px] uppercase tracking-wider text-[var(--color-text-3)]">sessions</div>
+                <div class="tree-leaf active flex items-center gap-2 rounded-r-lg px-2 py-1.5 text-sm cursor-pointer transition-colors" data-open="note">
+                  <span class="dot dot-mastered"></span><span class="leaf-name truncate">Explaining lifetimes.md</span>
+                </div>
+                <div class="tree-leaf flex items-center gap-2 rounded-r-lg px-2 py-1.5 text-sm cursor-pointer transition-colors" data-open="note2">
+                  <span class="dot dot-progress"></span><span class="leaf-name truncate">Q&amp;A static vs 'a.md</span>
+                </div>
+
+                <div class="mt-2 px-2 font-mono text-[10px] uppercase tracking-wider text-[var(--color-text-3)]">exercises</div>
+                <div class="tree-leaf flex items-center gap-2 rounded-r-lg px-2 py-1.5 text-sm cursor-pointer transition-colors" data-open="code1">
+                  <span class="font-mono text-[10px] text-[var(--color-text-3)] w-3">●</span><span class="leaf-name truncate font-mono text-xs">lifetime-1.rs</span>
+                </div>
+                <div class="tree-leaf flex items-center gap-2 rounded-r-lg px-2 py-1.5 text-sm cursor-pointer transition-colors" data-open="code">
+                  <span class="font-mono text-[10px] text-[var(--color-text-3)] w-3">●</span><span class="leaf-name truncate font-mono text-xs">longest-str.rs</span>
+                </div>
+              </div>
+            </details>
+
+            <details class="mt-1">
+              <summary class="flex items-center gap-1 rounded-r-lg px-2 py-1.5 text-sm text-[var(--color-ink)] hover:bg-[var(--color-surface-hover)]">
+                <span class="tri">▸</span><span>Concurrency</span>
+                <span class="ml-auto font-mono text-[10px] text-[var(--color-text-3)]">1/4</span>
+              </summary>
+              <div class="mb-1 ml-3 border-l border-[var(--color-rule)] pl-2">
+                <div class="mt-1 px-2 font-mono text-[10px] uppercase tracking-wider text-[var(--color-text-3)]">sessions</div>
+                <div class="tree-leaf flex items-center gap-2 rounded-r-lg px-2 py-1.5 text-sm cursor-pointer transition-colors" data-open="note">
+                  <span class="dot dot-needs"></span><span class="leaf-name truncate">Async &amp; futures.md</span>
+                </div>
+                <div class="mt-2 px-2 font-mono text-[10px] uppercase tracking-wider text-[var(--color-text-3)]">exercises</div>
+                <div class="tree-leaf flex items-center gap-2 rounded-r-lg px-2 py-1.5 text-sm cursor-pointer transition-colors" data-open="code">
+                  <span class="font-mono text-[10px] text-[var(--color-text-3)] w-3">●</span><span class="leaf-name truncate font-mono text-xs">spawn-threads.rs</span>
+                </div>
+              </div>
+            </details>
+
+            <details class="mt-1">
+              <summary class="flex items-center gap-1 rounded-r-lg px-2 py-1.5 text-sm text-[var(--color-ink)] hover:bg-[var(--color-surface-hover)]">
+                <span class="tri">▸</span><span>Traits</span>
+                <span class="ml-auto font-mono text-[10px] text-[var(--color-text-3)]">0/2</span>
+              </summary>
+            </details>
+          </aside>
+
+          <!-- editor pane -->
+          <div class="flex min-w-0 flex-1 flex-col pl-5">
+
+            <!-- tab bar -->
+            <div id="tabbar" class="flex items-stretch border-b border-[var(--color-rule)]">
+              <div class="tab active flex cursor-pointer items-center gap-2 border-r border-[var(--color-rule)] px-3 py-2 text-sm text-[var(--color-pencil)]" data-tab="note">
+                <span>Explaining lifetimes.md</span><span class="text-[var(--color-text-3)] hover:text-[var(--color-ink)]">✕</span>
+              </div>
+              <div class="tab flex cursor-pointer items-center gap-2 border-r border-[var(--color-rule)] px-3 py-2 text-sm text-[var(--color-pencil)]" data-tab="code">
+                <span class="font-mono text-xs">longest-str.rs</span><span class="text-[var(--color-text-3)] hover:text-[var(--color-ink)]">✕</span>
+              </div>
+            </div>
+
+            <!-- editor bodies -->
+            <div class="relative flex-1 overflow-hidden">
+
+              <!-- body: note (markdown) -->
+              <div id="body-note" class="body h-full overflow-y-auto">
+                <div class="note-body py-5">
+                  <!-- toolbar -->
+                  <div class="mb-4 flex items-center gap-2 text-xs">
+                    <span class="font-mono text-[var(--color-accent)]">markdown</span>
+                    <span class="font-mono text-[var(--color-text-3)]">·</span>
+                    <span class="font-mono text-[var(--color-pencil)]">2026-07-12</span>
+                    <button id="editToggle" class="ml-auto rounded-md border border-[var(--color-rule)] bg-[var(--color-surface)] px-2 py-1 text-[var(--color-ink)] transition-colors hover:bg-[var(--color-surface-hover)]">Edit</button>
+                  </div>
+
+                  <div class="prose">
+                    <p>A <strong>lifetime</strong> is the span during which a reference is valid. Rust tracks it at compile time so a reference can never outlive what it points to — no dangling pointers, no GC needed.</p>
+                    <h2>Why we need them</h2>
+                    <p>Consider a function returning the longer of two string slices:</p>
+                    <pre><code>fn longest(x: &amp;str, y: &amp;str) -&gt; &amp;str {
+    if x.len() &gt; y.len() { x } else { y }
+}</code></pre>
+                    <p>The compiler can&rsquo;t tell which input the returned reference is tied to, so it refuses to compile. <strong>Lifetime parameters</strong> make that relationship explicit.</p>
+                    <h2>The elision rules</h2>
+                    <ol>
+                      <li>Each reference input gets its own lifetime.</li>
+                      <li>Exactly one input lifetime → all outputs share it.</li>
+                      <li>Many inputs, but one is <code>&amp;self</code> → outputs take <code>self</code>&rsquo;s lifetime.</li>
+                    </ol>
+                    <blockquote>One lifetime <code>'a</code> says: the result lives at most as long as the <em>shorter</em> of the two inputs.</blockquote>
+                    <hr>
+                    <p class="font-mono text-xs text-[var(--color-pencil)]">concept: borrowing-and-lifetimes · mastered · conf 0.92 · 3×explain · 2×practice</p>
+                  </div>
+
+                  <div class="raw">
+                    <textarea spellcheck="false"># Explaining lifetimes
+
+A **lifetime** is the span during which a reference is valid. Rust tracks
+it at compile time so a reference can never outlive what it points to.
+
+## Why we need them
+
+Consider a function returning the longer of two string slices:
+
+    fn longest(x: &str, y: &str) -> &str {
+        if x.len() > y.len() { x } else { y }
+    }
+
+The compiler can't tell which input the returned reference is tied to...
+
+## The elision rules
+
+1. Each reference input gets its own lifetime.
+2. Exactly one input lifetime -> all outputs share it.
+3. Many inputs, but one is &self -> outputs take self's lifetime.
+
+> One lifetime 'a says: the result lives at most as long as the shorter input.
+</textarea>
+                  </div>
+                </div>
+              </div>
+
+              <!-- body: code -->
+              <div id="body-code" class="body h-full overflow-auto" style="display:none">
+                <div class="py-3">
+                  <!-- toolbar -->
+                  <div class="mb-3 flex items-center gap-2 px-4 text-xs">
+                    <span class="font-mono text-[var(--color-accent)]">rust</span>
+                    <span class="font-mono text-[var(--color-text-3)]">·</span>
+                    <span class="font-mono text-[var(--color-pencil)]">exercise 2 · unsolved</span>
+                    <span class="ml-auto font-mono text-[var(--color-text-3)]">Ln 15 · Col 3</span>
+                  </div>
+
+                  <div class="code">
+                    <div class="row"><span class="ln">1</span><span class="lc"><span class="cmt">// Borrowing &amp; lifetimes — exercise 2</span></span></div>
+                    <div class="row"><span class="ln">2</span><span class="lc"><span class="cmt">// Make it compile: the returned ref must live long enough.</span></span></div>
+                    <div class="row"><span class="ln">3</span><span class="lc"> </span></div>
+                    <div class="row"><span class="ln">4</span><span class="lc"><span class="kw">fn</span> <span class="fnname">longest</span>&lt;<span class="ty">'a</span>&gt;(x: &amp;<span class="ty">'a</span> str, y: &amp;<span class="ty">'a</span> str) -&gt; &amp;<span class="ty">'a</span> str {</span></div>
+                    <div class="row"><span class="ln">5</span><span class="lc">    <span class="kw">if</span> x.len() &gt; y.len() { x } <span class="kw">else</span> { y }</span></div>
+                    <div class="row"><span class="ln">6</span><span class="lc">}</span></div>
+                    <div class="row"><span class="ln">7</span><span class="lc"> </span></div>
+                    <div class="row"><span class="ln">8</span><span class="lc"><span class="kw">fn</span> <span class="fnname">main</span>() {</span></div>
+                    <div class="row"><span class="ln">9</span><span class="lc">    <span class="kw">let</span> s1 = String::from(<span class="str">"long string"</span>);</span></div>
+                    <div class="row"><span class="ln">10</span><span class="lc">    <span class="kw">let</span> result;</span></div>
+                    <div class="row"><span class="ln">11</span><span class="lc">    {</span></div>
+                    <div class="row"><span class="ln">12</span><span class="lc">        <span class="kw">let</span> s2 = String::from(<span class="str">"short"</span>);</span></div>
+                    <div class="row"><span class="ln">13</span><span class="lc">        result = <span class="fnname">longest</span>(s1.as_str(), s2.as_str());</span></div>
+                    <div class="row"><span class="ln">14</span><span class="lc">    } <span class="cmt">// s2 dropped here</span></span></div>
+                    <div class="row"><span class="ln">15</span><span class="lc">    <span class="fnname">println!</span>(<span class="str">"{}"</span>, result); <span class="cmt">// error: does not live long enough</span></span></div>
+                    <div class="row"><span class="ln">16</span><span class="lc">}</span></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- body: knowledge map -->
+              <div id="body-map" class="body h-full overflow-y-auto" style="display:none">
+                <div class="py-5">
+
+                  <!-- header -->
+                  <div class="mb-1 font-mono text-xs text-[var(--color-accent)]">knowledge map</div>
+                  <h1 class="m-0 text-2xl font-semibold tracking-tight">Rust</h1>
+                  <p class="mt-1.5 text-sm text-[var(--color-pencil)]">3 mastered · 2 in progress · 1 needs practice · 4 unexplored</p>
+                  <div class="bar mt-4"><i style="width:30%"></i></div>
+
+                  <!-- legend -->
+                  <div class="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1.5 font-mono text-[11px] text-[var(--color-pencil)]">
+                    <span class="flex items-center gap-1.5"><span class="hm-sq bg-mastered"></span>mastered</span>
+                    <span class="flex items-center gap-1.5"><span class="hm-sq bg-progress"></span>in progress</span>
+                    <span class="flex items-center gap-1.5"><span class="hm-sq bg-needs"></span>needs practice</span>
+                    <span class="flex items-center gap-1.5"><span class="hm-sq bg-unexplored"></span>unexplored</span>
+                  </div>
+
+                  <!-- heatmap clusters -->
+                  <div class="mt-7 flex flex-wrap gap-8">
+                    <div>
+                      <div class="mb-2 font-mono text-[10px] uppercase tracking-wider text-[var(--color-text-3)]">Basics · 2/4</div>
+                      <div class="flex gap-1">
+                        <span class="hm-sq bg-mastered" title="Ownership &amp; moves"></span>
+                        <span class="hm-sq bg-mastered" title="Borrowing &amp; lifetimes"></span>
+                        <span class="hm-sq bg-progress" title="Smart pointers"></span>
+                        <span class="hm-sq bg-unexplored" title="Pattern matching"></span>
+                      </div>
+                    </div>
+                    <div>
+                      <div class="mb-2 font-mono text-[10px] uppercase tracking-wider text-[var(--color-text-3)]">Concurrency · 1/4</div>
+                      <div class="flex gap-1">
+                        <span class="hm-sq bg-mastered" title="Threads &amp; Send/Sync"></span>
+                        <span class="hm-sq bg-needs" title="Async &amp; futures"></span>
+                        <span class="hm-sq bg-progress" title="Channels"></span>
+                        <span class="hm-sq bg-unexplored" title="Locks &amp; atomics"></span>
+                      </div>
+                    </div>
+                    <div>
+                      <div class="mb-2 font-mono text-[10px] uppercase tracking-wider text-[var(--color-text-3)]">Traits · 0/2</div>
+                      <div class="flex gap-1">
+                        <span class="hm-sq bg-unexplored" title="Trait objects &amp; dyn"></span>
+                        <span class="hm-sq bg-unexplored" title="Associated types"></span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- detailed concept list -->
+                  <div class="mt-9 flex flex-col gap-7">
+
+                    <section>
+                      <h2 class="m-0 mb-3 font-mono text-xs uppercase tracking-wider text-[var(--color-text-3)]">Basics</h2>
+                      <ul class="m-0 flex flex-col gap-px list-none p-0">
+                        <li class="row-margin pl-4 -ml-4 py-2.5 rounded-r-lg transition-colors hover:bg-[var(--color-surface-hover)] cursor-pointer" data-open="note">
+                          <div class="flex items-center gap-3">
+                            <span class="dot dot-mastered"></span>
+                            <span class="flex-1 text-sm">Ownership &amp; moves</span>
+                            <span class="font-mono text-xs text-[var(--color-pencil)]">mastered · conf 1.00</span>
+                          </div>
+                        </li>
+                        <li class="row-margin pl-4 -ml-4 py-2.5 rounded-r-lg transition-colors hover:bg-[var(--color-surface-hover)] cursor-pointer" data-open="note">
+                          <div class="flex items-center gap-3">
+                            <span class="dot dot-mastered"></span>
+                            <span class="flex-1 text-sm">Borrowing &amp; lifetimes</span>
+                            <span class="font-mono text-xs text-[var(--color-pencil)]">mastered · conf 0.92</span>
+                          </div>
+                        </li>
+                        <li class="row-margin pl-4 -ml-4 py-2.5 rounded-r-lg transition-colors hover:bg-[var(--color-surface-hover)] cursor-pointer" data-open="code">
+                          <div class="flex items-center gap-3">
+                            <span class="dot dot-progress"></span>
+                            <span class="flex-1 text-sm">Smart pointers</span>
+                            <span class="font-mono text-xs text-[var(--color-pencil)]">in progress · conf 0.62 · 2×practice</span>
+                          </div>
+                        </li>
+                        <li class="py-2.5">
+                          <div class="flex items-center gap-3">
+                            <span class="dot dot-unexplored"></span>
+                            <span class="flex-1 text-sm text-[var(--color-pencil)]">Pattern matching</span>
+                            <span class="font-mono text-xs text-[var(--color-text-3)]">unexplored</span>
+                          </div>
+                        </li>
+                      </ul>
+                    </section>
+
+                    <section>
+                      <h2 class="m-0 mb-3 font-mono text-xs uppercase tracking-wider text-[var(--color-text-3)]">Concurrency</h2>
+                      <ul class="m-0 flex flex-col gap-px list-none p-0">
+                        <li class="row-margin pl-4 -ml-4 py-2.5 rounded-r-lg transition-colors hover:bg-[var(--color-surface-hover)] cursor-pointer" data-open="note">
+                          <div class="flex items-center gap-3">
+                            <span class="dot dot-mastered"></span>
+                            <span class="flex-1 text-sm">Threads &amp; <span class="font-mono text-xs">Send/Sync</span></span>
+                            <span class="font-mono text-xs text-[var(--color-pencil)]">mastered · conf 0.88</span>
+                          </div>
+                        </li>
+                        <li class="row-margin pl-4 -ml-4 py-2.5 rounded-r-lg transition-colors hover:bg-[var(--color-surface-hover)] cursor-pointer" data-open="note">
+                          <div class="flex items-center gap-3">
+                            <span class="dot dot-needs"></span>
+                            <span class="flex-1 text-sm">Async &amp; futures</span>
+                            <span class="font-mono text-xs text-[var(--color-pencil)]">needs practice · conf 0.45 · 1×explain</span>
+                          </div>
+                        </li>
+                        <li class="row-margin pl-4 -ml-4 py-2.5 rounded-r-lg transition-colors hover:bg-[var(--color-surface-hover)] cursor-pointer" data-open="code">
+                          <div class="flex items-center gap-3">
+                            <span class="dot dot-progress"></span>
+                            <span class="flex-1 text-sm">Channels</span>
+                            <span class="font-mono text-xs text-[var(--color-pencil)]">in progress · conf 0.40 · 1×practice</span>
+                          </div>
+                        </li>
+                        <li class="py-2.5">
+                          <div class="flex items-center gap-3">
+                            <span class="dot dot-unexplored"></span>
+                            <span class="flex-1 text-sm text-[var(--color-pencil)]">Locks &amp; atomics</span>
+                            <span class="font-mono text-xs text-[var(--color-text-3)]">unexplored</span>
+                          </div>
+                        </li>
+                      </ul>
+                    </section>
+
+                    <section>
+                      <h2 class="m-0 mb-3 font-mono text-xs uppercase tracking-wider text-[var(--color-text-3)]">Traits</h2>
+                      <ul class="m-0 flex flex-col gap-px list-none p-0">
+                        <li class="py-2.5">
+                          <div class="flex items-center gap-3">
+                            <span class="dot dot-unexplored"></span>
+                            <span class="flex-1 text-sm text-[var(--color-pencil)]">Trait objects &amp; <span class="font-mono text-xs">dyn</span></span>
+                            <span class="font-mono text-xs text-[var(--color-text-3)]">unexplored</span>
+                          </div>
+                        </li>
+                        <li class="py-2.5">
+                          <div class="flex items-center gap-3">
+                            <span class="dot dot-unexplored"></span>
+                            <span class="flex-1 text-sm text-[var(--color-pencil)]">Associated types</span>
+                            <span class="font-mono text-xs text-[var(--color-text-3)]">unexplored</span>
+                          </div>
+                        </li>
+                      </ul>
+                    </section>
+
+                  </div>
+
+                  <p class="mt-9 text-sm text-[var(--color-pencil)]">
+                    Ask the agent to &nbsp;<span class="font-mono text-[var(--color-ink)]">/learn-review</span>&nbsp; for spaced-repetition suggestions, or &nbsp;<span class="font-mono text-[var(--color-ink)]">/learn-explain</span>&nbsp; a concept.
+                  </p>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ===== drag handle ===== -->
+      <div class="relative w-4 h-full shrink-0 cursor-col-resize group">
+        <div class="absolute inset-y-0 left-1/2 w-px -translate-x-1/2 bg-[var(--color-rule)] transition-colors group-hover:bg-[var(--color-accent)]"></div>
+      </div>
+
+      <!-- ===== RIGHT: Agent panel (static facsimile) ===== -->
+      <aside class="flex h-full shrink-0 flex-col pl-2" style="width:400px">
+        <div class="flex items-center gap-2 border-b border-[var(--color-rule)] pb-2">
+          <span class="text-sm font-semibold">Agent</span>
+          <div class="ml-auto flex items-center gap-1">
+            <button class="inline-flex items-center gap-1.5 rounded-full border border-transparent px-2.5 py-1 text-xs text-[var(--color-pencil)] transition-colors hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-ink)]">◇ new</button>
+            <button class="inline-flex items-center gap-1.5 rounded-full border border-transparent px-2.5 py-1 text-xs text-[var(--color-pencil)] transition-colors hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-ink)]">▤ sessions</button>
+          </div>
+        </div>
+        <div class="relative flex-1 overflow-hidden">
+          <div class="flex h-full flex-col gap-3 overflow-y-auto py-3">
+            <div class="flex justify-end">
+              <div class="max-w-[85%] whitespace-pre-wrap rounded-lg bg-[var(--color-accent)] px-3 py-2 text-sm text-white">Why doesn't longest() compile here?</div>
+            </div>
+            <div class="px-1 text-sm leading-relaxed text-[var(--color-ink)]">
+              The returned reference could point at either <span class="font-mono text-xs">x</span> or <span class="font-mono text-xs">y</span>, but in <span class="font-mono text-xs">main</span> the borrow of <span class="font-mono text-xs">s2</span> ends when its block closes — before <span class="font-mono text-xs">result</span> is used.
+            </div>
+            <div class="border-l-2 border-[var(--color-accent)] pl-3 py-1.5">
+              <div class="flex items-center gap-2">
+                <span class="dot dot-progress" style="animation: pulse 1.2s ease-in-out infinite;"></span>
+                <span class="font-mono text-xs text-[var(--color-pencil)]">$ edit longest-str.rs</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="flex flex-col border-t border-[var(--color-rule)] pt-2">
+          <div class="flex items-end gap-2">
+            <textarea rows="2" placeholder="Ask anything…" class="w-full resize-none rounded-lg border border-[var(--color-rule)] bg-[var(--color-surface)] px-2.5 py-2 text-sm text-[var(--color-ink)] focus:outline-none focus:border-[var(--color-accent)]"></textarea>
+            <button class="inline-flex items-center justify-center rounded-lg border bg-[var(--color-accent)] border-[var(--color-accent)] px-4 py-2 text-sm text-white transition-opacity hover:opacity-90">Send</button>
+          </div>
+        </div>
+      </aside>
+
+    </div>
+  </section>
+</div>
+
+<script>
+  const root = document.documentElement;
+  document.getElementById('theme').addEventListener('click', () => root.classList.toggle('dark'));
+
+  function showView(name) {
+    document.querySelectorAll('.view').forEach(v => {
+      const on = v.id === name;
+      v.classList.toggle('active', on);
+      v.style.display = on ? 'flex' : 'none';
+    });
+  }
+
+  // topic rows -> IDE
+  document.querySelectorAll('[data-go-topic]').forEach(el => el.addEventListener('click', () => showView('ide')));
+  document.getElementById('backToOverview').addEventListener('click', () => showView('overview'));
+
+  // editor tabs
+  const tabbar = document.getElementById('tabbar');
+  const bodies = { note: document.getElementById('body-note'), code: document.getElementById('body-code'), map: document.getElementById('body-map') };
+  function activateTab(name) {
+    tabbar.style.display = '';
+    document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+    Object.entries(bodies).forEach(([k, el]) => { if (el) el.style.display = (k === name) ? 'block' : 'none'; });
+  }
+  function showMap() {
+    tabbar.style.display = 'none';
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    Object.entries(bodies).forEach(([k, el]) => { if (el) el.style.display = (k === 'map') ? 'block' : 'none'; });
+    document.querySelectorAll('.tree-leaf').forEach(l => l.classList.remove('active'));
+    document.querySelector('[data-open="map"]').classList.add('active');
+  }
+  document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', (e) => {
+    if (e.target.textContent === '✕') { e.stopPropagation(); return; }
+    activateTab(t.dataset.tab);
+  }));
+
+  // file tree opens a file -> ensure its tab exists & activate
+  document.querySelectorAll('[data-open]').forEach(el => el.addEventListener('click', () => {
+    const f = el.dataset.open;
+    document.querySelectorAll('.tree-leaf').forEach(l => l.classList.remove('active'));
+    el.classList.add('active');
+    if (f === 'map') { showMap(); return; }
+    if (f === 'code' || f === 'code1') activateTab('code');
+    else activateTab('note');
+  }));
+
+  // note Edit toggle
+  const noteBody = document.querySelector('.note-body');
+  document.getElementById('editToggle').addEventListener('click', function() {
+    const editing = noteBody.classList.toggle('editing');
+    this.textContent = editing ? 'Preview' : 'Edit';
+  });
+
+  showView('overview');
+</script>
+
+</body>
+</html>

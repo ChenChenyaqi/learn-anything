@@ -9,7 +9,9 @@
 import { onMounted } from 'vue';
 import SetupScreen from './components/SetupScreen.vue';
 import AppHeader from './components/AppHeader.vue';
-import TopicList from './components/TopicList.vue';
+import OverviewView from './components/overview/OverviewView.vue';
+import WorkspaceView from './components/workspace/WorkspaceView.vue';
+import { useWorkspaceNav } from './composables/useWorkspaceNav';
 import AgentChat from './components/agent-chat/AgentChat.vue';
 import { useDarkMode } from './composables/useDarkMode';
 import { useWorkingFolder } from './composables/useWorkingFolder';
@@ -33,6 +35,7 @@ async function chooseFolder() {
 onMounted(session.boot);
 
 const { width: panelWidth, resizing, start: startResize } = useAgentPanelResize();
+const { route } = useWorkspaceNav();
 </script>
 
 <template>
@@ -97,10 +100,11 @@ const { width: panelWidth, resizing, start: startResize } = useAgentPanelResize(
           </button>
         </div>
 
-        <!-- Folder open: topics list + agent panel. -->
+        <!-- Folder open: main area + agent panel. -->
         <div v-else-if="project" class="flex h-full">
-          <div class="flex-1 overflow-y-auto pr-2">
-            <TopicList :project="project" />
+          <div class="flex-1 min-w-0 overflow-hidden">
+            <OverviewView v-if="route.name === 'overview'" />
+            <WorkspaceView v-else />
           </div>
           <div
             class="relative w-4 h-full shrink-0 cursor-col-resize group"

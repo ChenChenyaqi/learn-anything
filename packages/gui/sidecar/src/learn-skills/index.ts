@@ -27,9 +27,31 @@ import {
   isDocVerificationWorkflow,
   injectContext7GuidanceForSkill,
 } from '@learn-anything/shared';
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
+
+/* ── helpers ────────────────────────────────────────────────── */
+
+/**
+ * Write `content` to `filePath` only if its content differs from what's
+ * already on disk (determined via SHA-256 hash). Returns `true` when a
+ * write actually occurred, `false` when skipped as unchanged.
+ */
+function writeIfChanged(filePath: string, content: string): boolean {
+  const digest = createHash('sha256').update(content).digest('hex');
+  try {
+    const existing = readFileSync(filePath, 'utf8');
+    if (createHash('sha256').update(existing).digest('hex') === digest) {
+      return false;
+    }
+  } catch {
+    /* file doesn't exist — fall through to write */
+  }
+  writeFileSync(filePath, content);
+  return true;
+}
 
 /* ── script + skill setup ─────────────────────────────────────── */
 
@@ -46,7 +68,7 @@ export function setupScriptsDir(appDataDir: string): string {
   const dir = join(base, 'scripts');
   mkdirSync(dir, { recursive: true });
   for (const name of ALL_SCRIPT_NAMES) {
-    writeFileSync(join(dir, `${name}.mjs`), readScript(name));
+    writeIfChanged(join(dir, `${name}.mjs`), readScript(name));
   }
   return dir;
 }
@@ -75,7 +97,7 @@ export function setupSkillFiles(appDataDir: string, scriptsDir: string): string 
         ? injectContext7GuidanceForSkill(resolved)
         : resolved;
     });
-    writeFileSync(join(skillDir, 'SKILL.md'), content);
+    writeIfChanged(join(skillDir, 'SKILL.md'), content);
   }
 
   // find-docs skill — Context7 documentation lookup via the ctx7 CLI.
@@ -83,7 +105,7 @@ export function setupSkillFiles(appDataDir: string, scriptsDir: string): string 
   // package (copied at build time from src/skills/find-docs.md).
   const findDocsDir = join(skillsDir, 'find-docs');
   mkdirSync(findDocsDir, { recursive: true });
-  writeFileSync(join(findDocsDir, 'SKILL.md'), readFindDocsSkill());
+  writeIfChanged(join(findDocsDir, 'SKILL.md'), readFindDocsSkill());
 
   return skillsDir;
 }

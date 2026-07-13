@@ -1,23 +1,18 @@
 <script setup lang="ts">
 // Application shell — thin orchestrator.
 //
-// Composes `useWorkingFolder` (folder flow) with `useAppSession` (boot + view
-// routing), then routes between the loading / setup / main views. All state
-// and logic lives in the composables; this file is just wiring + markup.
+// Owns the cross-phase orchestration (working-folder flow + app-session boot),
+// then routes between the loading / setup / main phases. Each phase's content
+// lives in its own component; this file is just wiring + the phase switch.
 // The system light/dark theme is followed via `useDarkMode` (mirrors the site).
 
 import { onMounted } from 'vue';
 import SetupScreen from './components/SetupScreen.vue';
-import AppHeader from './components/AppHeader.vue';
-import OverviewView from './components/overview/OverviewView.vue';
-import WorkspaceView from './components/workspace/WorkspaceView.vue';
-import { useWorkspaceNav } from './composables/useWorkspaceNav';
-import AgentChat from './components/agent-chat/AgentChat.vue';
+import MainView from './components/MainView.vue';
 import { useDarkMode } from './composables/useDarkMode';
 import { useWorkingFolder } from './composables/useWorkingFolder';
 import { useAppSession } from './composables/useAppSession';
-import { useAgentPanelResize } from './composables/useAgentPanelResize';
-import { btnGhost, btnPrimary, btnSecondary } from './lib/ui';
+import { btnGhost } from './lib/ui';
 
 useDarkMode();
 
@@ -33,9 +28,6 @@ async function chooseFolder() {
 }
 
 onMounted(session.boot);
-
-const { width: panelWidth, resizing, start: startResize } = useAgentPanelResize();
-const { route } = useWorkspaceNav();
 </script>
 
 <template>
@@ -62,67 +54,14 @@ const { route } = useWorkspaceNav();
       />
     </div>
 
-    <!-- Main: folder + chat surface. -->
-    <div v-else class="flex h-screen flex-col">
-      <AppHeader
-        :config="config"
-        :project="project"
-        :folder-busy="folderBusy"
-        @choose="chooseFolder"
-        @settings="view = 'setup'"
-      />
-
-      <section class="flex-1 overflow-hidden p-6">
-        <!-- Folder not yet chosen. -->
-        <div
-          v-if="!config?.last_working_folder && !projectError"
-          class="flex flex-col items-center gap-4 pt-12 opacity-85"
-        >
-          <p>Pick a working folder to start creating topics.</p>
-          <button type="button" :class="[btnPrimary, 'px-4 py-2']" @click="chooseFolder">
-            Choose folder
-          </button>
-        </div>
-
-        <!-- Rejection (e.g. non-v1 state.json → CLI upgrade hint). -->
-        <div
-          v-else-if="projectError"
-          class="max-w-lg rounded-[10px] border border-(--color-accent) bg-(--color-accent-soft) p-4"
-        >
-          <p>Couldn't open that folder:</p>
-          <pre class="my-2 whitespace-pre-wrap font-sans text-sm">{{ projectError }}</pre>
-          <button
-            type="button"
-            :class="[btnSecondary, 'px-3 py-1.5 text-xs']"
-            @click="chooseFolder"
-          >
-            Choose a different folder
-          </button>
-        </div>
-
-        <!-- Folder open: main area + agent panel. -->
-        <div v-else-if="project" class="flex h-full">
-          <div class="flex-1 min-w-0 overflow-hidden">
-            <OverviewView v-if="route.name === 'overview'" />
-            <WorkspaceView v-else />
-          </div>
-          <div
-            class="relative w-4 h-full shrink-0 cursor-col-resize group"
-            style="touch-action: none"
-            @mousedown="startResize"
-          >
-            <div
-              class="absolute inset-y-0 left-1/2 w-px -translate-x-1/2 bg-(--color-rule) transition-colors group-hover:bg-(--color-accent)"
-              :class="{ 'bg-(--color-accent)': resizing }"
-            />
-          </div>
-          <AgentChat
-            :working-folder="config?.last_working_folder ?? null"
-            class="shrink-0 pl-2"
-            :style="{ width: panelWidth + 'px' }"
-          />
-        </div>
-      </section>
-    </div>
+    <MainView
+      v-else
+      :config="config"
+      :project="project"
+      :project-error="projectError"
+      :folder-busy="folderBusy"
+      @choose="chooseFolder"
+      @settings="view = 'setup'"
+    />
   </main>
 </template>

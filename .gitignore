@@ -20,3 +20,5 @@ target/
 
 # local release notes (consumed by scripts/release.sh)
 release-notes.md
+
+/ui-design

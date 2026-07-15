@@ -4,12 +4,12 @@
 
 ### Requirement: Build script builds site with Vite and copies to site-dist
 
-The system SHALL provide a build script (`scripts/bundle-site.mjs`) that: (1) runs `vite build` in `packages/cli/site/` to produce `site/dist/`, (2) copies `site/dist/` contents + `site/serve.mjs` to `packages/cli/site-dist/`, and (3) writes `.gitignore` to `site-dist/`.
+The system SHALL provide a build script (`scripts/bundle-site.mjs`) that: (1) runs `vite build` in `packages/cli/site/` to produce `site/dist/`, (2) copies `site/dist/` contents plus the `serve.mjs` and `catalog.mjs` server runtime modules to `packages/cli/site-dist/`, and (3) writes `.gitignore` to `site-dist/`.
 
 #### Scenario: Build script produces site-dist
 
 - **WHEN** the build script runs
-- **THEN** `site-dist/` contains all built assets (`index.html`, `assets/*.js`, `assets/*.css`), `serve.mjs`, and `.gitignore`
+- **THEN** `site-dist/` contains all built assets (`index.html`, `assets/*.js`, `assets/*.css`), `serve.mjs`, `catalog.mjs`, and `.gitignore`
 
 #### Scenario: Build script clears previous output
 
@@ -33,7 +33,7 @@ The system SHALL NOT commit `site-dist/` to version control. It SHALL be generat
 #### Scenario: site-dist included in npm package
 
 - **WHEN** `npm pack` is run
-- **THEN** the tarball includes `site-dist/index.html`, `site-dist/serve.mjs`, and all `site-dist/assets/` files
+- **THEN** the tarball includes `site-dist/index.html`, `site-dist/serve.mjs`, `site-dist/catalog.mjs`, and all `site-dist/assets/` files
 
 ### Requirement: Build script is integrated into the CLI build pipeline
 

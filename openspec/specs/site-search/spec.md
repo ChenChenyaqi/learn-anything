@@ -3,8 +3,8 @@
 ### Requirement: Server exposes a heading search index
 
 The system SHALL expose a `/api/search-index` endpoint that returns a flat JSON
-array of searchable entries built by scanning Markdown files from the configured
-`TOPICS_DIR`. The index SHALL cover three scopes: session notes
+array of searchable entries built from each topic's recursively reconciled
+catalog. The index SHALL cover three scopes: session notes
 (`sessions/**/*.md`), the knowledge map (`knowledge-map.md`), and exercise docs
 (`exercises/**/*.md`). Each entry SHALL include a display `title`, a heading
 `level` (1–6), the API `path` used to open the file, the owning `topicSlug` and
@@ -38,8 +38,8 @@ file-change cycle that refreshes topic data.
 #### Scenario: Index refreshes after a file change
 
 - **WHEN** a note file is added or edited and the file-change watcher fires
-- **THEN** the cached search index is cleared and the next `/api/search-index`
-  request rebuilds it with the updated content
+- **THEN** the affected catalog is updated and the cached search index is cleared
+- **AND** the next `/api/search-index` request rebuilds it from current catalogs
 
 ### Requirement: Client fetches and filters the search index locally
 
@@ -48,7 +48,7 @@ index from `/api/search-index` on first use, caches it in memory, and exposes a
 `search(query)` function that filters entries client-side with case-insensitive
 matching against each entry's title and filename. Filtering SHALL NOT issue a
 network request per keystroke. The cached index SHALL be discarded and refetched
-when topic data is refreshed (the SSE reload cycle), so results stay current.
+when a structured SSE change bumps the data version, so results stay current.
 
 #### Scenario: First search triggers a single fetch
 

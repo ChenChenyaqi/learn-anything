@@ -164,7 +164,7 @@ The system SHALL define CSS custom properties matching VitePress's design system
 
 ### Requirement: Data layer loads topic data via HTTP API
 
-The system SHALL use a fetch-based data layer (`useTopicData` composable) that loads topic data from the local HTTP server (`serve.mjs`) via REST endpoints. The `useTopicData` composable SHALL expose functions (`listAllTopics`, `loadTopic`, `scanSessions`, `scanExercises`, `loadSessionContent`, `loadExerciseContent`) that fetch from `/api/topics`, `/api/topics/:slug`, and `/api/file`. The server reads and caches topic files from the configured `TOPICS_DIR` on disk.
+The system SHALL use a fetch-based data layer (`useTopicData` composable) that loads topic data from the local HTTP server (`serve.mjs`) via REST endpoints. The topic response SHALL include `state`, `knowledgeMap`, and the topic's flat `catalog`; file content SHALL load lazily through `/api/file`. The server reads and caches topic files from the configured `TOPICS_DIR` on disk.
 
 In dev mode, Vite proxies `/api` requests to the `serve.mjs` server running on port 24277. In production, `serve.mjs` serves both static files and API endpoints on a single port.
 
@@ -172,6 +172,11 @@ In dev mode, Vite proxies `/api` requests to the `serve.mjs` server running on p
 
 - **WHEN** the app calls `initTopicData()` and the server has topic directories under `TOPICS_DIR`
 - **THEN** `listAllTopics()` returns all topics with summaries fetched from `/api/topics`
+
+#### Scenario: One topic changes at runtime
+
+- **WHEN** the client receives a structured `topic-updated` SSE event
+- **THEN** it reconciles `/api/topics` summaries and replaces only the affected topic data
 
 #### Scenario: Session files are filtered by domain
 

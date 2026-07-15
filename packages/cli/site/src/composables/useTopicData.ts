@@ -16,6 +16,7 @@ import type {
   SessionFile,
   ExerciseFile,
   ExerciseGroup,
+  TopicCatalog,
 } from './topicDataTypes';
 import { createSSEListener } from './useSSE';
 import { clearFileContentCache, setFileContent } from './fileContentCache';
@@ -33,6 +34,9 @@ export type {
   SessionFile,
   ExerciseFile,
   ExerciseGroup,
+  CatalogKind,
+  CatalogEntry,
+  TopicCatalog,
   SelectedFilePayload,
 } from './topicDataTypes';
 
@@ -48,6 +52,7 @@ let initVersion = 0;
 
 const stateBySlug = new Map<string, StateV1>();
 const knowledgeMapBySlug = new Map<string, string>();
+const catalogBySlug = new Map<string, TopicCatalog>();
 const sessionsBySlug = new Map<string, Map<string, SessionFile[]>>();
 const exerciseGroupsBySlug = new Map<string, ExerciseGroup[]>();
 const orphanSessionsBySlug = new Map<string, SessionFile[]>();
@@ -71,6 +76,7 @@ function clearIndexes() {
   initVersion++;
   stateBySlug.clear();
   knowledgeMapBySlug.clear();
+  catalogBySlug.clear();
   sessionsBySlug.clear();
   exerciseGroupsBySlug.clear();
   orphanSessionsBySlug.clear();
@@ -96,10 +102,46 @@ export function __injectTestData(data: {
   orphanSessions: Record<string, SessionFile[]>;
   orphanExercises: Record<string, ExerciseFile[]>;
   fileContents: Record<string, string>;
+  catalogs?: Record<string, TopicCatalog>;
 }): void {
   topicSummaryCache = data.summaries;
   for (const [slug, state] of Object.entries(data.states)) stateBySlug.set(slug, state);
   for (const [slug, md] of Object.entries(data.knowledgeMaps)) knowledgeMapBySlug.set(slug, md);
+  for (const [slug, catalog] of Object.entries(data.catalogs ?? {}))
+    catalogBySlug.set(slug, catalog);
+  if (!data.catalogs) {
+    for (const summary of data.summaries) {
+      const prefix = `/topics/${summary.slug}/`;
+      const entries: TopicCatalog['entries'] = [];
+      for (const [domainSlug, files] of Object.entries(data.sessions[summary.slug] ?? {})) {
+        for (const file of files)
+          entries.push({
+            kind: 'session',
+            path: file.path.startsWith(prefix) ? file.path.slice(prefix.length) : file.path,
+            domainSlug,
+          });
+      }
+      for (const file of data.orphanSessions[summary.slug] ?? [])
+        entries.push({
+          kind: 'session',
+          path: file.path.startsWith(prefix) ? file.path.slice(prefix.length) : file.path,
+        });
+      for (const group of data.exerciseGroups[summary.slug] ?? []) {
+        for (const file of group.files)
+          entries.push({
+            kind: 'exercise',
+            path: file.path.startsWith(prefix) ? file.path.slice(prefix.length) : file.path,
+            conceptSlug: group.conceptSlug,
+          });
+      }
+      for (const file of data.orphanExercises[summary.slug] ?? [])
+        entries.push({
+          kind: 'exercise',
+          path: file.path.startsWith(prefix) ? file.path.slice(prefix.length) : file.path,
+        });
+      catalogBySlug.set(summary.slug, { version: 1, entries });
+    }
+  }
   for (const [slug, domainMap] of Object.entries(data.sessions)) {
     sessionsBySlug.set(slug, new Map(Object.entries(domainMap)));
   }
@@ -124,6 +166,7 @@ function buildIndexes(
     {
       state: StateV1;
       knowledgeMap: string;
+      catalog?: TopicCatalog;
       sessions: Record<string, SessionFile[]>;
       rootSessions: SessionFile[];
       exercises: ExerciseGroup[];
@@ -136,6 +179,7 @@ function buildIndexes(
   for (const [slug, data] of topicDataMap) {
     stateBySlug.set(slug, data.state);
     knowledgeMapBySlug.set(slug, data.knowledgeMap || '');
+    catalogBySlug.set(slug, data.catalog ?? { version: 1, entries: [] });
 
     if (data.sessions) {
       const domainMap = new Map<string, SessionFile[]>();
@@ -226,6 +270,10 @@ export function loadTopic(slug: string): StateV1 | null {
 
 export function loadKnowledgeMap(slug: string): string | null {
   return knowledgeMapBySlug.get(slug) ?? null;
+}
+
+export function loadCatalog(slug: string): TopicCatalog | null {
+  return catalogBySlug.get(slug) ?? null;
 }
 
 export function scanSessions(slug: string, domain: string): SessionFile[] {

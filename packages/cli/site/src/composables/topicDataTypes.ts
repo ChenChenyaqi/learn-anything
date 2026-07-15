@@ -35,6 +35,20 @@ export interface TopicSummary {
   percentage: number;
 }
 
+export type CatalogKind = 'session' | 'exercise' | 'quiz';
+
+export interface CatalogEntry {
+  path: string;
+  kind: CatalogKind;
+  domainSlug?: string;
+  conceptSlug?: string;
+}
+
+export interface TopicCatalog {
+  version: 1;
+  entries: CatalogEntry[];
+}
+
 export interface SessionFile {
   filename: string;
   path: string;

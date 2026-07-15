@@ -7,7 +7,7 @@ use crate::config::{self, Provider};
 
 use super::cwd::resolve_cwd;
 use super::log::log;
-use super::state::{get_or_boot, require_state, SidecarBoot};
+use super::state::{booted_cwd, get_or_boot, require_state, teardown_sidecar, SidecarBoot};
 use super::types::{ActiveSession, ChatRow, NewSessionResult, SessionMeta};
 use super::wire::{next_request_id, write_frame, BootFrame, CommandFrame};
 
@@ -18,7 +18,22 @@ pub async fn agent_new_session(
     working_folder: Option<String>,
 ) -> Result<NewSessionResult, String> {
     log("cmd agent_new_session");
+
+    // Resolve the desired cwd up front. If the sidecar is already running
+    // against a *different* cwd, tear it down so `get_or_boot` re-spawns a
+    // fresh process bound to the new folder — the agent's tools and session
+    // storage are pinned to the boot cwd, so a folder switch requires a
+    // re-boot rather than a slash command.
+    let desired_cwd = resolve_cwd(&app, working_folder)?;
+    if booted_cwd(&boot).await.as_deref() != Some(&desired_cwd) {
+        teardown_sidecar(&boot).await;
+    }
+
     let state = get_or_boot(&boot, &app).await?;
+
+    // Record the cwd this process is now bound to (no-op when re-using the
+    // existing process against the same folder).
+    *state.cwd.lock().await = Some(desired_cwd.clone());
 
     let (tx, rx) = oneshot::channel();
     {
@@ -36,7 +51,6 @@ pub async fn agent_new_session(
             .api_key
             .clone()
             .ok_or("No API key set. Add your key in Settings first.")?;
-        let cwd = resolve_cwd(&app, working_folder)?;
         let app_data_dir = app
             .path()
             .app_data_dir()
@@ -51,7 +65,7 @@ pub async fn agent_new_session(
             provider,
             base_url: config.base_url,
             model: config.model,
-            cwd,
+            cwd: desired_cwd,
             session_id: None,
             app_data_dir,
         };

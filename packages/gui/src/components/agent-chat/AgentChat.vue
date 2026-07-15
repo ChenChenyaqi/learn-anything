@@ -6,7 +6,7 @@
 // sessions-overlay swap. Child components are stateless or near-stateless —
 // everything flows through the composable.
 
-import { computed, nextTick, onMounted, ref, watch } from 'vue';
+import { computed, nextTick, ref, watch } from 'vue';
 import { useAgentSession } from '@/components/agent-chat/useAgentSession.ts';
 import { matchInput, type SlashCommand } from '@/components/agent-chat/slash-commands.ts';
 import { slashPill, btnPrimary, btnSecondary, fieldControl } from '@/lib/ui.ts';
@@ -106,11 +106,20 @@ watch(session.messages, scrollToBottom, { deep: true });
 
 /* ── lifecycle ──────────────────────────────────────────────────── */
 
-onMounted(() => {
-  session.boot(props.workingFolder).catch((e) => {
-    console.error('[AgentChat] boot failed:', e);
-  });
-});
+// A single immediate watcher drives BOTH the initial boot (fires once on
+// setup with the current folder) and runtime folder switches. `switchFolder`
+// no-ops when the folder is unchanged/unset, so the immediate fire during the
+// initial `null` population can never cause a spurious boot — only a real
+// non-null folder (now or later) boots/re-boots the agent.
+watch(
+  () => props.workingFolder,
+  (f) => {
+    session.switchFolder(f).catch((e) => {
+      console.error('[AgentChat] switchFolder failed:', e);
+    });
+  },
+  { immediate: true },
+);
 </script>
 
 <template>

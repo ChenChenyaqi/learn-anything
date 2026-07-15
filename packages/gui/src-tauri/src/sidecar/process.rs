@@ -5,7 +5,7 @@ use std::path::PathBuf;
 use std::sync::atomic::AtomicU64;
 use std::sync::Arc;
 
-use tauri::AppHandle;
+use tauri::{AppHandle, Manager};
 use tokio::sync::Mutex;
 
 use super::log::log;
@@ -31,6 +31,17 @@ fn sidecar_entry() -> Result<PathBuf, String> {
 pub(super) fn boot_sidecar(app: &AppHandle) -> Result<SidecarHandle, String> {
     let entry = sidecar_entry()?;
 
+    // Isolate the agent's data (sessions / auth / settings / models) inside the
+    // app's own data dir instead of the global ~/.pi. pi-coding-agent derives
+    // its agent dir from this env var, falling back to ~/.pi/agent when unset.
+    let agent_dir = app
+        .path()
+        .app_data_dir()
+        .map(|p| p.join("agent"))
+        .map_err(|e| format!("Failed to resolve app data dir: {e}"))?;
+    std::fs::create_dir_all(&agent_dir)
+        .map_err(|e| format!("Failed to create agent dir {}: {e}", agent_dir.display()))?;
+
     let mut child = tokio::process::Command::new("node")
         .arg(&entry)
         .stdin(std::process::Stdio::piped())
@@ -38,6 +49,7 @@ pub(super) fn boot_sidecar(app: &AppHandle) -> Result<SidecarHandle, String> {
         .stderr(std::process::Stdio::inherit())
         .kill_on_drop(true)
         .env("SIDECAR_LOG", if cfg!(debug_assertions) { "1" } else { "0" })
+        .env("PI_CODING_AGENT_DIR", &agent_dir)
         .spawn()
         .map_err(|e| format!("Failed to spawn Node sidecar: {e}"))?;
 
@@ -67,6 +79,7 @@ pub(super) fn boot_sidecar(app: &AppHandle) -> Result<SidecarHandle, String> {
         pending_load: Mutex::new(HashMap::new()),
         pending_switch: Mutex::new(HashMap::new()),
         booted: Mutex::new(false),
+        cwd: Mutex::new(None),
         reply_counter: AtomicU64::new(0),
     });
 

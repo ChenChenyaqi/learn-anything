@@ -1,4 +1,4 @@
-import { getCurrentScope, onScopeDispose, ref } from 'vue';
+import { getCurrentScope, onScopeDispose, ref, watch } from 'vue';
 import { listen } from '@tauri-apps/api/event';
 import {
   agentCancel,
@@ -23,6 +23,9 @@ export function useAgentSession() {
   let assistantInProgress = false;
   let unlistenEvent: (() => void) | null = null;
   let listenersPromise: Promise<void> | null = null;
+  // Serialises folder switches so a rapid A→B→C cannot overlap concurrent
+  // `agentNewSession` calls (which the backend rejects as "in progress").
+  let switchChain: Promise<void> = Promise.resolve();
 
   /* ── event dispatch ──────────────────────────────────────────────── */
 
@@ -116,17 +119,83 @@ export function useAgentSession() {
   }
 
   async function boot(folder?: string | null) {
-    workingFolder = folder ?? null;
+    return switchFolder(folder ?? null);
+  }
+
+  /**
+   * Switch the agent to a (possibly new) working folder.
+   *
+   * This is the single entry point for both the initial boot and a runtime
+   * folder change. The same-folder guard at the top is what prevents misfires:
+   * the initial `null` population and no-op config reloads short-circuit here
+   * instead of triggering a needless re-boot.
+   *
+   * If the agent is mid-turn, we first cancel and let the sidecar flush the
+   * current session (up to `5s`) before re-booting — otherwise a kill mid-turn
+   * could interrupt tool execution and lose the in-flight tail.
+   *
+   * Calls are serialised via `switchChain` so rapid switches cannot overlap.
+   */
+  function switchFolder(folder: string | null): Promise<void> {
+    const run = switchChain.then(() => doSwitchFolder(folder));
+    // Keep the chain healthy even if doSwitchFolder ever rejects.
+    switchChain = run.catch(() => {});
+    return run;
+  }
+
+  async function doSwitchFolder(folder: string | null) {
+    // No-op when the folder is unchanged or unset. The same-folder check
+    // prevents redundant reboots (and stops the initial `null` population
+    // from being treated as a switch); the null check ensures we never try
+    // to switch the agent into a "no folder" state.
+    if (folder === workingFolder || folder === null) return;
+
+    // Gracefully stop an in-flight turn and let it flush before re-booting.
+    if (busy.value && sessionId.value) {
+      await cancel();
+      await waitForIdle(5000);
+    }
+
+    workingFolder = folder;
+    // Block sends and clear the transcript while the new session comes up.
+    busy.value = true;
+    assistantInProgress = false;
+    sessionId.value = null;
+    messages.value = [];
+    sessionsOpen.value = false;
 
     await ensureListeners();
 
-    const result = await agentNewSession(workingFolder);
-    sessionId.value = result.session_id;
-    messages.value = [];
-    busy.value = false;
-    sessionsOpen.value = false;
-    assistantInProgress = false;
-    sessions.value = await agentListSessions(workingFolder);
+    try {
+      // The backend boots the sidecar on first call, or re-boots it when the
+      // cwd differs from the currently-bound one (folder switch).
+      const result = await agentNewSession(workingFolder);
+      sessionId.value = result.session_id;
+      sessions.value = await agentListSessions(workingFolder);
+    } catch (e) {
+      const msg = ensureAssistant();
+      msg.blocks.push({ type: 'text', text: String(e) });
+    } finally {
+      busy.value = false;
+    }
+  }
+
+  /** Resolve once the agent is no longer busy, or after `timeoutMs` elapses. */
+  function waitForIdle(timeoutMs: number): Promise<void> {
+    if (!busy.value) return Promise.resolve();
+    return new Promise<void>((resolve) => {
+      const stop = watch(busy, (v) => {
+        if (!v) {
+          stop();
+          clearTimeout(timer);
+          resolve();
+        }
+      });
+      const timer = setTimeout(() => {
+        stop();
+        resolve();
+      }, timeoutMs);
+    });
   }
 
   async function send(text: string) {
@@ -210,6 +279,7 @@ export function useAgentSession() {
     sessions,
     sessionsQuery,
     boot,
+    switchFolder,
     send,
     cancel,
     newSession,

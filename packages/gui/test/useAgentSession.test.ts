@@ -163,6 +163,83 @@ describe('useAgentSession', () => {
     });
   });
 
+  describe('switchFolder', () => {
+    it('no-ops on the initial null population (no spurious boot)', async () => {
+      const { session, scope } = setupComposable();
+
+      await session.switchFolder(null);
+
+      expect(mockAgentNewSession).not.toHaveBeenCalled();
+      expect(session.sessionId.value).toBeNull();
+      scope.stop();
+    });
+
+    it('no-ops when switching to the same folder (guards against misfires)', async () => {
+      const { session, scope } = setupComposable();
+      await session.boot('/proj');
+      mockAgentNewSession.mockClear();
+
+      await session.switchFolder('/proj');
+
+      expect(mockAgentNewSession).not.toHaveBeenCalled();
+      scope.stop();
+    });
+
+    it('boots the agent when the folder first becomes non-null', async () => {
+      const { session, scope } = setupComposable();
+      mockAgentNewSession.mockResolvedValue({ session_id: 'abc' });
+      mockAgentListSessions.mockResolvedValue([meta({ id: 'old' })]);
+
+      // null → '/proj' is the first real boot (not a misfire).
+      await session.switchFolder('/proj');
+
+      expect(mockAgentNewSession).toHaveBeenCalledWith('/proj');
+      expect(mockAgentListSessions).toHaveBeenCalledWith('/proj');
+      expect(session.sessionId.value).toBe('abc');
+      scope.stop();
+    });
+
+    it('re-boots and reloads sessions when switching to a new folder', async () => {
+      const { session, scope } = setupComposable();
+      await session.boot('/proj'); // initial boot against /proj
+      mockAgentNewSession.mockResolvedValue({ session_id: 's2' });
+      mockAgentListSessions.mockResolvedValue([meta({ id: 'other-folder' })]);
+
+      await session.switchFolder('/other');
+
+      expect(mockAgentNewSession).toHaveBeenLastCalledWith('/other');
+      expect(mockAgentListSessions).toHaveBeenLastCalledWith('/other');
+      expect(session.sessionId.value).toBe('s2');
+      expect(session.sessions.value).toEqual([meta({ id: 'other-folder' })]);
+      scope.stop();
+    });
+
+    it('cancels an in-flight turn before re-booting on a folder switch', async () => {
+      vi.useFakeTimers();
+      try {
+        const { session, scope } = setupComposable();
+        await session.boot('/proj');
+        await session.send('working'); // leaves busy=true
+        expect(session.busy.value).toBe(true);
+
+        mockAgentNewSession.mockResolvedValue({ session_id: 's2' });
+        mockAgentListSessions.mockResolvedValue([]);
+
+        const p = session.switchFolder('/other');
+        // waitForIdle drains for up to 5s; fast-forward through it.
+        await vi.advanceTimersByTimeAsync(5000);
+        await p;
+
+        expect(mockAgentCancel).toHaveBeenCalledWith('s1');
+        expect(mockAgentNewSession).toHaveBeenLastCalledWith('/other');
+        expect(session.sessionId.value).toBe('s2');
+        scope.stop();
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+  });
+
   describe('event stream → messages', () => {
     it('accumulates text_delta → tool_call → tool_result → done', async () => {
       const { session, emit, scope } = setupComposable();

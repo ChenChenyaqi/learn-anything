@@ -1,23 +1,16 @@
 #!/usr/bin/env node
-/* global process, setInterval, clearInterval, setTimeout, clearTimeout, URL, Buffer */
+/* global process, setInterval, clearInterval, setTimeout, clearTimeout, URL */
 import { createServer } from 'node:http';
-import {
-  readFileSync,
-  existsSync,
-  readdirSync,
-  statSync,
-  watch,
-  openSync,
-  readSync,
-  closeSync,
-} from 'node:fs';
+import { readFileSync, existsSync, readdirSync, statSync, watch } from 'node:fs';
 import { join, extname, resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { TopicCatalogStore } from './catalog.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const STATIC_DIR = __dirname;
 const TOPICS_DIR = process.env.TOPICS_DIR || join(__dirname, '..', '..', '.learn', 'topics');
 const PORT = parseInt(process.env.PORT || '24278', 10);
+const catalogStore = new TopicCatalogStore(TOPICS_DIR);
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',
@@ -34,31 +27,6 @@ const MIME = {
 /* ------------------------------------------------------------------ */
 /*  Helpers                                                            */
 /* ------------------------------------------------------------------ */
-
-/**
- * Detect whether a file is binary by inspecting its content (Git heuristic).
- * Reads only the first 8 000 bytes; a NUL byte (0x00) means binary.
- * Returns false on read errors so files are never hidden by accident.
- */
-function isBinaryFile(filePath) {
-  let fd;
-  try {
-    fd = openSync(filePath, 'r');
-    const buf = Buffer.alloc(8000);
-    const bytesRead = readSync(fd, buf, 0, 8000, 0);
-    return buf.slice(0, bytesRead).includes(0);
-  } catch {
-    return false;
-  } finally {
-    if (fd !== undefined) {
-      try {
-        closeSync(fd);
-      } catch {
-        /* ignore */
-      }
-    }
-  }
-}
 
 function json(res, data, status = 200) {
   res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8' });
@@ -122,6 +90,7 @@ function safeReadText(filePath) {
 const sseClients = new Set();
 
 function broadcastReload() {
+  catalogStore.reconcileAll();
   searchIndexCache = null;
   for (const res of sseClients) {
     try {
@@ -200,78 +169,52 @@ function buildTopicSummaries() {
 /*  API: topic data (state, knowledge-map, sessions, exercises)        */
 /* ------------------------------------------------------------------ */
 
+function buildLegacyCatalogViews(slug, state, catalog) {
+  const sessions = {};
+  const rootSessions = [];
+  const exercisesByConcept = new Map();
+  const rootExercises = [];
+  const conceptNames = new Map(
+    (state?.domains ?? []).flatMap((domain) =>
+      (domain.concepts ?? []).map((concept) => [concept.slug, concept.name]),
+    ),
+  );
+
+  for (const entry of catalog.entries) {
+    const filename = entry.path.split('/').pop();
+    const apiPath = `/topics/${slug}/${entry.path}`;
+    if (entry.kind === 'session') {
+      if (entry.domainSlug) (sessions[entry.domainSlug] ??= []).push({ filename, path: apiPath });
+      else rootSessions.push({ filename, path: apiPath });
+    } else if (entry.kind === 'exercise') {
+      if (entry.conceptSlug) {
+        const files = exercisesByConcept.get(entry.conceptSlug) ?? [];
+        files.push({ name: filename, path: apiPath });
+        exercisesByConcept.set(entry.conceptSlug, files);
+      } else rootExercises.push({ name: filename, path: apiPath });
+    }
+  }
+
+  for (const files of Object.values(sessions))
+    files.sort((a, b) => b.filename.localeCompare(a.filename));
+  rootSessions.sort((a, b) => b.filename.localeCompare(a.filename));
+  const exercises = [...exercisesByConcept].map(([conceptSlug, files]) => ({
+    conceptSlug,
+    conceptName: conceptNames.get(conceptSlug) ?? conceptSlug,
+    files,
+  }));
+  exercises.sort((a, b) => a.conceptName.localeCompare(b.conceptName));
+  return { sessions, rootSessions, exercises, rootExercises };
+}
+
 function buildTopicData(slug) {
   const topicDir = join(TOPICS_DIR, slug);
   if (!existsSync(topicDir)) return null;
-
   const state = safeReadJson(join(topicDir, 'state.json'));
   const knowledgeMap = safeReadText(join(topicDir, 'knowledge-map.md')) || '';
-
-  const sessions = {};
-  const rootSessions = [];
-  const sessionsDir = join(topicDir, 'sessions');
-  if (existsSync(sessionsDir)) {
-    const sEntries = readdirSync(sessionsDir, { withFileTypes: true });
-    for (const entry of sEntries) {
-      if (entry.isDirectory()) {
-        const domainDir = join(sessionsDir, entry.name);
-        const files = readdirSync(domainDir)
-          .filter((f) => f.endsWith('.md'))
-          .map((f) => ({ filename: f, path: `/topics/${slug}/sessions/${entry.name}/${f}` }))
-          .sort((a, b) => b.filename.localeCompare(a.filename));
-        sessions[entry.name] = files;
-      } else if (entry.isFile() && entry.name.endsWith('.md')) {
-        rootSessions.push({
-          filename: entry.name,
-          path: `/topics/${slug}/sessions/${entry.name}`,
-        });
-      }
-    }
-  }
-  rootSessions.sort((a, b) => b.filename.localeCompare(a.filename));
-
-  const exercises = [];
-  const rootExercises = [];
-  const exercisesDir = join(topicDir, 'exercises');
-  const nameMap = new Map();
-  if (state) {
-    for (const domain of state.domains || []) {
-      for (const concept of domain.concepts) {
-        nameMap.set(concept.slug, concept.name);
-      }
-    }
-  }
-  if (existsSync(exercisesDir)) {
-    const raw = new Map();
-    const eEntries = readdirSync(exercisesDir, { withFileTypes: true });
-    for (const entry of eEntries) {
-      if (entry.isDirectory()) {
-        const conceptDir = join(exercisesDir, entry.name);
-        const files = readdirSync(conceptDir, { withFileTypes: true })
-          .filter((f) => f.isFile() && !isBinaryFile(join(conceptDir, f.name)))
-          .map((f) => ({
-            name: f.name,
-            path: `/topics/${slug}/exercises/${entry.name}/${f.name}`,
-          }));
-        if (files.length > 0) raw.set(entry.name, files);
-      } else if (entry.isFile() && !isBinaryFile(join(exercisesDir, entry.name))) {
-        rootExercises.push({
-          name: entry.name,
-          path: `/topics/${slug}/exercises/${entry.name}`,
-        });
-      }
-    }
-    for (const [conceptSlug, files] of raw) {
-      exercises.push({
-        conceptSlug,
-        conceptName: nameMap.get(conceptSlug) || conceptSlug,
-        files,
-      });
-    }
-    exercises.sort((a, b) => a.conceptName.localeCompare(b.conceptName));
-  }
-
-  return { state, knowledgeMap, sessions, rootSessions, exercises, rootExercises };
+  const catalog = catalogStore.get(slug) ?? catalogStore.reconcileTopic(slug);
+  if (!catalog) return null;
+  return { state, knowledgeMap, catalog, ...buildLegacyCatalogViews(slug, state, catalog) };
 }
 
 /* ------------------------------------------------------------------ */
@@ -293,35 +236,22 @@ function buildQuizList(slug) {
     }
   }
 
-  const groups = [];
-  const quizzesDir = join(topicDir, 'quizzes');
-  if (existsSync(quizzesDir)) {
-    const raw = new Map();
-    const qEntries = readdirSync(quizzesDir, { withFileTypes: true });
-    for (const entry of qEntries) {
-      if (entry.isDirectory()) {
-        const conceptDir = join(quizzesDir, entry.name);
-        const files = readdirSync(conceptDir)
-          .filter((f) => f.endsWith('.json'))
-          .map((f) => ({
-            filename: f,
-            path: `/topics/${slug}/quizzes/${entry.name}/${f}`,
-          }))
-          .sort((a, b) => b.filename.localeCompare(a.filename));
-        if (files.length > 0) {
-          raw.set(entry.name, files);
-        }
-      }
-    }
-    for (const [conceptSlug, files] of raw) {
-      groups.push({
-        concept_slug: conceptSlug,
-        concept_name: nameMap.get(conceptSlug) || conceptSlug,
-        files,
-      });
-    }
-    groups.sort((a, b) => a.concept_name.localeCompare(b.concept_name));
+  const raw = new Map();
+  for (const entry of catalogStore.get(slug)?.entries ?? []) {
+    if (entry.kind !== 'quiz' || !entry.conceptSlug) continue;
+    const files = raw.get(entry.conceptSlug) ?? [];
+    files.push({
+      filename: entry.path.split('/').pop(),
+      path: entry.path.slice('quizzes/'.length),
+    });
+    raw.set(entry.conceptSlug, files);
   }
+  const groups = [...raw].map(([conceptSlug, files]) => ({
+    concept_slug: conceptSlug,
+    concept_name: nameMap.get(conceptSlug) || conceptSlug,
+    files: files.sort((a, b) => b.filename.localeCompare(a.filename)),
+  }));
+  groups.sort((a, b) => a.concept_name.localeCompare(b.concept_name));
 
   return { groups };
 }
@@ -370,22 +300,6 @@ function buildSlugNameMap(state) {
 
 /** Collect `.md` files at root or exactly one subdirectory deep — matching the
     sidebar's two-level navigation tree (deeper nesting is not displayed, so not indexed). */
-function collectMarkdownFiles(dir) {
-  const out = [];
-  if (!existsSync(dir)) return out;
-  for (const entry of readdirSync(dir, { withFileTypes: true })) {
-    if (entry.isDirectory()) {
-      const subDir = join(dir, entry.name);
-      for (const f of readdirSync(subDir, { withFileTypes: true })) {
-        if (f.isFile() && f.name.endsWith('.md')) out.push(`${entry.name}/${f.name}`);
-      }
-    } else if (entry.isFile() && entry.name.endsWith('.md')) {
-      out.push(entry.name);
-    }
-  }
-  return out;
-}
-
 const HEADING_RE = /^(#{1,6})\s+(.+)$/;
 
 /** Extract ATX headings (level 1–6), skipping fenced code blocks. */
@@ -433,19 +347,19 @@ function buildSearchIndex() {
     const topicName = (state && state.topic) || slug;
     const slugName = buildSlugNameMap(state);
 
-    // Session notes: sessions/**/*.md
-    const sessionsDir = join(topicDir, 'sessions');
-    for (const rel of collectMarkdownFiles(sessionsDir)) {
-      const dirName = rel.includes('/') ? rel.slice(0, rel.indexOf('/')) : '';
-      const section = dirName ? slugName.get(dirName) || dirName : topicName;
+    // Session and exercise Markdown files come from the recursive topic catalog.
+    for (const catalogEntry of catalogStore.get(slug)?.entries ?? []) {
+      if (!catalogEntry.path.endsWith('.md')) continue;
+      const semanticSlug = catalogEntry.conceptSlug ?? catalogEntry.domainSlug;
+      const section = semanticSlug ? slugName.get(semanticSlug) || semanticSlug : topicName;
       index.push(
         ...buildFileEntries({
-          filePath: join(sessionsDir, rel),
-          apiPath: `/topics/${slug}/sessions/${rel}`,
+          filePath: join(topicDir, catalogEntry.path),
+          apiPath: `/topics/${slug}/${catalogEntry.path}`,
           topicSlug: slug,
           topicName,
           section,
-          kind: 'note',
+          kind: catalogEntry.kind === 'session' ? 'note' : 'exercise',
         }),
       );
     }
@@ -461,23 +375,6 @@ function buildSearchIndex() {
           topicName,
           section: 'Knowledge Map',
           kind: 'knowledge-map',
-        }),
-      );
-    }
-
-    // Exercise docs: exercises/**/*.md
-    const exercisesDir = join(topicDir, 'exercises');
-    for (const rel of collectMarkdownFiles(exercisesDir)) {
-      const dirName = rel.includes('/') ? rel.slice(0, rel.indexOf('/')) : '';
-      const section = dirName ? slugName.get(dirName) || dirName : topicName;
-      index.push(
-        ...buildFileEntries({
-          filePath: join(exercisesDir, rel),
-          apiPath: `/topics/${slug}/exercises/${rel}`,
-          topicSlug: slug,
-          topicName,
-          section,
-          kind: 'exercise',
         }),
       );
     }
@@ -627,6 +524,7 @@ function handler(req, res) {
 }
 
 const server = createServer(handler);
+catalogStore.reconcileAll();
 server.listen(PORT, () => {
   process.stdout.write(`SITE_READY|http://localhost:${PORT}\n`);
   startWatcher();

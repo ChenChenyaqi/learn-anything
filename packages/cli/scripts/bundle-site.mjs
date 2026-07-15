@@ -41,11 +41,10 @@ if (isMain) {
   console.log('[bundle-site] Copying dist/ -> site-dist/');
   cpSync(distDir, outputDir, { recursive: true });
 
-  // Copy serve.mjs
-  const serveSrc = join(siteDir, 'serve.mjs');
-  const serveDest = join(outputDir, 'serve.mjs');
-  if (existsSync(serveSrc)) {
-    cpSync(serveSrc, serveDest);
+  // Copy server runtime modules
+  for (const runtimeFile of ['serve.mjs', 'catalog.mjs']) {
+    const src = join(siteDir, runtimeFile);
+    if (existsSync(src)) cpSync(src, join(outputDir, runtimeFile));
   }
 
   // Write .gitignore

@@ -33,6 +33,7 @@ export interface TopicSummary {
   totalConcepts: number;
   masteredCount: number;
   percentage: number;
+  revision?: number;
 }
 
 export type CatalogKind = 'session' | 'exercise' | 'quiz';

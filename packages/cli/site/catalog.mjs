@@ -92,6 +92,27 @@ function recognizeSemantics(pathSegments, index) {
   };
 }
 
+function contentRootForPath(relativePath) {
+  const [rootName] = relativePath.split('/');
+  return CONTENT_ROOTS.find((root) => root.directory === rootName) ?? null;
+}
+
+function buildCatalogEntry(topicDir, relativePath, state = safeReadState(topicDir)) {
+  const root = contentRootForPath(relativePath);
+  if (!root || !root.accepts(relativePath.split('/').pop())) return null;
+  const filePath = join(topicDir, ...relativePath.split('/'));
+  if (!existsSync(filePath)) return null;
+  const stat = lstatSync(filePath);
+  if (!stat.isFile() || stat.isSymbolicLink() || isBinaryFile(filePath)) return null;
+  const pathSegments = relativePath.split('/');
+  if (pathSegments.some(isExcluded)) return null;
+  return {
+    path: relativePath,
+    kind: root.kind,
+    ...recognizeSemantics(pathSegments.slice(1, -1), buildSemanticIndex(state)),
+  };
+}
+
 function walkFiles(rootDir, accepts, includeBinary, visit, currentDir = rootDir) {
   if (!existsSync(currentDir)) return;
   for (const entry of readdirSync(currentDir, { withFileTypes: true })) {
@@ -118,11 +139,10 @@ export function buildTopicCatalog(topicDir) {
     const rootDir = join(topicDir, root.directory);
     walkFiles(rootDir, root.accepts, false, (filePath) => {
       const relativePath = relative(topicDir, filePath).split(sep).join('/');
-      const segments = relativePath.split('/').slice(1, -1);
       entries.push({
         path: relativePath,
         kind: root.kind,
-        ...recognizeSemantics(segments, semanticIndex),
+        ...recognizeSemantics(relativePath.split('/').slice(1, -1), semanticIndex),
       });
     });
   }
@@ -136,7 +156,11 @@ export function isValidCatalog(value) {
   return value.entries.every((entry) => {
     if (!entry || typeof entry.path !== 'string') return false;
     if (!['session', 'exercise', 'quiz'].includes(entry.kind)) return false;
-    if (entry.path.startsWith('/') || entry.path.includes('..') || entry.path.includes('\\'))
+    if (
+      entry.path.startsWith('/') ||
+      entry.path.split('/').includes('..') ||
+      entry.path.includes('\\')
+    )
       return false;
     if (entry.domainSlug !== undefined && typeof entry.domainSlug !== 'string') return false;
     if (entry.conceptSlug !== undefined && typeof entry.conceptSlug !== 'string') return false;
@@ -187,6 +211,7 @@ export class TopicCatalogStore {
   constructor(topicsDir) {
     this.topicsDir = resolve(topicsDir);
     this.catalogs = new Map();
+    this.revisions = new Map();
   }
 
   reconcileAll() {
@@ -200,7 +225,10 @@ export class TopicCatalogStore {
       }
     }
     for (const slug of this.catalogs.keys()) {
-      if (!seen.has(slug)) this.catalogs.delete(slug);
+      if (!seen.has(slug)) {
+        this.catalogs.delete(slug);
+        this.revisions.delete(slug);
+      }
     }
   }
 
@@ -212,15 +240,74 @@ export class TopicCatalogStore {
       !lstatSync(topicDir).isDirectory()
     ) {
       this.catalogs.delete(slug);
+      this.revisions.delete(slug);
       return null;
     }
     const catalog = buildTopicCatalog(topicDir);
     writeTopicCatalog(topicDir, catalog);
     this.catalogs.set(slug, catalog);
+    this.revisions.set(slug, (this.revisions.get(slug) ?? 0) + 1);
     return catalog;
   }
 
   get(slug) {
     return this.catalogs.get(slug) ?? null;
+  }
+
+  getRevision(slug) {
+    return this.revisions.get(slug) ?? 0;
+  }
+
+  applyFileEvent(filename) {
+    if (typeof filename !== 'string' || filename.length === 0) {
+      this.reconcileAll();
+      return { type: 'topics-updated' };
+    }
+    const normalized = filename.replaceAll('\\', '/').replace(/^\/+/, '');
+    const [slug, ...restParts] = normalized.split('/');
+    const relativePath = restParts.join('/');
+    if (!slug || slug === '..' || restParts.includes('..')) {
+      this.reconcileAll();
+      return { type: 'topics-updated' };
+    }
+    if (
+      relativePath === CATALOG_FILENAME ||
+      relativePath.startsWith(`${CATALOG_FILENAME}.`) ||
+      relativePath.endsWith('.tmp')
+    ) {
+      return null;
+    }
+
+    const topicDir = resolve(join(this.topicsDir, slug));
+    if (!relativePath || !existsSync(topicDir)) {
+      this.reconcileAll();
+      return { type: 'topics-updated' };
+    }
+    const isKnownTopic = this.catalogs.has(slug);
+    if (!isKnownTopic || relativePath === 'state.json') {
+      this.reconcileTopic(slug);
+      return { type: isKnownTopic ? 'topic-updated' : 'topics-updated', topicSlug: slug };
+    }
+
+    const root = contentRootForPath(relativePath);
+    if (root) {
+      const catalog = this.catalogs.get(slug) ?? { version: CATALOG_VERSION, entries: [] };
+      const fullPath = resolve(join(topicDir, ...relativePath.split('/')));
+      let entries = catalog.entries.filter(
+        (entry) => entry.path !== relativePath && !entry.path.startsWith(`${relativePath}/`),
+      );
+      if (existsSync(fullPath) && lstatSync(fullPath).isDirectory()) {
+        this.reconcileTopic(slug);
+        return { type: 'topic-updated', topicSlug: slug };
+      }
+      const entry = buildCatalogEntry(topicDir, relativePath);
+      if (entry) entries.push(entry);
+      entries = entries.sort((a, b) => a.path.localeCompare(b.path));
+      const next = { version: CATALOG_VERSION, entries };
+      writeTopicCatalog(topicDir, next);
+      this.catalogs.set(slug, next);
+    }
+    this.revisions.set(slug, (this.revisions.get(slug) ?? 0) + 1);
+    return { type: 'topic-updated', topicSlug: slug };
   }
 }

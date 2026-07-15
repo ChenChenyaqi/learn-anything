@@ -89,12 +89,11 @@ function safeReadText(filePath) {
 
 const sseClients = new Set();
 
-function broadcastReload() {
-  catalogStore.reconcileAll();
+function broadcast(event) {
   searchIndexCache = null;
   for (const res of sseClients) {
     try {
-      res.write('data: reload\n\n');
+      res.write(`data: ${JSON.stringify(event)}\n\n`);
     } catch {
       sseClients.delete(res);
     }
@@ -127,9 +126,24 @@ function startWatcher() {
   watcherReady = true;
   try {
     let timer;
-    watch(TOPICS_DIR, { recursive: true }, (_event, _filename) => {
+    const changedFiles = new Set();
+    const flush = () => {
+      let topicsChanged = false;
+      const topicSlugs = new Set();
+      for (const filename of changedFiles) {
+        const event = catalogStore.applyFileEvent(filename);
+        if (!event) continue;
+        if (event.type === 'topics-updated') topicsChanged = true;
+        else if (event.topicSlug) topicSlugs.add(event.topicSlug);
+      }
+      changedFiles.clear();
+      if (topicsChanged) broadcast({ type: 'topics-updated' });
+      else for (const topicSlug of topicSlugs) broadcast({ type: 'topic-updated', topicSlug });
+    };
+    watch(TOPICS_DIR, { recursive: true }, (_event, filename) => {
+      changedFiles.add(typeof filename === 'string' ? filename : (filename?.toString() ?? ''));
       clearTimeout(timer);
-      timer = setTimeout(broadcastReload, 200);
+      timer = setTimeout(flush, 200);
     });
   } catch {
     // topics dir may not exist yet
@@ -159,6 +173,7 @@ function buildTopicSummaries() {
       totalConcepts: total,
       masteredCount: mastered,
       percentage: total > 0 ? Math.round((mastered / total) * 100) : 0,
+      revision: catalogStore.getRevision(slug),
     });
   }
   summaries.sort((a, b) => a.name.localeCompare(b.name));

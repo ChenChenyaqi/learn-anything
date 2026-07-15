@@ -6,7 +6,15 @@
 /*  after an error.  Uses exponential backoff for retries.              */
 /* ------------------------------------------------------------------ */
 
-export function createSSEListener(url: string, onReload: () => void): () => void {
+export type SiteChangeEvent =
+  | { type: 'topic-updated'; topicSlug: string }
+  | { type: 'topics-updated' }
+  | { type: 'reconnected' };
+
+export function createSSEListener(
+  url: string,
+  onChange: (event: SiteChangeEvent) => void,
+): () => void {
   let src: EventSource | null = null;
   let stopped = false;
   let retryDelay = 1000;
@@ -19,14 +27,21 @@ export function createSSEListener(url: string, onReload: () => void): () => void
     src.addEventListener('message', (e) => {
       if (e.data === 'reload') {
         retryDelay = 1000;
-        onReload();
+        onChange({ type: 'topics-updated' });
+        return;
+      }
+      try {
+        const event = JSON.parse(e.data) as SiteChangeEvent;
+        if (event.type === 'topic-updated' || event.type === 'topics-updated') onChange(event);
+      } catch {
+        // Ignore heartbeat/forward-compatible messages.
       }
     });
     src.addEventListener('open', () => {
       retryDelay = 1000;
       if (reconnecting) {
         reconnecting = false;
-        onReload();
+        onChange({ type: 'reconnected' });
       }
     });
     src.onerror = () => {

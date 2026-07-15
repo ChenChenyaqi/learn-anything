@@ -159,48 +159,43 @@ export function __injectTestData(data: {
 /*  Build indexes from API response                                    */
 /* ------------------------------------------------------------------ */
 
-function buildIndexes(
-  summaries: TopicSummary[],
-  topicDataMap: Map<
-    string,
-    {
-      state: StateV1;
-      knowledgeMap: string;
-      catalog?: TopicCatalog;
-      sessions: Record<string, SessionFile[]>;
-      rootSessions: SessionFile[];
-      exercises: ExerciseGroup[];
-      rootExercises: ExerciseFile[];
-    }
-  >,
-) {
+interface TopicApiData {
+  state: StateV1;
+  knowledgeMap: string;
+  catalog?: TopicCatalog;
+  sessions?: Record<string, SessionFile[]>;
+  rootSessions?: SessionFile[];
+  exercises?: ExerciseGroup[];
+  rootExercises?: ExerciseFile[];
+}
+
+function removeTopic(slug: string): void {
+  stateBySlug.delete(slug);
+  knowledgeMapBySlug.delete(slug);
+  catalogBySlug.delete(slug);
+  sessionsBySlug.delete(slug);
+  exerciseGroupsBySlug.delete(slug);
+  orphanSessionsBySlug.delete(slug);
+  orphanExercisesBySlug.delete(slug);
+}
+
+function applyTopicData(slug: string, data: TopicApiData): void {
+  removeTopic(slug);
+  stateBySlug.set(slug, data.state);
+  knowledgeMapBySlug.set(slug, data.knowledgeMap || '');
+  catalogBySlug.set(slug, data.catalog ?? { version: 1, entries: [] });
+
+  const domainMap = new Map<string, SessionFile[]>();
+  for (const [domain, files] of Object.entries(data.sessions ?? {})) domainMap.set(domain, files);
+  if (domainMap.size > 0) sessionsBySlug.set(slug, domainMap);
+  if (data.exercises?.length) exerciseGroupsBySlug.set(slug, data.exercises);
+  if (data.rootSessions?.length) orphanSessionsBySlug.set(slug, data.rootSessions);
+  if (data.rootExercises?.length) orphanExercisesBySlug.set(slug, data.rootExercises);
+}
+
+function buildIndexes(summaries: TopicSummary[], topicDataMap: Map<string, TopicApiData>) {
   topicSummaryCache = summaries;
-
-  for (const [slug, data] of topicDataMap) {
-    stateBySlug.set(slug, data.state);
-    knowledgeMapBySlug.set(slug, data.knowledgeMap || '');
-    catalogBySlug.set(slug, data.catalog ?? { version: 1, entries: [] });
-
-    if (data.sessions) {
-      const domainMap = new Map<string, SessionFile[]>();
-      for (const [domain, files] of Object.entries(data.sessions)) {
-        domainMap.set(domain, files);
-      }
-      if (domainMap.size > 0) sessionsBySlug.set(slug, domainMap);
-    }
-
-    if (data.exercises && data.exercises.length > 0) {
-      exerciseGroupsBySlug.set(slug, data.exercises);
-    }
-
-    if (data.rootSessions && data.rootSessions.length > 0) {
-      orphanSessionsBySlug.set(slug, data.rootSessions);
-    }
-
-    if (data.rootExercises && data.rootExercises.length > 0) {
-      orphanExercisesBySlug.set(slug, data.rootExercises);
-    }
-  }
+  for (const [slug, data] of topicDataMap) applyTopicData(slug, data);
 }
 
 /* ------------------------------------------------------------------ */
@@ -221,7 +216,7 @@ export async function initTopicData(): Promise<void> {
     }
     const summaries: TopicSummary[] = await resp.json();
 
-    const topicDataMap = new Map();
+    const topicDataMap = new Map<string, TopicApiData>();
     await Promise.all(
       summaries.map(async (s) => {
         const r = await fetch(`/api/topics/${encodeURIComponent(s.slug)}`);
@@ -246,10 +241,42 @@ export async function initTopicData(): Promise<void> {
 /*  SSE file change listener                                           */
 /* ------------------------------------------------------------------ */
 
+async function fetchSummaries(): Promise<TopicSummary[] | null> {
+  const response = await fetch('/api/topics');
+  return response.ok ? response.json() : null;
+}
+
+async function fetchTopic(slug: string): Promise<TopicApiData | null> {
+  const response = await fetch(`/api/topics/${encodeURIComponent(slug)}`);
+  return response.ok ? response.json() : null;
+}
+
+async function reconcileChangedTopics(forceSlug?: string): Promise<void> {
+  const previous = new Map((topicSummaryCache ?? []).map((summary) => [summary.slug, summary]));
+  const summaries = await fetchSummaries();
+  if (!summaries) return;
+  const nextSlugs = new Set(summaries.map((summary) => summary.slug));
+  for (const slug of previous.keys()) if (!nextSlugs.has(slug)) removeTopic(slug);
+
+  const changed = summaries.filter((summary) => {
+    if (summary.slug === forceSlug) return true;
+    const old = previous.get(summary.slug);
+    return !old || old.revision !== summary.revision;
+  });
+  await Promise.all(
+    changed.map(async (summary) => {
+      const data = await fetchTopic(summary.slug);
+      if (data) applyTopicData(summary.slug, data);
+    }),
+  );
+  topicSummaryCache = summaries;
+  clearFileContentCache();
+}
+
 export function listenForChanges(callback: () => void): () => void {
-  return createSSEListener('/api/events', () => {
-    clearIndexes();
-    initTopicData().then(() => {
+  return createSSEListener('/api/events', (event) => {
+    const forceSlug = event.type === 'topic-updated' ? event.topicSlug : undefined;
+    reconcileChangedTopics(forceSlug).then(() => {
       dataVersion.value++;
       callback();
     });

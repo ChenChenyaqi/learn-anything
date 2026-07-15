@@ -121,4 +121,32 @@ describe('topic catalog', () => {
       true,
     );
   });
+
+  it('applies file additions and removals incrementally', () => {
+    const { topic, topics } = makeTopic();
+    mkdirSync(join(topic, 'exercises', 'css', 'box-model'), { recursive: true });
+    const store = new TopicCatalogStore(topics);
+    store.reconcileAll();
+    const initialRevision = store.getRevision('frontend');
+
+    writeFileSync(join(topic, 'exercises', 'css', 'box-model', 'starter.js'), '// TODO');
+    expect(store.applyFileEvent('frontend/exercises/css/box-model/starter.js')).toEqual({
+      type: 'topic-updated',
+      topicSlug: 'frontend',
+    });
+    expect(store.get('frontend').entries).toHaveLength(1);
+    expect(store.getRevision('frontend')).toBe(initialRevision + 1);
+
+    rmSync(join(topic, 'exercises', 'css', 'box-model', 'starter.js'));
+    store.applyFileEvent('frontend/exercises/css/box-model/starter.js');
+    expect(store.get('frontend').entries).toEqual([]);
+  });
+
+  it('ignores catalog writes and falls back for ambiguous events', () => {
+    const { topics } = makeTopic();
+    const store = new TopicCatalogStore(topics);
+    store.reconcileAll();
+    expect(store.applyFileEvent('frontend/catalog.json')).toBeNull();
+    expect(store.applyFileEvent('')).toEqual({ type: 'topics-updated' });
+  });
 });

@@ -76,7 +76,10 @@ pub struct Concept {
 /// Lightweight per-topic row returned by `site_topic_summaries`.
 ///
 /// Serializes to `camelCase` per the user's contract choice: `domainCount` /
-/// `totalConcepts` / `masteredCount` / `percentage` / `slug` / `name`.
+/// `totalConcepts` / `masteredCount` / `percentage` / `domainNames` / `slug` /
+/// `name`. `domain_names` carries the ordered domain display names so the
+/// overview can render a one-line description (e.g. "Ownership, async, traits")
+/// without a second per-topic fetch.
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TopicSummary {
@@ -86,6 +89,7 @@ pub struct TopicSummary {
     pub total_concepts: u64,
     pub mastered_count: u64,
     pub percentage: u64,
+    pub domain_names: Vec<String>,
 }
 
 /* ------------------------------------------------------------------ */

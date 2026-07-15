@@ -25,3 +25,12 @@ export const slashPill =
 
 /** Notebook-margin tool-call card: 2px accent left border + 12px left padding. */
 export const toolCard = 'border-l-2 border-(--color-accent) pl-3';
+
+/** Notebook-margin hover row: 2px transparent left border that turns accent on hover. */
+export const rowMargin = 'border-l-2 border-transparent hover:border-l-(--color-accent)';
+
+/** Mastery progress bar: 3px rounded track. Pair with a `masteryBarFill` child. */
+export const masteryBar = 'h-[3px] rounded-full bg-(--color-rule) overflow-hidden';
+
+/** Inner fill of a `masteryBar`; width is set inline (e.g. `style="width:25%"`). */
+export const masteryBarFill = 'block h-full bg-(--color-accent)';

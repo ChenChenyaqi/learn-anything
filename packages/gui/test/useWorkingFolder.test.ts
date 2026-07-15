@@ -1,17 +1,19 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { useWorkingFolder } from '@/composables/useWorkingFolder';
-import { createProject, openProject, pickProjectDir } from '@/lib/commands';
+import { createProject, openProject, pickProjectDir, siteSetWatcherFolder } from '@/lib/commands';
 import type { ProjectInfo } from '@/lib/commands';
 
 vi.mock('@/lib/commands', () => ({
   openProject: vi.fn(),
   createProject: vi.fn(),
   pickProjectDir: vi.fn(),
+  siteSetWatcherFolder: vi.fn(),
 }));
 
 const mockOpen = vi.mocked(openProject);
 const mockCreate = vi.mocked(createProject);
 const mockPick = vi.mocked(pickProjectDir);
+const mockSetWatcher = vi.mocked(siteSetWatcherFolder);
 
 function info(overrides: Partial<ProjectInfo> = {}): ProjectInfo {
   return { dir: '/proj', fresh: false, topics: [], ...overrides };
@@ -22,6 +24,10 @@ describe('useWorkingFolder', () => {
     mockOpen.mockReset();
     mockCreate.mockReset();
     mockPick.mockReset();
+    mockSetWatcher.mockReset();
+    // `openFolder` awaits this; default `vi.fn()` returns undefined (not a
+    // promise), so give it a resolved implementation each run.
+    mockSetWatcher.mockResolvedValue(undefined);
   });
 
   describe('openFolder', () => {
@@ -54,6 +60,37 @@ describe('useWorkingFolder', () => {
 
       expect(project.value).toBeNull();
       expect(projectError.value).toContain('bad version');
+    });
+
+    it('arms the filesystem watcher onto the opened folder', async () => {
+      mockOpen.mockResolvedValue(info());
+      const { openFolder } = useWorkingFolder();
+
+      await openFolder('/proj');
+
+      expect(mockSetWatcher).toHaveBeenCalledWith('/proj');
+    });
+
+    it('does not arm the watcher when open fails', async () => {
+      mockOpen.mockRejectedValue(new Error('nope'));
+      const { openFolder } = useWorkingFolder();
+
+      await openFolder('/proj');
+
+      expect(mockSetWatcher).not.toHaveBeenCalled();
+    });
+
+    it('keeps the project when the watcher fails to arm', async () => {
+      // A watcher failure is best-effort: the open already succeeded, so the
+      // folder must stay usable (data readable, just no live reload).
+      mockOpen.mockResolvedValue(info());
+      mockSetWatcher.mockRejectedValue('500|watcher init failed');
+      const { project, projectError, openFolder } = useWorkingFolder();
+
+      await openFolder('/proj');
+
+      expect(project.value).not.toBeNull();
+      expect(projectError.value).toBe('');
     });
   });
 

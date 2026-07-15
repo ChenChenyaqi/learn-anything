@@ -109,6 +109,9 @@ pub(super) fn build_topic_summaries(topics_dir: &Path) -> Vec<TopicSummary> {
             total_concepts: total,
             mastered_count: mastered,
             percentage: if total > 0 { (mastered * 100 + total / 2) / total } else { 0 },
+            // Ordered domain display names — drives the overview's per-topic
+            // description line. Order matches state.json's `domains` array.
+            domain_names: state.domains.iter().map(|d| d.name.clone()).collect(),
         });
     }
     summaries.sort_by(|a, b| a.name.cmp(&b.name));
@@ -261,6 +264,7 @@ mod tests {
         assert_eq!(s[0].total_concepts, 1);
         assert_eq!(s[0].mastered_count, 1);
         assert_eq!(s[0].percentage, 100);
+        assert_eq!(s[0].domain_names, vec!["Basics"]);
     }
 
     #[test]
@@ -278,6 +282,7 @@ mod tests {
         let s = build_topic_summaries(&topics);
         // 1/3 = 33.33% → round to 33.
         assert_eq!(s[0].percentage, 33);
+        assert_eq!(s[0].domain_names, vec!["d"]);
     }
 
     #[test]
@@ -290,6 +295,8 @@ mod tests {
         }
         let s = build_topic_summaries(&topics);
         assert_eq!(s.iter().map(|x| &x.name).collect::<Vec<_>>(), vec!["a", "m", "z"]);
+        // No domains declared → empty vec, never absent.
+        assert!(s.iter().all(|x| x.domain_names.is_empty()));
     }
 
     #[test]
@@ -368,5 +375,26 @@ mod tests {
         write_state(&topic_dir, r#"{"topic":"JS"}"#);
         let data = build_topic_data("js", root.path()).unwrap();
         assert_eq!(data.exercises[0].concept_name, "orphan-concept");
+    }
+
+    #[test]
+    fn summaries_carry_domain_names_in_state_order() {
+        // The overview's per-topic description line joins these names, so the
+        // order must follow state.json's `domains` array exactly (not be
+        // re-sorted), so the user's chosen grouping is what they see.
+        let root = tempdir().unwrap();
+        let topics = root.path().join(".learn").join("topics");
+        fs::create_dir_all(topics.join("rust")).unwrap();
+        write_state(
+            &topics.join("rust"),
+            r#"{"topic":"Rust","domains":[
+                {"name":"Ownership","concepts":[]},
+                {"name":"Async","concepts":[]},
+                {"name":"Traits","concepts":[]}
+            ]}"#,
+        );
+        let s = build_topic_summaries(&topics);
+        assert_eq!(s[0].domain_count, 3);
+        assert_eq!(s[0].domain_names, vec!["Ownership", "Async", "Traits"]);
     }
 }

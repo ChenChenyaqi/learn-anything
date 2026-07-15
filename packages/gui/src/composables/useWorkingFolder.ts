@@ -1,5 +1,11 @@
 import { ref } from 'vue';
-import { type ProjectInfo, createProject, openProject, pickProjectDir } from '../lib/commands';
+import {
+  type ProjectInfo,
+  createProject,
+  openProject,
+  pickProjectDir,
+  siteSetWatcherFolder,
+} from '../lib/commands';
 
 // Working-folder selection, validation, and scaffolding.
 //
@@ -25,7 +31,13 @@ export function useWorkingFolder() {
     } catch (e) {
       project.value = null;
       projectError.value = String(e);
+      return;
     }
+    // Arm/swap the filesystem watcher onto the new folder so `site://reload`
+    // keeps firing for the overview. Best-effort: a watcher failure must not
+    // invalidate an otherwise-successful open (the user can still read data,
+    // just without live reload).
+    await siteSetWatcherFolder(dir).catch(() => {});
   }
 
   /** Open the native picker, then validate + scaffold. Returns the picked

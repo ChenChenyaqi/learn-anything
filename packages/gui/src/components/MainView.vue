@@ -3,8 +3,8 @@
 // Owns the workspace layout — route switching (overview/topic) via
 // `useWorkspaceNav` and the agent-panel resize via `useAgentPanelResize`.
 // Folder/config concerns stay in App.vue; this component receives them as props.
-import { type AppConfig, type ProjectInfo } from '../lib/commands';
-import { btnPrimary, btnSecondary } from '../lib/ui';
+import { type AppConfig, type ProjectInfo } from '@/lib/commands';
+import { btnPrimary, btnSecondary } from '@/lib/ui';
 import AppHeader from './AppHeader.vue';
 import OverviewView from './overview/OverviewView.vue';
 import WorkspaceView from './workspace/WorkspaceView.vue';
@@ -67,7 +67,10 @@ const { width: panelWidth, resizing, start: startResize } = useAgentPanelResize(
 
       <div v-else-if="project" class="flex h-full">
         <div class="flex-1 min-w-0 overflow-hidden">
-          <OverviewView v-if="route.name === 'overview'" />
+          <OverviewView
+            v-if="route.name === 'overview'"
+            :working-folder="config?.last_working_folder ?? null"
+          />
           <WorkspaceView v-else />
         </div>
         <ResizeHandle :resizing="resizing" @start="startResize" />

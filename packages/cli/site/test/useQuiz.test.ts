@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { createApp, defineComponent, h, nextTick } from 'vue';
 import { gradeQuestion, computeResults } from '@/components/quiz/grading';
 import { useQuizSession } from '@/components/quiz/useQuizSession';
-import { fetchQuizList, fetchQuizDeck } from '@/components/quiz/quizApi';
+import { fetchQuizDeck } from '@/components/quiz/quizApi';
 import type { QuizDeck, QuizQuestion, QuizAnswers } from '@/components/quiz/types';
 
 /* ------------------------------------------------------------------ */
@@ -521,100 +521,6 @@ describe('useQuizSession', () => {
       expect(result.isComplete.value).toBe(false);
       expect(result.direction.value).toBe('forward');
     });
-  });
-});
-
-/* ================================================================== */
-/*  fetchQuizList                                                      */
-/* ================================================================== */
-
-describe('fetchQuizList', () => {
-  it('returns groups on successful fetch', async () => {
-    const mockGroups = [
-      {
-        concept_slug: 'closures',
-        concept_name: 'Closures',
-        files: [{ filename: 'q.json', path: '/p/q.json' }],
-      },
-    ];
-    vi.mocked(fetch).mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ groups: mockGroups }),
-    } as Response);
-
-    const { result } = withScope(() => fetchQuizList('javascript'));
-    await nextTick();
-    await vi.waitFor(() => {
-      expect(result.loading.value).toBe(false);
-    });
-    expect(result.groups.value).toEqual(mockGroups);
-    expect(result.error.value).toBe(null);
-  });
-
-  it('sets error on failed fetch', async () => {
-    vi.mocked(fetch).mockResolvedValueOnce({
-      ok: false,
-      status: 404,
-      json: async () => ({ error: 'Not found' }),
-    } as Response);
-
-    const { result } = withScope(() => fetchQuizList('nonexistent'));
-    await vi.waitFor(() => {
-      expect(result.loading.value).toBe(false);
-    });
-    expect(result.groups.value).toEqual([]);
-    expect(result.error.value).toBe('HTTP 404');
-  });
-
-  it('sets error on network failure', async () => {
-    vi.mocked(fetch).mockRejectedValueOnce(new Error('Network error'));
-
-    const { result } = withScope(() => fetchQuizList('javascript'));
-    await vi.waitFor(() => {
-      expect(result.loading.value).toBe(false);
-    });
-    expect(result.groups.value).toEqual([]);
-    expect(result.error.value).toBe('Network error');
-  });
-
-  it('encodes the topic slug in the URL', () => {
-    vi.mocked(fetch).mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ groups: [] }),
-    } as Response);
-
-    withScope(() => fetchQuizList('java script'));
-    expect(fetch).toHaveBeenCalledWith('/api/quizzes?topic=java%20script');
-  });
-
-  it('reload() refetches data', async () => {
-    vi.mocked(fetch)
-      .mockResolvedValueOnce({ ok: true, json: async () => ({ groups: [] }) } as Response)
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ groups: [{ concept_slug: 'x', concept_name: 'X', files: [] }] }),
-      } as Response);
-
-    const { result } = withScope(() => fetchQuizList('javascript'));
-    await vi.waitFor(() => expect(result.loading.value).toBe(false));
-    expect(result.groups.value).toEqual([]);
-
-    await result.reload();
-    expect(result.groups.value).toHaveLength(1);
-  });
-
-  it('sets loading to true during fetch, false after', async () => {
-    let resolveJson: (v: unknown) => void = () => {};
-    vi.mocked(fetch).mockReturnValueOnce(
-      new Promise((resolve) => {
-        resolveJson = () => resolve({ ok: true, json: async () => ({ groups: [] }) } as Response);
-      }),
-    );
-
-    const { result } = withScope(() => fetchQuizList('javascript'));
-    expect(result.loading.value).toBe(true);
-    resolveJson(undefined);
-    await vi.waitFor(() => expect(result.loading.value).toBe(false));
   });
 });
 

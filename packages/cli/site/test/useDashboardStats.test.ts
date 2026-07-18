@@ -6,9 +6,7 @@ import type {
   Domain,
   StateV1,
   TopicSummary,
-  SessionFile,
-  ExerciseFile,
-  ExerciseGroup,
+  TopicFiles,
 } from '@/composables/useTopicData';
 
 /* Fixed "now" so the day-since-activity math is deterministic. */
@@ -59,21 +57,10 @@ function makeSummary(slug: string, overrides: Partial<TopicSummary> = {}): Topic
   };
 }
 
-function sessionFile(filename: string): SessionFile {
-  return { filename, path: `/sessions/${filename}` };
-}
-
-function exerciseFile(name: string): ExerciseFile {
-  return { name, path: `/exercises/${name}` };
-}
-
 type InjectParts = {
   summaries?: TopicSummary[];
   states?: Record<string, StateV1>;
-  sessions?: Record<string, Record<string, SessionFile[]>>;
-  exerciseGroups?: Record<string, ExerciseGroup[]>;
-  orphanSessions?: Record<string, SessionFile[]>;
-  orphanExercises?: Record<string, ExerciseFile[]>;
+  files?: Record<string, TopicFiles>;
 };
 
 /**
@@ -87,11 +74,8 @@ function evalStats(parts: InjectParts = {}) {
     summaries: parts.summaries ?? [],
     states: parts.states ?? {},
     knowledgeMaps: {},
-    sessions: parts.sessions ?? {},
-    exerciseGroups: parts.exerciseGroups ?? {},
-    orphanSessions: parts.orphanSessions ?? [],
-    orphanExercises: parts.orphanExercises ?? [],
     fileContents: {},
+    files: parts.files,
   });
   return useDashboardStats().value;
 }
@@ -276,16 +260,21 @@ describe('useDashboardStats', () => {
   });
 
   describe('noteCount', () => {
-    it('counts session files across domain dirs and orphans', () => {
+    it('counts session files from loadTopicFiles', () => {
       const stats = evalStats({
         summaries: [makeSummary('t')],
-        sessions: {
+        files: {
           t: {
-            'domain-a': [sessionFile('a1.md'), sessionFile('a2.md')],
-            'domain-b': [sessionFile('b1.md')],
+            sessions: [
+              'sessions/domain-a/a1.md',
+              'sessions/domain-a/a2.md',
+              'sessions/domain-b/b1.md',
+              'sessions/overview.md',
+            ],
+            exercises: [],
+            quizzes: [],
           },
         },
-        orphanSessions: { t: [sessionFile('overview.md')] },
       });
       expect(stats.noteCount).toBe(4);
     });
@@ -294,30 +283,33 @@ describe('useDashboardStats', () => {
       expect(evalStats({ summaries: [makeSummary('t')] }).noteCount).toBe(0);
     });
 
-    it('counts only orphan sessions when there are no domain dirs', () => {
+    it('counts root-level sessions too', () => {
       const stats = evalStats({
         summaries: [makeSummary('t')],
-        orphanSessions: { t: [sessionFile('o1.md'), sessionFile('o2.md')] },
+        files: {
+          t: { sessions: ['sessions/o1.md', 'sessions/o2.md'], exercises: [], quizzes: [] },
+        },
       });
       expect(stats.noteCount).toBe(2);
     });
   });
 
   describe('exerciseCount', () => {
-    it('counts exercise files across groups and orphans', () => {
+    it('counts exercise files from loadTopicFiles across nested dirs', () => {
       const stats = evalStats({
         summaries: [makeSummary('t')],
-        exerciseGroups: {
-          t: [
-            {
-              conceptSlug: 'c1',
-              conceptName: 'C1',
-              files: [exerciseFile('a.js'), exerciseFile('b.js')],
-            },
-            { conceptSlug: 'c2', conceptName: 'C2', files: [exerciseFile('c.js')] },
-          ],
+        files: {
+          t: {
+            sessions: [],
+            exercises: [
+              'exercises/c1/a.js',
+              'exercises/c1/b.js',
+              'exercises/c2/c.js',
+              'exercises/warmup.js',
+            ],
+            quizzes: [],
+          },
         },
-        orphanExercises: { t: [exerciseFile('warmup.js')] },
       });
       expect(stats.exerciseCount).toBe(4);
     });
@@ -494,18 +486,18 @@ describe('useDashboardStats', () => {
             ]),
           ]),
         },
-        sessions: { js: { core: [sessionFile('n1.md'), sessionFile('n2.md')] } },
-        exerciseGroups: {
-          rust: [
-            {
-              conceptSlug: 'np1',
-              conceptName: 'NP1',
-              files: [exerciseFile('e1.rs')],
-            },
-          ],
+        files: {
+          js: {
+            sessions: ['sessions/core/n1.md', 'sessions/core/n2.md', 'sessions/overview.md'],
+            exercises: ['exercises/warmup.js'],
+            quizzes: [],
+          },
+          rust: {
+            sessions: [],
+            exercises: ['exercises/np1/e1.rs'],
+            quizzes: [],
+          },
         },
-        orphanSessions: { js: [sessionFile('overview.md')] },
-        orphanExercises: { js: [exerciseFile('warmup.js')] },
       });
 
       expect(stats).toEqual({

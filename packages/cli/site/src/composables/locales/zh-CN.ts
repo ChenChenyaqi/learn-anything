@@ -37,7 +37,6 @@ const zhCN: Record<I18nKey, string> = {
   'sidebar.quizzes': '测验',
   'sidebar.noNotes': '没有笔记',
   'sidebar.noExercises': '没有练习',
-  'sidebar.orphanTip': '此目录不在知识地图中',
   'quiz.empty': '暂无测验',
   'quiz.start': '开始测验',
   'quiz.previous': '上一题',

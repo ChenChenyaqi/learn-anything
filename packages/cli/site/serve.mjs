@@ -60,6 +60,48 @@ function isBinaryFile(filePath) {
   }
 }
 
+const EXCLUDED_NAMES = new Set(['.learn', '.git', '.idea', 'node_modules']);
+
+function isExcluded(name) {
+  return name.startsWith('.') || EXCLUDED_NAMES.has(name);
+}
+
+function walkDir(dirPath, relativePrefix, includeBinary, filterFn, results) {
+  if (!existsSync(dirPath)) return;
+  const entries = readdirSync(dirPath, { withFileTypes: true });
+  for (const entry of entries) {
+    if (isExcluded(entry.name) || entry.isSymbolicLink()) continue;
+    const relativePath = relativePrefix ? `${relativePrefix}/${entry.name}` : entry.name;
+    if (entry.isDirectory()) {
+      walkDir(join(dirPath, entry.name), relativePath, includeBinary, filterFn, results);
+    } else if (entry.isFile()) {
+      if (filterFn(entry.name) && (includeBinary || !isBinaryFile(join(dirPath, entry.name)))) {
+        results.push(relativePath);
+      }
+    }
+  }
+}
+
+function scanTopicFiles(topicDir) {
+  const files = { sessions: [], exercises: [], quizzes: [] };
+  walkDir(
+    join(topicDir, 'sessions'),
+    'sessions',
+    true,
+    (name) => name.toLowerCase().endsWith('.md'),
+    files.sessions,
+  );
+  walkDir(join(topicDir, 'exercises'), 'exercises', false, () => true, files.exercises);
+  walkDir(
+    join(topicDir, 'quizzes'),
+    'quizzes',
+    true,
+    (name) => name.toLowerCase().endsWith('.json'),
+    files.quizzes,
+  );
+  return files;
+}
+
 function json(res, data, status = 200) {
   res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8' });
   res.end(JSON.stringify(data));
@@ -197,7 +239,7 @@ function buildTopicSummaries() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  API: topic data (state, knowledge-map, sessions, exercises)        */
+/*  API: topic data (state, knowledge-map, file tree)                  */
 /* ------------------------------------------------------------------ */
 
 function buildTopicData(slug) {
@@ -206,124 +248,9 @@ function buildTopicData(slug) {
 
   const state = safeReadJson(join(topicDir, 'state.json'));
   const knowledgeMap = safeReadText(join(topicDir, 'knowledge-map.md')) || '';
+  const files = scanTopicFiles(topicDir);
 
-  const sessions = {};
-  const rootSessions = [];
-  const sessionsDir = join(topicDir, 'sessions');
-  if (existsSync(sessionsDir)) {
-    const sEntries = readdirSync(sessionsDir, { withFileTypes: true });
-    for (const entry of sEntries) {
-      if (entry.isDirectory()) {
-        const domainDir = join(sessionsDir, entry.name);
-        const files = readdirSync(domainDir)
-          .filter((f) => f.endsWith('.md'))
-          .map((f) => ({ filename: f, path: `/topics/${slug}/sessions/${entry.name}/${f}` }))
-          .sort((a, b) => b.filename.localeCompare(a.filename));
-        sessions[entry.name] = files;
-      } else if (entry.isFile() && entry.name.endsWith('.md')) {
-        rootSessions.push({
-          filename: entry.name,
-          path: `/topics/${slug}/sessions/${entry.name}`,
-        });
-      }
-    }
-  }
-  rootSessions.sort((a, b) => b.filename.localeCompare(a.filename));
-
-  const exercises = [];
-  const rootExercises = [];
-  const exercisesDir = join(topicDir, 'exercises');
-  const nameMap = new Map();
-  if (state) {
-    for (const domain of state.domains || []) {
-      for (const concept of domain.concepts) {
-        nameMap.set(concept.slug, concept.name);
-      }
-    }
-  }
-  if (existsSync(exercisesDir)) {
-    const raw = new Map();
-    const eEntries = readdirSync(exercisesDir, { withFileTypes: true });
-    for (const entry of eEntries) {
-      if (entry.isDirectory()) {
-        const conceptDir = join(exercisesDir, entry.name);
-        const files = readdirSync(conceptDir, { withFileTypes: true })
-          .filter((f) => f.isFile() && !isBinaryFile(join(conceptDir, f.name)))
-          .map((f) => ({
-            name: f.name,
-            path: `/topics/${slug}/exercises/${entry.name}/${f.name}`,
-          }));
-        if (files.length > 0) raw.set(entry.name, files);
-      } else if (entry.isFile() && !isBinaryFile(join(exercisesDir, entry.name))) {
-        rootExercises.push({
-          name: entry.name,
-          path: `/topics/${slug}/exercises/${entry.name}`,
-        });
-      }
-    }
-    for (const [conceptSlug, files] of raw) {
-      exercises.push({
-        conceptSlug,
-        conceptName: nameMap.get(conceptSlug) || conceptSlug,
-        files,
-      });
-    }
-    exercises.sort((a, b) => a.conceptName.localeCompare(b.conceptName));
-  }
-
-  return { state, knowledgeMap, sessions, rootSessions, exercises, rootExercises };
-}
-
-/* ------------------------------------------------------------------ */
-/*  API: quizzes                                                       */
-/* ------------------------------------------------------------------ */
-
-/** Scan a topic's `quizzes/` directory and return quiz files grouped by concept. */
-function buildQuizList(slug) {
-  const topicDir = join(TOPICS_DIR, slug);
-  if (!existsSync(topicDir)) return null;
-
-  const state = safeReadJson(join(topicDir, 'state.json'));
-  const nameMap = new Map();
-  if (state) {
-    for (const domain of state.domains || []) {
-      for (const concept of domain.concepts || []) {
-        nameMap.set(concept.slug, concept.name);
-      }
-    }
-  }
-
-  const groups = [];
-  const quizzesDir = join(topicDir, 'quizzes');
-  if (existsSync(quizzesDir)) {
-    const raw = new Map();
-    const qEntries = readdirSync(quizzesDir, { withFileTypes: true });
-    for (const entry of qEntries) {
-      if (entry.isDirectory()) {
-        const conceptDir = join(quizzesDir, entry.name);
-        const files = readdirSync(conceptDir)
-          .filter((f) => f.endsWith('.json'))
-          .map((f) => ({
-            filename: f,
-            path: `/topics/${slug}/quizzes/${entry.name}/${f}`,
-          }))
-          .sort((a, b) => b.filename.localeCompare(a.filename));
-        if (files.length > 0) {
-          raw.set(entry.name, files);
-        }
-      }
-    }
-    for (const [conceptSlug, files] of raw) {
-      groups.push({
-        concept_slug: conceptSlug,
-        concept_name: nameMap.get(conceptSlug) || conceptSlug,
-        files,
-      });
-    }
-    groups.sort((a, b) => a.concept_name.localeCompare(b.concept_name));
-  }
-
-  return { groups };
+  return { state, knowledgeMap, files };
 }
 
 /** Read and return a single quiz deck JSON file with path traversal protection. */
@@ -566,18 +493,6 @@ function handler(req, res) {
   const fileMatch = pathname.match(/^\/api\/file$/);
   if (fileMatch) {
     return serveFileContent(res, req.url);
-  }
-
-  if (pathname === '/api/quizzes') {
-    const topic = url.searchParams.get('topic');
-    if (!topic) {
-      return json(res, { error: 'Missing topic parameter' }, 400);
-    }
-    const data = buildQuizList(topic);
-    if (!data) {
-      return json(res, { error: 'Topic not found' }, 404);
-    }
-    return json(res, data);
   }
 
   const quizDeckMatch = pathname.match(/^\/api\/quizzes\/([^/]+)\/(.+)$/);

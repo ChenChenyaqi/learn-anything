@@ -26,7 +26,7 @@ The system SHALL render a Dashboard page at the site root (`/`) that scans `/top
 The system SHALL render an `AppSidebar` component that adapts its content based on a `context` prop:
 
 - **Dashboard context** (`context="dashboard"`): SHALL display a list of all topics with name and mastery stats, each clickable to navigate to `/topics/:slug`
-- **Topic context** (`context="topic"`): SHALL display a TOPICS/EXERCISES tab bar, with the topics tab showing a root node (topic name), expandable domain groups, and session file links; and the exercises tab showing expandable concept groups with exercise file links
+- **Topic context** (`context="topic"`): SHALL display a TOPICS/EXERCISES/QUIZZES tab bar, with the topics tab showing a root node (topic name) and a recursive file tree mirroring the `sessions/` directory; the exercises tab showing a recursive file tree mirroring the `exercises/` directory; and the quizzes tab showing a recursive file tree mirroring the `quizzes/` directory with batch play buttons
 
 The sidebar SHALL be 272px wide, use `bg-alt` background, and have no right border — matching VitePress sidebar dimensions.
 
@@ -35,10 +35,10 @@ The sidebar SHALL be 272px wide, use `bg-alt` background, and have no right bord
 - **WHEN** the current route is `/` and topics exist
 - **THEN** the AppSidebar displays a "Topics" section label and lists each topic with name and mastered/total count
 
-#### Scenario: Topic sidebar shows domain tree
+#### Scenario: Topic sidebar shows physical file tree
 
 - **WHEN** the current route is `/topics/javascript` and the TOPICS tab is active
-- **THEN** the sidebar shows a root node with the topic name (brand-2 color), expandable domain groups with arrow indicators, and session `.md` files under each expanded domain
+- **THEN** the sidebar shows a root node with the topic name (brand-2 color), and a recursive file tree of the `sessions/` directory with nested directories expandable and session `.md` files as leaves
 
 #### Scenario: Clicking the root node returns to knowledge map
 
@@ -50,10 +50,10 @@ The sidebar SHALL be 272px wide, use `bg-alt` background, and have no right bord
 - **WHEN** user clicks a session `.md` file in the TOPICS tab
 - **THEN** the sidebar emits `file-selected` with `{ path, content, type: 'markdown' }`
 
-#### Scenario: Exercises tab shows concept groups
+#### Scenario: Exercises tab shows physical file tree
 
 - **WHEN** user switches to the EXERCISES tab for a topic that has exercise files
-- **THEN** the sidebar displays concept groups (expandable) with exercise file links (README.md, starter.js, solution.js, practice JSON files)
+- **THEN** the sidebar displays a recursive file tree mirroring the `exercises/` directory structure, with each file entry in monospace font
 
 #### Scenario: Exercises tab with no exercises
 
@@ -164,7 +164,7 @@ The system SHALL define CSS custom properties matching VitePress's design system
 
 ### Requirement: Data layer loads topic data via HTTP API
 
-The system SHALL use a fetch-based data layer (`useTopicData` composable) that loads topic data from the local HTTP server (`serve.mjs`) via REST endpoints. The `useTopicData` composable SHALL expose functions (`listAllTopics`, `loadTopic`, `scanSessions`, `scanExercises`, `loadSessionContent`, `loadExerciseContent`) that fetch from `/api/topics`, `/api/topics/:slug`, and `/api/file`. The server reads and caches topic files from the configured `TOPICS_DIR` on disk.
+The system SHALL use a fetch-based data layer (`useTopicData` composable) that loads topic data from the local HTTP server (`serve.mjs`) via REST endpoints. The `useTopicData` composable SHALL expose functions (`listAllTopics`, `loadTopic`, `loadTopicFiles`, `loadSessionContent`, `loadExerciseContent`) that fetch from `/api/topics`, `/api/topics/:slug`, and `/api/file`. The server reads and caches topic files from the configured `TOPICS_DIR` on disk.
 
 In dev mode, Vite proxies `/api` requests to the `serve.mjs` server running on port 24277. In production, `serve.mjs` serves both static files and API endpoints on a single port.
 
@@ -173,15 +173,12 @@ In dev mode, Vite proxies `/api` requests to the `serve.mjs` server running on p
 - **WHEN** the app calls `initTopicData()` and the server has topic directories under `TOPICS_DIR`
 - **THEN** `listAllTopics()` returns all topics with summaries fetched from `/api/topics`
 
-#### Scenario: Session files are filtered by domain
+#### Scenario: Session files are collected recursively via loadTopicFiles
 
-- **WHEN** `scanSessions('javascript', 'language-basics')` is called
-- **THEN** only `.md` files from the server response under the `language-basics` domain are returned
-
-#### Scenario: Exercise files are grouped by concept
-
-- **WHEN** `scanExercises('javascript')` is called and exercises exist under the topic's exercises directory
-- **THEN** files are grouped by their concept subdirectory, with each group containing the concept name and its files
+- **WHEN** `loadTopicFiles('javascript')` is called
+- **THEN** `files.sessions` contains flat relative paths for all `.md` files under `sessions/`, including nested directories (e.g., `sessions/js/es6/func.md`)
+- **AND** `files.exercises` contains flat relative paths for all files under `exercises/` (e.g., `exercises/js/es6/func/arrow-func/index.js`)
+- **AND** `files.quizzes` contains flat relative paths for all `.json` files under `quizzes/` (e.g., `quizzes/异步Promise/quiz.json`)
 
 ### Requirement: Markdown headings render with anchor links
 

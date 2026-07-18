@@ -35,22 +35,6 @@ export interface TopicSummary {
   percentage: number;
 }
 
-export interface SessionFile {
-  filename: string;
-  path: string;
-}
-
-export interface ExerciseFile {
-  name: string;
-  path: string;
-}
-
-export interface ExerciseGroup {
-  conceptSlug: string;
-  conceptName: string;
-  files: ExerciseFile[];
-}
-
 export interface TopicFiles {
   sessions: string[];
   exercises: string[];

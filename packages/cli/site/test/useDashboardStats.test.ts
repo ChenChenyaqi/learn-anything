@@ -6,9 +6,6 @@ import type {
   Domain,
   StateV1,
   TopicSummary,
-  SessionFile,
-  ExerciseFile,
-  ExerciseGroup,
   TopicFiles,
 } from '@/composables/useTopicData';
 
@@ -63,10 +60,6 @@ function makeSummary(slug: string, overrides: Partial<TopicSummary> = {}): Topic
 type InjectParts = {
   summaries?: TopicSummary[];
   states?: Record<string, StateV1>;
-  sessions?: Record<string, Record<string, SessionFile[]>>;
-  exerciseGroups?: Record<string, ExerciseGroup[]>;
-  orphanSessions?: Record<string, SessionFile[]>;
-  orphanExercises?: Record<string, ExerciseFile[]>;
   files?: Record<string, TopicFiles>;
 };
 
@@ -81,10 +74,6 @@ function evalStats(parts: InjectParts = {}) {
     summaries: parts.summaries ?? [],
     states: parts.states ?? {},
     knowledgeMaps: {},
-    sessions: parts.sessions ?? {},
-    exerciseGroups: parts.exerciseGroups ?? {},
-    orphanSessions: parts.orphanSessions ?? [],
-    orphanExercises: parts.orphanExercises ?? [],
     fileContents: {},
     files: parts.files,
   });

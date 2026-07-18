@@ -35,7 +35,6 @@ const en = {
   'sidebar.quizzes': 'Quizzes',
   'sidebar.noNotes': 'No sessions',
   'sidebar.noExercises': 'No exercises',
-  'sidebar.orphanTip': 'This folder is not part of the knowledge map',
   'quiz.empty': 'No quizzes yet',
   'quiz.start': 'Start quiz',
   'quiz.previous': 'Previous',

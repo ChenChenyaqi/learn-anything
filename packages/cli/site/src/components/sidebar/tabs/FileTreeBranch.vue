@@ -25,13 +25,21 @@ defineEmits<{
       :expanded="expandedKeys.has(node.path)"
       @toggle="$emit('toggle', node.path)"
     >
+      <template v-if="$slots['dir-action']" #actions>
+        <slot name="dir-action" :node="node" />
+      </template>
       <FileTreeBranch
         :nodes="node.children"
         :expanded-keys="expandedKeys"
         :selected-file-path="selectedFilePath"
+        :mono="mono"
         @toggle="(k: string) => $emit('toggle', k)"
         @file-selected="(f: FileLeaf) => $emit('file-selected', f)"
-      />
+      >
+        <template v-if="$slots['dir-action']" #dir-action="scope">
+          <slot name="dir-action" v-bind="scope" />
+        </template>
+      </FileTreeBranch>
     </SidebarTreeNode>
     <button
       v-else

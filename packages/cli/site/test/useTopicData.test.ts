@@ -168,17 +168,21 @@ function loadFixtureData() {
         if (entry.isDirectory()) {
           const conceptSlug = entry.name;
           const conceptDir = join(exercisesDir, conceptSlug);
-          const files = readdirSync(conceptDir).map(
-            (f): ExerciseFile => ({
-              name: f,
-              path: `/topics/${slug}/exercises/${conceptSlug}/${f}`,
-            }),
-          );
+          const conceptEntries = readdirSync(conceptDir, { withFileTypes: true });
+          const files = conceptEntries
+            .filter((f) => f.isFile())
+            .map(
+              (f): ExerciseFile => ({
+                name: f.name,
+                path: `/topics/${slug}/exercises/${conceptSlug}/${f.name}`,
+              }),
+            );
           raw.set(conceptSlug, files);
-          for (const f of readdirSync(conceptDir)) {
-            const content = safeReadText(join(conceptDir, f));
+          for (const f of conceptEntries) {
+            if (!f.isFile()) continue;
+            const content = safeReadText(join(conceptDir, f.name));
             if (content !== null) {
-              fileContentsMap[`/topics/${slug}/exercises/${conceptSlug}/${f}`] = content;
+              fileContentsMap[`/topics/${slug}/exercises/${conceptSlug}/${f.name}`] = content;
             }
           }
         } else if (entry.isFile()) {

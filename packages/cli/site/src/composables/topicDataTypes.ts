@@ -51,6 +51,12 @@ export interface ExerciseGroup {
   files: ExerciseFile[];
 }
 
+export interface TopicFiles {
+  sessions: string[];
+  exercises: string[];
+  quizzes: string[];
+}
+
 export interface SelectedFilePayload {
   path: string;
   type: 'markdown' | 'code';

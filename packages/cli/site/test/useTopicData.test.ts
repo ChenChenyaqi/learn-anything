@@ -1,10 +1,11 @@
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterEach } from 'vitest';
 import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   listAllTopics,
   loadTopic,
+  loadTopicFiles,
   loadKnowledgeMap,
   scanSessions,
   scanExercises,
@@ -21,6 +22,7 @@ import type {
   TopicSummary,
   StateV1,
   ExerciseFile,
+  TopicFiles,
 } from '@/composables/useTopicData';
 
 /* ==================================================================== */
@@ -850,5 +852,46 @@ describe('integration: data consistency', () => {
         expect(rootPaths.has(f.path)).toBe(false);
       }
     }
+  });
+});
+
+describe('loadTopicFiles', () => {
+  function injectFiles(files: Record<string, TopicFiles>): void {
+    __injectTestData({
+      summaries: [],
+      states: {},
+      knowledgeMaps: {},
+      sessions: {},
+      exerciseGroups: {},
+      orphanSessions: {},
+      orphanExercises: {},
+      fileContents: {},
+      files,
+    });
+  }
+
+  afterEach(() => {
+    __resetForTest();
+  });
+
+  it('returns the injected files for a known slug', () => {
+    const files: TopicFiles = {
+      sessions: ['sessions/css/box.md'],
+      exercises: ['exercises/css/task.js'],
+      quizzes: ['quizzes/css/quiz.json'],
+    };
+    injectFiles({ frontend: files });
+    expect(loadTopicFiles('frontend')).toEqual(files);
+  });
+
+  it('returns null for an unknown slug', () => {
+    injectFiles({ frontend: { sessions: [], exercises: [], quizzes: [] } });
+    expect(loadTopicFiles('unknown')).toBeNull();
+  });
+
+  it('returns null after reset', () => {
+    injectFiles({ frontend: { sessions: [], exercises: [], quizzes: [] } });
+    __resetForTest();
+    expect(loadTopicFiles('frontend')).toBeNull();
   });
 });

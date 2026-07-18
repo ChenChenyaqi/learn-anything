@@ -16,6 +16,7 @@ import type {
   SessionFile,
   ExerciseFile,
   ExerciseGroup,
+  TopicFiles,
 } from './topicDataTypes';
 import { createSSEListener } from './useSSE';
 import { clearFileContentCache, setFileContent } from './fileContentCache';
@@ -33,6 +34,7 @@ export type {
   SessionFile,
   ExerciseFile,
   ExerciseGroup,
+  TopicFiles,
   SelectedFilePayload,
 } from './topicDataTypes';
 
@@ -48,6 +50,7 @@ let initVersion = 0;
 
 const stateBySlug = new Map<string, StateV1>();
 const knowledgeMapBySlug = new Map<string, string>();
+const filesBySlug = new Map<string, TopicFiles>();
 const sessionsBySlug = new Map<string, Map<string, SessionFile[]>>();
 const exerciseGroupsBySlug = new Map<string, ExerciseGroup[]>();
 const orphanSessionsBySlug = new Map<string, SessionFile[]>();
@@ -71,6 +74,7 @@ function clearIndexes() {
   initVersion++;
   stateBySlug.clear();
   knowledgeMapBySlug.clear();
+  filesBySlug.clear();
   sessionsBySlug.clear();
   exerciseGroupsBySlug.clear();
   orphanSessionsBySlug.clear();
@@ -96,10 +100,12 @@ export function __injectTestData(data: {
   orphanSessions: Record<string, SessionFile[]>;
   orphanExercises: Record<string, ExerciseFile[]>;
   fileContents: Record<string, string>;
+  files?: Record<string, TopicFiles>;
 }): void {
   topicSummaryCache = data.summaries;
   for (const [slug, state] of Object.entries(data.states)) stateBySlug.set(slug, state);
   for (const [slug, md] of Object.entries(data.knowledgeMaps)) knowledgeMapBySlug.set(slug, md);
+  for (const [slug, files] of Object.entries(data.files ?? {})) filesBySlug.set(slug, files);
   for (const [slug, domainMap] of Object.entries(data.sessions)) {
     sessionsBySlug.set(slug, new Map(Object.entries(domainMap)));
   }
@@ -124,6 +130,7 @@ function buildIndexes(
     {
       state: StateV1;
       knowledgeMap: string;
+      files?: TopicFiles;
       sessions: Record<string, SessionFile[]>;
       rootSessions: SessionFile[];
       exercises: ExerciseGroup[];
@@ -136,6 +143,7 @@ function buildIndexes(
   for (const [slug, data] of topicDataMap) {
     stateBySlug.set(slug, data.state);
     knowledgeMapBySlug.set(slug, data.knowledgeMap || '');
+    if (data.files) filesBySlug.set(slug, data.files);
 
     if (data.sessions) {
       const domainMap = new Map<string, SessionFile[]>();
@@ -226,6 +234,10 @@ export function loadTopic(slug: string): StateV1 | null {
 
 export function loadKnowledgeMap(slug: string): string | null {
   return knowledgeMapBySlug.get(slug) ?? null;
+}
+
+export function loadTopicFiles(slug: string): TopicFiles | null {
+  return filesBySlug.get(slug) ?? null;
 }
 
 export function scanSessions(slug: string, domain: string): SessionFile[] {

@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.2] - 2026-07-18
+
+### Changed
+
+- Sidebar tabs (Topics / Exercises / Quizzes) now render a recursive physical file tree mirroring the actual directory structure, instead of assuming a fixed one-level depth. Nested directories display correctly. (#126)
+
 ## [1.6.1] - 2026-07-02
 
 ### Changed
@@ -315,7 +321,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Locale support: English (`en`) and Chinese (`zh-CN`).
 - MIT License.
 
-[Unreleased]: https://github.com/ChenChenyaqi/learn-anything/compare/v1.6.1...HEAD
+[Unreleased]: https://github.com/ChenChenyaqi/learn-anything/compare/v1.6.2...HEAD
+[1.6.2]: https://github.com/ChenChenyaqi/learn-anything/compare/v1.6.1...v1.6.2
 [1.6.1]: https://github.com/ChenChenyaqi/learn-anything/compare/v1.6.0...v1.6.1
 [1.6.0]: https://github.com/ChenChenyaqi/learn-anything/compare/v1.5.6...v1.6.0
 [1.5.6]: https://github.com/ChenChenyaqi/learn-anything/compare/v1.5.5...v1.5.6

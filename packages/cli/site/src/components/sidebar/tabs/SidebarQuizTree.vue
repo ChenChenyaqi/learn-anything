@@ -45,13 +45,19 @@ function onToggle(key: string) {
   toggleExpansion(props.topicSlug, key);
 }
 
+const QUIZ_PREFIX = 'quizzes/';
+
+function quizPath(relPath: string): string {
+  return relPath.startsWith(QUIZ_PREFIX) ? relPath.slice(QUIZ_PREFIX.length) : relPath;
+}
+
 function toQueueItem(file: FileLeaf): QueueItem {
   const parts = file.path.split('/');
   return {
     concept_slug: parts.length >= 3 ? parts[parts.length - 2] : parts[0],
     concept_name: parts.length >= 3 ? parts[parts.length - 2] : parts[0],
     filename: file.name,
-    path: file.path.slice('quizzes/'.length),
+    path: quizPath(file.path),
   };
 }
 
@@ -60,7 +66,7 @@ function emitBatch(files: FileLeaf[], mode: 'sequential' | 'random') {
 }
 
 function onFileSelected(file: FileLeaf) {
-  emit('quiz-selected', { path: file.path.slice('quizzes/'.length) });
+  emit('quiz-selected', { path: quizPath(file.path) });
 }
 
 function onDirBatch(node: DirNode, mode: 'sequential' | 'random') {

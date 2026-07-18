@@ -22,10 +22,10 @@ import type { TopicSummary, StateV1, TopicFiles } from '@/composables/useTopicDa
 /*    - sessions/language-basics/2026-06-13.md                            */
 /*    - sessions/language-basics/2026-06-14.md                            */
 /*    - sessions/functions-scope/2026-06-14.md                            */
-/*    - sessions/overview.md (orphan, no domain dir)                      */
+/*    - sessions/overview.md (root-level)                                 */
 /*    - exercises/variables-data-types/{README,starter,solution}.{md,js}  */
 /*    - exercises/variables-data-types/practice-2026-06-14.json           */
-/*    - exercises/warmup.js (orphan, no concept dir)                      */
+/*    - exercises/warmup.js (root-level)                                  */
 /* ==================================================================== */
 
 const __dirname = dirname(fileURLToPath(import.meta.url));

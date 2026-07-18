@@ -26,7 +26,7 @@ The system SHALL render a Dashboard page at the site root (`/`) that scans `/top
 The system SHALL render an `AppSidebar` component that adapts its content based on a `context` prop:
 
 - **Dashboard context** (`context="dashboard"`): SHALL display a list of all topics with name and mastery stats, each clickable to navigate to `/topics/:slug`
-- **Topic context** (`context="topic"`): SHALL display a TOPICS/EXERCISES/QIZZES tab bar, with the topics tab showing a root node (topic name) and a recursive file tree mirroring the `sessions/` directory; the exercises tab showing a recursive file tree mirroring the `exercises/` directory; and the quizzes tab showing a recursive file tree mirroring the `quizzes/` directory with batch play buttons
+- **Topic context** (`context="topic"`): SHALL display a TOPICS/EXERCISES/QUIZZES tab bar, with the topics tab showing a root node (topic name) and a recursive file tree mirroring the `sessions/` directory; the exercises tab showing a recursive file tree mirroring the `exercises/` directory; and the quizzes tab showing a recursive file tree mirroring the `quizzes/` directory with batch play buttons
 
 The sidebar SHALL be 272px wide, use `bg-alt` background, and have no right border — matching VitePress sidebar dimensions.
 
@@ -164,7 +164,7 @@ The system SHALL define CSS custom properties matching VitePress's design system
 
 ### Requirement: Data layer loads topic data via HTTP API
 
-The system SHALL use a fetch-based data layer (`useTopicData` composable) that loads topic data from the local HTTP server (`serve.mjs`) via REST endpoints. The `useTopicData` composable SHALL expose functions (`listAllTopics`, `loadTopic`, `scanSessions`, `scanExercises`, `loadSessionContent`, `loadExerciseContent`) that fetch from `/api/topics`, `/api/topics/:slug`, and `/api/file`. The server reads and caches topic files from the configured `TOPICS_DIR` on disk.
+The system SHALL use a fetch-based data layer (`useTopicData` composable) that loads topic data from the local HTTP server (`serve.mjs`) via REST endpoints. The `useTopicData` composable SHALL expose functions (`listAllTopics`, `loadTopic`, `loadTopicFiles`, `loadSessionContent`, `loadExerciseContent`) that fetch from `/api/topics`, `/api/topics/:slug`, and `/api/file`. The server reads and caches topic files from the configured `TOPICS_DIR` on disk.
 
 In dev mode, Vite proxies `/api` requests to the `serve.mjs` server running on port 24277. In production, `serve.mjs` serves both static files and API endpoints on a single port.
 

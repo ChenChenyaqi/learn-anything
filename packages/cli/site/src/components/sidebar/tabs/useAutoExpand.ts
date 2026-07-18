@@ -1,4 +1,4 @@
-import { watch, type WatchSource } from 'vue';
+import { watch } from 'vue';
 import { useTreeExpansion } from './useTreeExpansion';
 
 /**
@@ -7,20 +7,17 @@ import { useTreeExpansion } from './useTreeExpansion';
  *
  * @param treeType      – 'topics' | 'exercises' | 'quizzes'
  * @param getTopicSlug  – returns the current topic slug
- * @param getFirstKey   – returns the first group key to default-expand
- * @param trigger       – optional alternative watch source (e.g. async `groups`
- *                        ref for the quiz tree whose data loads after topicSlug)
+ * @param getFirstKey   – returns the first key to default-expand
  */
 export function useAutoExpand(
   treeType: string,
   getTopicSlug: () => string | undefined,
   getFirstKey: () => string | undefined,
-  trigger?: WatchSource,
 ) {
   const { expanded, load, toggle, add } = useTreeExpansion(treeType);
 
   watch(
-    trigger ?? getTopicSlug,
+    getTopicSlug,
     () => {
       const slug = getTopicSlug();
       if (!slug) {

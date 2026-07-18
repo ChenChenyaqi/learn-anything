@@ -2,11 +2,7 @@ import { computed } from 'vue';
 import {
   listAllTopics,
   loadTopic,
-  scanDomainDirs,
-  scanSessions,
-  scanRootSessions,
-  scanExercises,
-  scanRootExercises,
+  loadTopicFiles,
   getDataVersion,
 } from '@/composables/useTopicData';
 import type { ConceptStatus } from '@/composables/topicDataTypes';
@@ -64,15 +60,9 @@ export function useDashboardStats() {
     for (const topic of topics) {
       domainCount += topic.domainCount;
 
-      for (const dir of scanDomainDirs(topic.slug)) {
-        noteCount += scanSessions(topic.slug, dir).length;
-      }
-      noteCount += scanRootSessions(topic.slug).length;
-
-      for (const group of scanExercises(topic.slug)) {
-        exerciseCount += group.files.length;
-      }
-      exerciseCount += scanRootExercises(topic.slug).length;
+      const files = loadTopicFiles(topic.slug);
+      noteCount += files?.sessions.length ?? 0;
+      exerciseCount += files?.exercises.length ?? 0;
 
       const state = loadTopic(topic.slug);
       if (!state) continue;

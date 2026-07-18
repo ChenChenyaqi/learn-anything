@@ -1,0 +1,58 @@
+{
+  "version": 1,
+  "topic": "JavaScript",
+  "topic_slug": "javascript",
+  "concept_slug": "异步Promise",
+  "concept_name": "异步Promise",
+  "created": "2026-06-24 09:00:00",
+  "questions": [
+    {
+      "id": "q1",
+      "type": "multiple_choice",
+      "gradeable": "exact",
+      "prompt": "Which method handles a rejected Promise?",
+      "explanation": ".catch() is shorthand for .then(null, onRejected) and handles rejections.",
+      "options": [".then()", ".catch()", ".finally()", ".error()"],
+      "answer": ".catch()"
+    },
+    {
+      "id": "q2",
+      "type": "true_false",
+      "gradeable": "exact",
+      "prompt": "Promise.all() rejects as soon as any input promise rejects.",
+      "explanation": "Promise.all() fails fast — the first rejection causes the entire aggregate to reject.",
+      "answer": true
+    },
+    {
+      "id": "q3",
+      "type": "multiple_choice",
+      "gradeable": "exact",
+      "prompt": "What does Promise.allSettled() return?",
+      "explanation": "Unlike Promise.all(), allSettled waits for all promises and never rejects — each result has {status, value/reason}.",
+      "options": [
+        "Rejects if any promise rejects",
+        "An array of {status, value/reason} for every promise",
+        "Only the first fulfilled promise's value",
+        "A single resolved value combining all results"
+      ],
+      "answer": "An array of {status, value/reason} for every promise"
+    },
+    {
+      "id": "q4",
+      "type": "multi_select",
+      "gradeable": "exact",
+      "prompt": "Which of the following are valid Promise instance methods?",
+      "explanation": ".then(), .catch(), and .finally() are instance methods. Promise.all() is a static method on the Promise constructor.",
+      "options": [".then()", ".catch()", ".finally()", ".all()"],
+      "answer": [".then()", ".catch()", ".finally()"]
+    },
+    {
+      "id": "q5",
+      "type": "error_correction",
+      "gradeable": "ai_only",
+      "prompt": "找出以下代码中的错误并修正：\n\nfetch('/api/data')\n  .then(res => res.json())\n  .then(data => console.log(data))\n  .catch(err => console.log(err))\n  .finally(() => console.log('Done'));",
+      "explanation": "这段代码本身没有语法错误。但如果想要在 .then() 链中正确处理 HTTP 错误状态码，需要检查 res.ok，因为 fetch 只在网络请求失败时才 reject，HTTP 4xx/5xx 不会自动触发 .catch()。",
+      "answer": "应在第一个 .then() 中检查 res.ok，例如：if (!res.ok) throw new Error(res.statusText);"
+    }
+  ]
+}

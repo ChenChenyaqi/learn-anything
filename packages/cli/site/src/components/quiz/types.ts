@@ -9,21 +9,6 @@ import type { QuizQuestion } from '../../../../src/core/learn-protocol/types';
 export type { QuizDeck, QuizQuestion } from '../../../../src/core/learn-protocol/types';
 export type { QuestionGradeable, QuestionType } from '../../../../src/core/learn-protocol/types';
 
-export interface QuizFile {
-  filename: string;
-  path: string;
-}
-
-export interface QuizGroup {
-  concept_slug: string;
-  concept_name: string;
-  files: QuizFile[];
-}
-
-export interface QuizListResponse {
-  groups: QuizGroup[];
-}
-
 export type QuizAnswer = string | boolean | string[] | null;
 export type QuizAnswers = Record<string, QuizAnswer>;
 

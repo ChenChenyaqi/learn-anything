@@ -235,6 +235,7 @@ describe('Skill Template Content Quality', () => {
     expect(t.instructions).toContain('fill_in_blank');
     expect(t.instructions).toContain('error_correction');
     expect(t.instructions).toContain('validate-quiz.mjs');
+    expect(t.instructions).toContain('order irrelevant');
     expect(t.instructions).not.toContain('answer-key.json');
     expect(t.instructions).not.toContain('submission.json');
     expect(t.instructions).not.toContain('assessment.md');

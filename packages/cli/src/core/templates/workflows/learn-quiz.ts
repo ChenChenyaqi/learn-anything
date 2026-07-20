@@ -124,7 +124,8 @@ Show ALL questions in chat at once, clearly numbered, WITHOUT answers. Ask the l
 ### Step 6: Grade & Feedback
 
 Grade each answer against the deck:
-- \`exact\`: strict equality versus \`answer\`.
+- \`exact\` (\`multiple_choice\`, \`true_false\`): strict equality versus \`answer\`.
+- \`exact\` (\`multi_select\`): unordered set comparison — the selected options must equal \`answer[]\` exactly (no missing, no extras; order irrelevant).
 - \`accepted\`: normalize (trim, lowercase) and check membership in \`accepted_answers[]\`. If no match, judge as the AI whether the phrasing is still valid, then surface the canonical \`answer\`.
 - \`ai_only\`: judge as the AI; the reference \`answer\` is for self-check.
 

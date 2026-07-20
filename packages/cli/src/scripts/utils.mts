@@ -162,13 +162,17 @@ function checkFields(
   rules: Record<string, Checker>,
   prefix: string,
   errors: ValidationError[],
-): void {
-  if (obj === null || typeof obj !== 'object') return;
+): obj is Record<string, unknown> {
+  if (obj === null || typeof obj !== 'object') {
+    errors.push({ path: prefix, message: 'Must be an object' });
+    return false;
+  }
   const record = obj as Record<string, unknown>;
   for (const [key, checker] of Object.entries(rules)) {
     const msg = checker(record[key]);
     if (msg) errors.push({ path: prefix ? `${prefix}.${key}` : key, message: msg });
   }
+  return true;
 }
 
 export function validateStateV1(data: unknown): ValidationError[] {
@@ -182,7 +186,7 @@ export function validateStateV1(data: unknown): ValidationError[] {
     const domains = (data as Record<string, unknown>).domains as Record<string, unknown>[];
     for (const [di, domain] of domains.entries()) {
       const dp = `domains[${di}]`;
-      checkFields(domain, DOMAIN_RULES, dp, errors);
+      if (!checkFields(domain, DOMAIN_RULES, dp, errors)) continue;
       if (Array.isArray(domain.concepts)) {
         const concepts = domain.concepts as Record<string, unknown>[];
         for (const [ci, concept] of concepts.entries())
@@ -278,7 +282,7 @@ export function validateQuizDeck(data: unknown): ValidationError[] {
   if (Array.isArray(questions)) {
     for (const [qi, q] of questions.entries()) {
       const qp = `questions[${qi}]`;
-      checkFields(q, QUESTION_RULES, qp, errors);
+      if (!checkFields(q, QUESTION_RULES, qp, errors)) continue;
 
       const rec = q as Record<string, unknown>;
       const type = rec.type;

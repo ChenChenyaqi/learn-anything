@@ -99,11 +99,34 @@ const num =
     return null;
   };
 
-const DATE_RE = /^\d{4}-\d{2}-\d{2}( \d{2}:\d{2}:\d{2})?$/;
-const dateStr: Checker = (v) =>
-  typeof v !== 'string' || !DATE_RE.test(v)
-    ? 'Must match YYYY-MM-DD or YYYY-MM-DD HH:mm:ss'
-    : null;
+const DATE_RE = /^(\d{4})-(\d{2})-(\d{2})(?: (\d{2}):(\d{2}):(\d{2}))?$/;
+const dateStr: Checker = (v) => {
+  if (typeof v !== 'string') return 'Must match YYYY-MM-DD or YYYY-MM-DD HH:mm:ss';
+  const m = v.match(DATE_RE);
+  if (!m) return 'Must match YYYY-MM-DD or YYYY-MM-DD HH:mm:ss';
+  const Y = +m[1];
+  const M = +m[2];
+  const D = +m[3];
+  const H = m[4] !== undefined ? +m[4] : 0;
+  const MI = m[5] !== undefined ? +m[5] : 0;
+  const S = m[6] !== undefined ? +m[6] : 0;
+  // Construct a Date and verify every field round-trips; this catches both
+  // gross range errors (month 99, hour 99) and subtle calendar errors
+  // (Feb 30, Apr 31, Feb 29 on non-leap years) since the Date constructor
+  // rolls out-of-range values over into the next unit.
+  const d = new Date(Y, M - 1, D, H, MI, S, 0);
+  if (
+    d.getFullYear() !== Y ||
+    d.getMonth() !== M - 1 ||
+    d.getDate() !== D ||
+    d.getHours() !== H ||
+    d.getMinutes() !== MI ||
+    d.getSeconds() !== S
+  ) {
+    return 'Invalid calendar date';
+  }
+  return null;
+};
 
 const nullable =
   (inner: Checker): Checker =>

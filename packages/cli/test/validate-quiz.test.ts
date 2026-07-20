@@ -152,6 +152,48 @@ describe('validateQuizDeck', () => {
     );
   });
 
+  /* ---- multiple_choice answer membership ---- */
+
+  it('rejects non-string answer for multiple_choice', () => {
+    const deck = {
+      ...validDeck,
+      questions: [
+        {
+          id: 'q1',
+          type: 'multiple_choice',
+          gradeable: 'exact',
+          prompt: 'p',
+          explanation: 'e',
+          options: ['A', 'B', 'C'],
+          answer: true,
+        },
+      ],
+    };
+    const errors = validateQuizDeck(deck);
+    expect(errors.some((e) => e.path === 'questions[0].answer')).toBe(true);
+    expect(errors.some((e) => /must be a string/.test(e.message))).toBe(true);
+  });
+
+  it('rejects multiple_choice answer not in options', () => {
+    const deck = {
+      ...validDeck,
+      questions: [
+        {
+          id: 'q1',
+          type: 'multiple_choice',
+          gradeable: 'exact',
+          prompt: 'p',
+          explanation: 'e',
+          options: ['A', 'B', 'C'],
+          answer: 'Z',
+        },
+      ],
+    };
+    const errors = validateQuizDeck(deck);
+    expect(errors.some((e) => e.path === 'questions[0].answer')).toBe(true);
+    expect(errors.some((e) => /not in options\[\]/.test(e.message))).toBe(true);
+  });
+
   /* ---- multi_select ---- */
 
   it('accepts a valid multi_select question', () => {

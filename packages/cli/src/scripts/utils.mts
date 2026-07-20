@@ -297,6 +297,20 @@ export function validateQuizDeck(data: unknown): ValidationError[] {
               path: `${qp}.options`,
               message: 'multiple_choice requires options[] with at least 2 items',
             });
+          if (typeof rec.answer !== 'string')
+            errors.push({
+              path: `${qp}.answer`,
+              message: 'multiple_choice answer must be a string',
+            });
+          if (
+            Array.isArray(opts) &&
+            typeof rec.answer === 'string' &&
+            !opts.includes(rec.answer)
+          )
+            errors.push({
+              path: `${qp}.answer`,
+              message: `Answer "${rec.answer}" is not in options[]`,
+            });
         }
         if (type === 'multi_select') {
           const opts = rec.options;

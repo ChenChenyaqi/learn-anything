@@ -80,6 +80,18 @@ describe('validateQuizDeck', () => {
     expect(paths).toContain('questions[0].gradeable');
   });
 
+  it('rejects primitive question entry', () => {
+    const deck = { ...validDeck, questions: ['not a question'] };
+    const errs = validateQuizDeck(deck);
+    expect(errs.some((e) => e.path === 'questions[0]' && /object/i.test(e.message))).toBe(true);
+  });
+
+  it('rejects null question entry without throwing', () => {
+    const deck = { ...validDeck, questions: [null] };
+    const errs = validateQuizDeck(deck);
+    expect(errs.some((e) => e.path === 'questions[0]' && /object/i.test(e.message))).toBe(true);
+  });
+
   it('cross-validates type↔gradeable consistency', () => {
     const deck = {
       ...validDeck,

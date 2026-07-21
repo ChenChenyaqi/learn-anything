@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.3] - 2026-07-21
+
+### Fixed
+
+- `learn-explain` template's Step 4D now caps the confidence increment at 1.0 (`confidence += 0.05~0.1 (cap 1.0)`), matching the practice/quiz templates and preventing `validateStateV1` failures that halted `render.mjs` mid-session. (#129, closes #121)
+- `validateQuizDeck` now requires `multiple_choice` `answer` to be a string contained in `options[]`, mirroring the existing `multi_select` check. Previously only `options[]` length was validated, so un-answerable questions (answer not in options, or wrong type like boolean/array) passed validation and could never be graded correct by the `exact` step. (#130, closes #122)
+- `validateStateV1`/`validateQuizDeck` now report a `Must be an object` error for primitive or `null` entries inside `domains`/`concepts`/`questions`. Previously such entries either passed silently (e.g. `domains: ['str']`, `questions: [42]`) or threw an uncaught `TypeError` (e.g. `domains: [null]`, `questions: [null]`), crashing `render.mjs`/`validate-quiz.mjs` instead of returning the friendly error list. (#131, closes #123)
+- `dateStr` validator now rejects impossible dates that happened to match the digit shape (e.g. `2026-99-99`, `2026-13-45`, `2026-02-30`, `2026-01-01 99:99:99`). Both implementations (`schema.ts` Zod and `utils.mts` inline) now round-trip the parsed components through `new Date(...)` and verify every field reads back identically, catching range errors and calendar errors (Feb 30, non-leap-year Feb 29) without per-component special-casing. This prevents hallucinated timestamps written by the AI from silently producing `Invalid Date` downstream (e.g. review-interval math on `last_practiced`). (#132, closes #124)
+- `learn-quiz` Step 6 now splits the `exact` grading bullet by question type. Previously "strict equality versus `answer`" was ill-defined for `multi_select` (`answer: string[]`) and read literally as order-sensitive, so a learner answering `Q1: B, A` against `answer: ["A", "B"]` could be marked wrong by an AI grader following the instruction to the letter. `multi_select` now explicitly requires unordered set comparison (no missing, no extras; order irrelevant); `multiple_choice` and `true_false` keep strict equality. (#133, closes #125)
+
 ## [1.6.2] - 2026-07-18
 
 ### Changed
@@ -321,7 +331,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Locale support: English (`en`) and Chinese (`zh-CN`).
 - MIT License.
 
-[Unreleased]: https://github.com/ChenChenyaqi/learn-anything/compare/v1.6.2...HEAD
+[Unreleased]: https://github.com/ChenChenyaqi/learn-anything/compare/v1.6.3...HEAD
+[1.6.3]: https://github.com/ChenChenyaqi/learn-anything/compare/v1.6.2...v1.6.3
 [1.6.2]: https://github.com/ChenChenyaqi/learn-anything/compare/v1.6.1...v1.6.2
 [1.6.1]: https://github.com/ChenChenyaqi/learn-anything/compare/v1.6.0...v1.6.1
 [1.6.0]: https://github.com/ChenChenyaqi/learn-anything/compare/v1.5.6...v1.6.0

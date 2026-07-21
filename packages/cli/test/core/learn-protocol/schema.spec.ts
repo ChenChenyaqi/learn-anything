@@ -58,6 +58,12 @@ describe('validateStateV1', () => {
     expect(result.success).toBe(true);
   });
 
+  it('should accept leap-day dates on leap years (2024-02-29)', () => {
+    const state = validStateV1({ created: '2024-02-29' });
+    const result = validateStateV1(state);
+    expect(result.success).toBe(true);
+  });
+
   it('should accept state with null datetime fields', () => {
     const state = validStateV1({
       domains: [
@@ -216,6 +222,21 @@ describe('validateStateV1 (invalid data)', () => {
     const state = validStateV1({ created: '2026/01/15' });
     const result = validateStateV1(state);
     expect(result.success).toBe(false);
+  });
+
+  it('should reject impossible dates that match the digit shape (issue #124)', () => {
+    for (const created of [
+      '2026-99-99', // issue 124 case
+      '2026-13-01', // month > 12
+      '2026-02-30', // Feb never has 30 days
+      '2026-04-31', // April has 30 days
+      '2026-02-29', // 2026 is not a leap year
+      '2026-01-01 99:99:99', // impossible time
+      '2026-01-01 24:00:00', // hour = 24
+    ]) {
+      const result = validateStateV1(validStateV1({ created }));
+      expect(result.success).toBe(false);
+    }
   });
 
   it('should reject invalid status value', () => {

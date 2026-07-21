@@ -131,7 +131,7 @@ Session file format:
 - status \`unexplored\` → \`in_progress\`
 - \`last_explained\` → current date (YYYY-MM-DD)
 - \`explain_count\` += 1
-- If user showed understanding: \`confidence\` += 0.05~0.1
+- If user showed understanding: \`confidence\` += 0.05~0.1 (cap 1.0)
 
 **E) Run render.mjs**:
 \`\`\`bash

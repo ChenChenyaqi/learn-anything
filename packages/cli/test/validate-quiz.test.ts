@@ -80,6 +80,18 @@ describe('validateQuizDeck', () => {
     expect(paths).toContain('questions[0].gradeable');
   });
 
+  it('rejects primitive question entry', () => {
+    const deck = { ...validDeck, questions: ['not a question'] };
+    const errs = validateQuizDeck(deck);
+    expect(errs.some((e) => e.path === 'questions[0]' && /object/i.test(e.message))).toBe(true);
+  });
+
+  it('rejects null question entry without throwing', () => {
+    const deck = { ...validDeck, questions: [null] };
+    const errs = validateQuizDeck(deck);
+    expect(errs.some((e) => e.path === 'questions[0]' && /object/i.test(e.message))).toBe(true);
+  });
+
   it('cross-validates type↔gradeable consistency', () => {
     const deck = {
       ...validDeck,
@@ -150,6 +162,48 @@ describe('validateQuizDeck', () => {
     expect(validateQuizDeck(deck).some((e) => e.path === 'questions[0].accepted_answers')).toBe(
       true,
     );
+  });
+
+  /* ---- multiple_choice answer membership ---- */
+
+  it('rejects non-string answer for multiple_choice', () => {
+    const deck = {
+      ...validDeck,
+      questions: [
+        {
+          id: 'q1',
+          type: 'multiple_choice',
+          gradeable: 'exact',
+          prompt: 'p',
+          explanation: 'e',
+          options: ['A', 'B', 'C'],
+          answer: true,
+        },
+      ],
+    };
+    const errors = validateQuizDeck(deck);
+    expect(errors.some((e) => e.path === 'questions[0].answer')).toBe(true);
+    expect(errors.some((e) => /must be a string/.test(e.message))).toBe(true);
+  });
+
+  it('rejects multiple_choice answer not in options', () => {
+    const deck = {
+      ...validDeck,
+      questions: [
+        {
+          id: 'q1',
+          type: 'multiple_choice',
+          gradeable: 'exact',
+          prompt: 'p',
+          explanation: 'e',
+          options: ['A', 'B', 'C'],
+          answer: 'Z',
+        },
+      ],
+    };
+    const errors = validateQuizDeck(deck);
+    expect(errors.some((e) => e.path === 'questions[0].answer')).toBe(true);
+    expect(errors.some((e) => /not in options\[\]/.test(e.message))).toBe(true);
   });
 
   /* ---- multi_select ---- */

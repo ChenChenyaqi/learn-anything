@@ -99,11 +99,34 @@ const num =
     return null;
   };
 
-const DATE_RE = /^\d{4}-\d{2}-\d{2}( \d{2}:\d{2}:\d{2})?$/;
-const dateStr: Checker = (v) =>
-  typeof v !== 'string' || !DATE_RE.test(v)
-    ? 'Must match YYYY-MM-DD or YYYY-MM-DD HH:mm:ss'
-    : null;
+const DATE_RE = /^(\d{4})-(\d{2})-(\d{2})(?: (\d{2}):(\d{2}):(\d{2}))?$/;
+const dateStr: Checker = (v) => {
+  if (typeof v !== 'string') return 'Must match YYYY-MM-DD or YYYY-MM-DD HH:mm:ss';
+  const m = v.match(DATE_RE);
+  if (!m) return 'Must match YYYY-MM-DD or YYYY-MM-DD HH:mm:ss';
+  const Y = +m[1];
+  const M = +m[2];
+  const D = +m[3];
+  const H = m[4] !== undefined ? +m[4] : 0;
+  const MI = m[5] !== undefined ? +m[5] : 0;
+  const S = m[6] !== undefined ? +m[6] : 0;
+  // Construct a Date and verify every field round-trips; this catches both
+  // gross range errors (month 99, hour 99) and subtle calendar errors
+  // (Feb 30, Apr 31, Feb 29 on non-leap years) since the Date constructor
+  // rolls out-of-range values over into the next unit.
+  const d = new Date(Y, M - 1, D, H, MI, S, 0);
+  if (
+    d.getFullYear() !== Y ||
+    d.getMonth() !== M - 1 ||
+    d.getDate() !== D ||
+    d.getHours() !== H ||
+    d.getMinutes() !== MI ||
+    d.getSeconds() !== S
+  ) {
+    return 'Invalid calendar date';
+  }
+  return null;
+};
 
 const nullable =
   (inner: Checker): Checker =>
@@ -162,13 +185,17 @@ function checkFields(
   rules: Record<string, Checker>,
   prefix: string,
   errors: ValidationError[],
-): void {
-  if (obj === null || typeof obj !== 'object') return;
+): obj is Record<string, unknown> {
+  if (obj === null || typeof obj !== 'object') {
+    errors.push({ path: prefix, message: 'Must be an object' });
+    return false;
+  }
   const record = obj as Record<string, unknown>;
   for (const [key, checker] of Object.entries(rules)) {
     const msg = checker(record[key]);
     if (msg) errors.push({ path: prefix ? `${prefix}.${key}` : key, message: msg });
   }
+  return true;
 }
 
 export function validateStateV1(data: unknown): ValidationError[] {
@@ -182,7 +209,7 @@ export function validateStateV1(data: unknown): ValidationError[] {
     const domains = (data as Record<string, unknown>).domains as Record<string, unknown>[];
     for (const [di, domain] of domains.entries()) {
       const dp = `domains[${di}]`;
-      checkFields(domain, DOMAIN_RULES, dp, errors);
+      if (!checkFields(domain, DOMAIN_RULES, dp, errors)) continue;
       if (Array.isArray(domain.concepts)) {
         const concepts = domain.concepts as Record<string, unknown>[];
         for (const [ci, concept] of concepts.entries())
@@ -278,7 +305,7 @@ export function validateQuizDeck(data: unknown): ValidationError[] {
   if (Array.isArray(questions)) {
     for (const [qi, q] of questions.entries()) {
       const qp = `questions[${qi}]`;
-      checkFields(q, QUESTION_RULES, qp, errors);
+      if (!checkFields(q, QUESTION_RULES, qp, errors)) continue;
 
       const rec = q as Record<string, unknown>;
       const type = rec.type;
@@ -296,6 +323,20 @@ export function validateQuizDeck(data: unknown): ValidationError[] {
             errors.push({
               path: `${qp}.options`,
               message: 'multiple_choice requires options[] with at least 2 items',
+            });
+          if (typeof rec.answer !== 'string')
+            errors.push({
+              path: `${qp}.answer`,
+              message: 'multiple_choice answer must be a string',
+            });
+          if (
+            Array.isArray(opts) &&
+            typeof rec.answer === 'string' &&
+            !opts.includes(rec.answer)
+          )
+            errors.push({
+              path: `${qp}.answer`,
+              message: `Answer "${rec.answer}" is not in options[]`,
             });
         }
         if (type === 'multi_select') {

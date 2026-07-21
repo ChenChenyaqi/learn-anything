@@ -339,6 +339,34 @@ describe('validateStateV1', () => {
     expect(errs.some((e) => e.path === 'domains[0].concepts')).toBe(true);
   });
 
+  it('should reject primitive domain entry', () => {
+    const state = { ...s('X', []), domains: ['not a domain'] };
+    const errs = validateStateV1(state);
+    expect(errs.some((e) => e.path === 'domains[0]' && /object/i.test(e.message))).toBe(true);
+  });
+
+  it('should reject null domain entry without throwing', () => {
+    const state = { ...s('X', []), domains: [null] };
+    const errs = validateStateV1(state);
+    expect(errs.some((e) => e.path === 'domains[0]' && /object/i.test(e.message))).toBe(true);
+  });
+
+  it('should reject primitive concept entry', () => {
+    const state = s('X', [{ name: 'D', slug: 'd', concepts: [42] as unknown as Concept[] }]);
+    const errs = validateStateV1(state);
+    expect(errs.some((e) => e.path === 'domains[0].concepts[0]' && /object/i.test(e.message))).toBe(
+      true,
+    );
+  });
+
+  it('should reject null concept entry without throwing', () => {
+    const state = s('X', [{ name: 'D', slug: 'd', concepts: [null] as unknown as Concept[] }]);
+    const errs = validateStateV1(state);
+    expect(errs.some((e) => e.path === 'domains[0].concepts[0]' && /object/i.test(e.message))).toBe(
+      true,
+    );
+  });
+
   // ── Invalid concept ───────────────────────────────────────────────────
 
   it('should reject invalid status value', () => {

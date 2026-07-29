@@ -10,8 +10,8 @@ use sidecar::{
     agent_send, agent_switch_session,
 };
 use site_api::{
-    site_file_content, site_quiz_deck, site_quiz_list, site_search_index,
-    site_set_watcher_folder, site_topic_data, site_topic_summaries,
+    site_file_content, site_quiz_deck, site_search_index, site_set_watcher_folder,
+    site_topic_data, site_topic_summaries,
 };
 use tauri::Manager;
 
@@ -47,7 +47,6 @@ pub fn run() {
             site_topic_summaries,
             site_topic_data,
             site_file_content,
-            site_quiz_list,
             site_quiz_deck,
             site_search_index,
             site_set_watcher_folder,

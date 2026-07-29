@@ -1,17 +1,17 @@
-//! Serialization models mirroring the JSON shapes produced by `serve.mjs`, so
-//! the GUI frontend can reuse the existing `useTopicData.ts` contract types
-//! (incl. the eventual new desktop UI). Field names are **camelCase**
-//! throughout, including the quiz groups — `serve.mjs` used snake_case there
-//! (`concept_slug` / `concept_name`); the user opted for a uniform camelCase
-//! contract for the new UI.
+//! Serialization models for the desktop UI's learning-state backend.
+//!
+//! Field names are **camelCase** throughout (via `#[serde(rename_all =
+//! "camelCase")]` on the summary/data structs). The per-topic payload mirrors
+//! the post-recursive-mirror shape: a recursive physical file tree collected as
+//! flat relative paths (`files: { sessions, exercises, quizzes }`), so arbitrary
+//! nesting depth renders correctly. The old fixed-depth domain/concept grouping
+//! was retired.
 //!
 //! All structs derive `Serialize` (returned from Tauri commands) and most also
 //! derive `Deserialize` so they can read the on-disk `state.json` via serde_json
 //! without modeling every field — unknown fields are silently skipped.
 
 use serde::{Deserialize, Serialize};
-
-use std::collections::BTreeMap;
 
 /* ------------------------------------------------------------------ */
 /*  state.json                                                        */
@@ -93,15 +93,16 @@ pub struct TopicSummary {
 }
 
 /* ------------------------------------------------------------------ */
-/*  topic data (GET /api/topics/:slug)                               */
+/*  topic data (site_topic_data)                                       */
 /* ------------------------------------------------------------------ */
 
 /// Full payload for one topic, returned by `site_topic_data`.
 ///
-/// `sessions` is a flat map keyed by domain directory name → list of `.md`
-/// files. `root_sessions` are top-level `.md` files not under any domain.
-/// `exercises` are grouped by concept slug; `root_exercises` are top-level
-/// files. Mirrors `serve.mjs::buildTopicData` 1:1.
+/// `files` collects recursive flat relative paths (prefixed with the subdir
+/// name, e.g. `sessions/js/es6/func.md` or
+/// `exercises/js/es6/func/arrow-func/index.js`) so the frontend can build a
+/// recursive file tree mirroring the actual filesystem. Mirrors the post-mirror
+/// cli/site `buildTopicData` shape.
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TopicData {
@@ -109,65 +110,31 @@ pub struct TopicData {
     pub state: StateV1,
     /// `knowledge-map.md` contents (`""` if absent).
     pub knowledge_map: String,
-    /// Domain dir name → `.md` files under `sessions/<dir>/`.
-    #[serde(skip_serializing_if = "BTreeMap::is_empty")]
-    pub sessions: BTreeMap<String, Vec<SessionFile>>,
-    /// Top-level `.md` files directly under `sessions/`.
-    #[serde(skip_serializing_if = "Vec::is_empty")]
-    pub root_sessions: Vec<SessionFile>,
-    /// Exercises grouped by concept slug.
-    #[serde(skip_serializing_if = "Vec::is_empty")]
-    pub exercises: Vec<ExerciseGroup>,
-    /// Top-level exercise files directly under `exercises/`.
-    #[serde(skip_serializing_if = "Vec::is_empty")]
-    pub root_exercises: Vec<ExerciseFile>,
+    /// Recursive flat relative paths for the three file axes.
+    pub files: TopicFiles,
 }
 
-#[derive(Debug, Clone, Serialize)]
-pub struct SessionFile {
-    pub filename: String,
-    /// API-style path (`/topics/<slug>/sessions/<rel>`), kept stable for the
-    /// forthcoming UI even though the Rust backend resolves it to a fs path.
-    pub path: String,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub struct ExerciseFile {
-    pub name: String,
-    pub path: String,
-}
-
-#[derive(Debug, Clone, Serialize)]
+/// Recursive flat relative paths under `<topic>/sessions|exercises|quizzes/`.
+///
+/// Each entry is prefixed with its axis (`sessions/`, `exercises/`,
+/// `quizzes/`); the frontend tree builder drops the first segment. Sessions are
+/// `.md` files (binary included); exercises are all non-binary files; quizzes
+/// are `.json` files (binary included). Dot-dirs (`.learn`, `.git`, …) and
+/// symlinks are skipped.
+#[derive(Debug, Clone, Default, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct ExerciseGroup {
-    pub concept_slug: String,
-    pub concept_name: String,
-    pub files: Vec<ExerciseFile>,
+pub struct TopicFiles {
+    pub sessions: Vec<String>,
+    pub exercises: Vec<String>,
+    pub quizzes: Vec<String>,
 }
 
 /* ------------------------------------------------------------------ */
-/*  quizzes (GET /api/quizzes?topic=, GET /api/quizzes/:t/:rest)     */
+/*  quizzes (GET /api/quizzes/:topic/:rest)                            */
 /* ------------------------------------------------------------------ */
 
-#[derive(Debug, Clone, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct QuizList {
-    pub groups: Vec<QuizGroup>,
-}
-
-#[derive(Debug, Clone, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct QuizGroup {
-    pub concept_slug: String,
-    pub concept_name: String,
-    pub files: Vec<QuizFile>,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub struct QuizFile {
-    pub filename: String,
-    pub path: String,
-}
+/// A single quiz deck is returned as a raw JSON `Value` by `read_quiz_deck`
+/// (passed through verbatim) — no dedicated model needed.
 
 /* ------------------------------------------------------------------ */
 /*  search index (GET /api/search-index)                              */

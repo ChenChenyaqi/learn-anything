@@ -1,6 +1,10 @@
-//! Topic readers — `build_topic_summaries` and `build_topic_data`, ported
-//! 1:1 from `serve.mjs` so the GUI's desktop UI gets exactly the same learning
-//! state that the web dashboard did.
+//! Topic readers — `build_topic_summaries` and `build_topic_data`.
+//!
+//! `build_topic_data` returns a recursive physical file tree as flat relative
+//! paths (`files: { sessions, exercises, quizzes }`), mirroring cli/site
+//! PR126's pure-mirror approach so arbitrary nesting depth renders correctly.
+//! The old fixed-depth domain/concept grouping (sessions keyed by domain dir,
+//! exercises grouped by concept) was retired.
 //!
 //! Unlike `project.rs` (which is the GUI shell's lightweight folder-validator
 //! and *enforces* `state.json` version == 1), this module is a pure data
@@ -9,9 +13,7 @@
 
 use std::path::Path;
 
-use super::model::{
-    Concept, Domain, ExerciseFile, ExerciseGroup, SessionFile, StateV1, TopicData, TopicSummary,
-};
+use super::model::{Concept, Domain, StateV1, TopicData, TopicFiles, TopicSummary};
 
 /* ------------------------------------------------------------------ */
 /*  Small fs helpers (errors → None, matching serve.mjs's safeRead*) */
@@ -57,20 +59,88 @@ pub(super) fn list_dir_names(dir: &Path) -> Vec<String> {
     out
 }
 
-/// Like `list_dir_names`, but returns `(name, is_dir)` so callers can branch
-/// the top-level sessions/exercises scan (root files vs. concept subdirs).
-pub(super) fn list_entries(dir: &Path) -> Vec<(String, bool)> {
+/// Names always excluded from the recursive file scan (mirrors cli/site
+/// PR126's `EXCLUDED_NAMES`).
+const EXCLUDED_NAMES: &[&str] = &[".learn", ".git", ".idea", "node_modules"];
+
+/// Reject dot-dirs and the known noise set. Hidden directories (`.learn`,
+/// `.git`, …) and dependency dirs are never part of a topic's learning content.
+fn is_excluded(name: &str) -> bool {
+    name.starts_with('.') || EXCLUDED_NAMES.contains(&name)
+}
+
+/// Recursive directory walk mirroring cli/site PR126's `walkDir`. Collects flat
+/// relative paths (prefixed with `rel_prefix`, e.g. `sessions/js/es6/func.md`)
+/// for files passing `filter`. Dot-dirs / known noise dirs / symlinks are
+/// skipped. Binary files are skipped unless `include_binary`. Read errors on a
+/// single entry are silently skipped so one unreadable file never hides the rest
+/// — matching the JS `readdirSync` flatten + `continue` pattern.
+///
+/// `filter` is a concrete `fn` pointer (not generic) so recursion can't trigger
+/// unbounded monomorphization. The non-capturing closures passed by
+/// `scan_topic_files` coerce to `fn(&str) -> bool` for free.
+fn walk_dir(dir: &Path, rel_prefix: &str, include_binary: bool, filter: fn(&str) -> bool, results: &mut Vec<String>) {
     let Ok(entries) = std::fs::read_dir(dir) else {
-        return Vec::new();
+        return;
     };
-    let mut out = Vec::new();
     for entry in entries.flatten() {
-        let is_dir = entry.file_type().map(|t| t.is_dir()).unwrap_or(false);
-        if let Some(name) = entry.file_name().to_str() {
-            out.push((name.to_string(), is_dir));
+        let file_name = entry.file_name();
+        let Some(name) = file_name.to_str() else {
+            continue;
+        };
+        if is_excluded(name) {
+            continue;
+        }
+        let ft = match entry.file_type() {
+            Ok(t) => t,
+            Err(_) => continue,
+        };
+        if ft.is_symlink() {
+            continue;
+        }
+        let rel = if rel_prefix.is_empty() {
+            name.to_string()
+        } else {
+            format!("{rel_prefix}/{name}")
+        };
+        if ft.is_dir() {
+            walk_dir(&entry.path(), &rel, include_binary, filter, results);
+        } else if ft.is_file() && filter(name) {
+            if include_binary || !is_binary_file(&entry.path()) {
+                results.push(rel);
+            }
         }
     }
-    out
+}
+
+/// Recursively collect the three file axes for a topic into flat relative
+/// paths. Sessions = `.md` (binary included); exercises = all non-binary files;
+/// quizzes = `.json` (binary included). Extension matching is ASCII-case-
+/// insensitive to mirror the JS `name.toLowerCase().endsWith(...)` leniency.
+fn scan_topic_files(topic_dir: &Path) -> TopicFiles {
+    let mut files = TopicFiles::default();
+    walk_dir(
+        &topic_dir.join("sessions"),
+        "sessions",
+        true,
+        |n: &str| n.to_ascii_lowercase().ends_with(".md"),
+        &mut files.sessions,
+    );
+    walk_dir(
+        &topic_dir.join("exercises"),
+        "exercises",
+        false,
+        |_| true,
+        &mut files.exercises,
+    );
+    walk_dir(
+        &topic_dir.join("quizzes"),
+        "quizzes",
+        true,
+        |n: &str| n.to_ascii_lowercase().ends_with(".json"),
+        &mut files.quizzes,
+    );
+    files
 }
 
 /* ------------------------------------------------------------------ */
@@ -122,20 +192,8 @@ pub(super) fn build_topic_summaries(topics_dir: &Path) -> Vec<TopicSummary> {
 /*  build_topic_data                                                  */
 /* ------------------------------------------------------------------ */
 
-/// Map concept slug → display name from a `state.json` (exercises and quizzes
-/// both need it).
-pub(super) fn build_concept_name_map(state: &StateV1) -> std::collections::HashMap<String, String> {
-    let mut map = std::collections::HashMap::new();
-    for domain in &state.domains {
-        for concept in &domain.concepts {
-            map.insert(concept.slug.clone(), concept.name.clone());
-        }
-    }
-    map
-}
-
-/// Full `<topic>` payload: state, knowledge-map, sessions (grouped by domain),
-/// exercises (grouped by concept), plus root orphans for each.
+/// Full `<topic>` payload: state, knowledge-map, and a recursive flat-path
+/// file tree (`files: { sessions, exercises, quizzes }`).
 ///
 /// Returns `None` when the topic directory itself does not exist (so the
 /// command layer can turn that into a 404).
@@ -145,91 +203,18 @@ pub(super) fn build_topic_data(slug: &str, topics_dir: &Path) -> Option<TopicDat
         return None;
     }
 
-    // state.json — defaults if unreadable, matching `serve.mjs::safeReadJson`
-    // returning null (the JS `if (!state) continue` skips, but here we still
-    // return data so quizzes can reuse dir scans; exercises just won't get
-    // display-name mapping).
-    let state: StateV1 = read_json(&topic_dir.join("state.json"))
-        .unwrap_or_default();
+    // state.json — defaults if unreadable, matching the JS `safeReadJson`
+    // returning null (the knowledge-map + file tree still load without it).
+    let state: StateV1 = read_json(&topic_dir.join("state.json")).unwrap_or_default();
 
-    let knowledge_map =
-        read_text(&topic_dir.join("knowledge-map.md")).unwrap_or_default();
+    let knowledge_map = read_text(&topic_dir.join("knowledge-map.md")).unwrap_or_default();
 
-    // sessions/ — domain subdirs map domain dir name → .md files; root .md
-    // files go to `root_sessions`.
-    let sessions_dir = topic_dir.join("sessions");
-    let mut sessions: std::collections::BTreeMap<String, Vec<SessionFile>> =
-        std::collections::BTreeMap::new();
-    let mut root_sessions = Vec::new();
-    for (entry_name, is_dir) in list_entries(&sessions_dir) {
-        if is_dir {
-            let domain_dir = sessions_dir.join(&entry_name);
-            let mut files = Vec::new();
-            for f in list_dir_names(&domain_dir) {
-                if f.ends_with(".md") {
-                    files.push(SessionFile {
-                        filename: f.clone(),
-                        path: format!("/topics/{slug}/sessions/{entry_name}/{f}"),
-                    });
-                }
-            }
-            files.sort_by(|a, b| b.filename.cmp(&a.filename));
-            // `serve.mjs` does `sessions[entry.name] = files` unconditionally —
-            // a domain dir with no .md files still appears as an empty array
-            // so the sidebar renders the (empty) domain. Match that.
-            sessions.insert(entry_name, files);
-        } else if entry_name.ends_with(".md") {
-            root_sessions.push(SessionFile {
-                filename: entry_name.clone(),
-                path: format!("/topics/{slug}/sessions/{entry_name}"),
-            });
-        }
-    }
-    root_sessions.sort_by(|a, b| b.filename.cmp(&a.filename));
-
-    // exercises/ — concept subdirs group files; binary files are skipped.
-    let exercises_dir = topic_dir.join("exercises");
-    let name_map = build_concept_name_map(&state);
-    let mut exercises: Vec<ExerciseGroup> = Vec::new();
-    let mut root_exercises = Vec::new();
-    for (entry_name, is_dir) in list_entries(&exercises_dir) {
-        if is_dir {
-            let concept_dir = exercises_dir.join(&entry_name);
-            let mut files = Vec::new();
-            for f in list_dir_names(&concept_dir) {
-                if !is_binary_file(&concept_dir.join(&f)) {
-                    files.push(ExerciseFile {
-                        name: f.clone(),
-                        path: format!("/topics/{slug}/exercises/{entry_name}/{f}"),
-                    });
-                }
-            }
-            if !files.is_empty() {
-                exercises.push(ExerciseGroup {
-                    concept_slug: entry_name.clone(),
-                    concept_name: name_map
-                        .get(&entry_name)
-                        .cloned()
-                        .unwrap_or(entry_name),
-                    files,
-                });
-            }
-        } else if !is_binary_file(&exercises_dir.join(&entry_name)) {
-            root_exercises.push(ExerciseFile {
-                name: entry_name.clone(),
-                path: format!("/topics/{slug}/exercises/{entry_name}"),
-            });
-        }
-    }
-    exercises.sort_by(|a, b| a.concept_name.cmp(&b.concept_name));
+    let files = scan_topic_files(&topic_dir);
 
     Some(TopicData {
         state,
         knowledge_map,
-        sessions,
-        root_sessions,
-        exercises,
-        root_exercises,
+        files,
     })
 }
 
@@ -305,76 +290,165 @@ mod tests {
         assert!(build_topic_data("nope", root.path()).is_none());
     }
 
-    #[test]
-    fn topic_data_groups_sessions_and_exercises() {
-        let root = tempdir().unwrap();
-        let topic_dir = root.path().join("js");
-        fs::create_dir_all(topic_dir.join("sessions").join("domain-a")).unwrap();
-        fs::create_dir_all(topic_dir.join("sessions")).unwrap();
-        fs::write(topic_dir.join("sessions").join("domain-a").join("b.md"), "B").unwrap();
-        fs::write(topic_dir.join("sessions").join("domain-a").join("a.md"), "A").unwrap();
-        fs::write(topic_dir.join("sessions").join("root.md"), "R").unwrap();
-
-        fs::create_dir_all(topic_dir.join("exercises").join("concept-x")).unwrap();
-        fs::write(topic_dir.join("exercises").join("concept-x").join("ex.md"), "E").unwrap();
-        fs::write(topic_dir.join("knowledge-map.md"), "KM").unwrap();
-
-        write_state(
-            &topic_dir,
-            r#"{"topic":"JS","domains":[
-               {"name":"A","concepts":[{"name":"X","slug":"concept-x"}]}]}"#,
-        );
-
-        let data = build_topic_data("js", root.path()).unwrap();
-        assert_eq!(data.state.topic, "JS");
-        assert_eq!(data.knowledge_map, "KM");
-        // domain-a files sorted filename-descending.
-        let a = data.sessions.get("domain-a").unwrap();
-        assert_eq!(a.iter().map(|f| f.filename.clone()).collect::<Vec<_>>(), vec!["b.md", "a.md"]);
-        assert_eq!(data.root_sessions.len(), 1);
-        assert_eq!(data.root_sessions[0].filename, "root.md");
-        assert_eq!(data.exercises.len(), 1);
-        assert_eq!(data.exercises[0].concept_slug, "concept-x");
-        assert_eq!(data.exercises[0].concept_name, "X");
-        assert_eq!(data.exercises[0].files[0].name, "ex.md");
+    /// walk_dir collects in filesystem order (the JS tree builder sorts
+    /// downstream), so tests assert on a sorted copy for determinism.
+    fn sorted(mut v: Vec<String>) -> Vec<String> {
+        v.sort();
+        v
     }
 
     #[test]
-    fn binary_files_filtered_from_exercises() {
+    fn topic_data_scans_recursive_sessions() {
+        // Nested sessions/ dir beyond one level — the exact case PR126 fixed.
         let root = tempdir().unwrap();
         let topic_dir = root.path().join("js");
+        fs::create_dir_all(topic_dir.join("sessions").join("js").join("es6")).unwrap();
+        fs::create_dir_all(topic_dir.join("sessions").join("ownership")).unwrap();
+        fs::write(topic_dir.join("sessions").join("js").join("es6").join("func.md"), "f").unwrap();
+        fs::write(topic_dir.join("sessions").join("ownership").join("lifetimes.md"), "l").unwrap();
+        fs::write(topic_dir.join("sessions").join("overview.md"), "o").unwrap();
+        write_state(&topic_dir, r#"{"topic":"JS"}"#);
+
+        let data = build_topic_data("js", root.path()).unwrap();
+        assert_eq!(
+            sorted(data.files.sessions),
+            vec![
+                "sessions/js/es6/func.md",
+                "sessions/overview.md",
+                "sessions/ownership/lifetimes.md",
+            ]
+        );
+    }
+
+    #[test]
+    fn topic_data_scans_deeply_nested_exercises() {
+        // 4-level nesting: exercises/js/es6/func/arrow-func/index.js
+        let root = tempdir().unwrap();
+        let topic_dir = root.path().join("js");
+        fs::create_dir_all(
+            topic_dir.join("exercises").join("js").join("es6").join("func").join("arrow-func"),
+        )
+        .unwrap();
+        fs::write(
+            topic_dir
+                .join("exercises")
+                .join("js")
+                .join("es6")
+                .join("func")
+                .join("arrow-func")
+                .join("index.js"),
+            "const f = (a, b) => a + b;",
+        )
+        .unwrap();
+        write_state(&topic_dir, r#"{"topic":"JS"}"#);
+
+        let data = build_topic_data("js", root.path()).unwrap();
+        assert_eq!(
+            data.files.exercises,
+            vec!["exercises/js/es6/func/arrow-func/index.js"]
+        );
+    }
+
+    #[test]
+    fn topic_data_scans_recursive_quizzes_with_unicode_dir() {
+        // Unicode directory name (mirrors the cli/site fixture 异步Promise).
+        let root = tempdir().unwrap();
+        let topic_dir = root.path().join("js");
+        fs::create_dir_all(topic_dir.join("quizzes").join("异步Promise")).unwrap();
+        fs::create_dir_all(topic_dir.join("quizzes").join("js").join("es6").join("promise")).unwrap();
+        fs::write(topic_dir.join("quizzes").join("异步Promise").join("quiz.json"), "{}").unwrap();
+        fs::write(
+            topic_dir.join("quizzes").join("js").join("es6").join("promise").join("quiz.json"),
+            "{}",
+        )
+        .unwrap();
+        write_state(&topic_dir, r#"{"topic":"JS"}"#);
+
+        let data = build_topic_data("js", root.path()).unwrap();
+        assert_eq!(
+            sorted(data.files.quizzes),
+            vec![
+                "quizzes/js/es6/promise/quiz.json",
+                "quizzes/异步Promise/quiz.json",
+            ]
+        );
+    }
+
+    #[test]
+    fn topic_data_filters_binary_from_exercises_but_keeps_in_sessions() {
+        let root = tempdir().unwrap();
+        let topic_dir = root.path().join("js");
+        // A binary file under exercises/ is dropped (include_binary=false).
         fs::create_dir_all(topic_dir.join("exercises").join("c")).unwrap();
         fs::write(topic_dir.join("exercises").join("c").join("text.md"), "hello").unwrap();
-        fs::write(topic_dir.join("exercises").join("c").join("bin.md"), b"hello\0world").unwrap();
+        fs::write(topic_dir.join("exercises").join("c").join("bin.dat"), b"hello\0world").unwrap();
+        // The same binary under sessions/ stays (.md is the filter; binary ok).
+        fs::create_dir_all(topic_dir.join("sessions")).unwrap();
+        fs::write(topic_dir.join("sessions").join("note.md"), b"hi\0there").unwrap();
         write_state(&topic_dir, r#"{"topic":"JS"}"#);
+
         let data = build_topic_data("js", root.path()).unwrap();
-        let group = &data.exercises[0];
-        assert_eq!(group.files.len(), 1);
-        assert_eq!(group.files[0].name, "text.md");
+        assert_eq!(data.files.exercises, vec!["exercises/c/text.md"]);
+        assert_eq!(data.files.sessions, vec!["sessions/note.md"]);
     }
 
     #[test]
-    fn empty_session_subdir_is_retained_as_empty_array() {
-        // serve.mjs does `sessions[entry.name] = files` unconditionally — a
-        // domain dir with zero .md files still shows up as an empty array.
+    fn topic_data_excludes_dotfiles_and_noise_dirs() {
         let root = tempdir().unwrap();
         let topic_dir = root.path().join("js");
-        fs::create_dir_all(topic_dir.join("sessions").join("empty-domain")).unwrap();
+        // Real content.
+        fs::create_dir_all(topic_dir.join("sessions").join("core")).unwrap();
+        fs::write(topic_dir.join("sessions").join("core").join("a.md"), "A").unwrap();
+        // Noise dirs must be skipped (not walked, not collected).
+        fs::create_dir_all(topic_dir.join("sessions").join(".learn").join("x")).unwrap();
+        fs::write(topic_dir.join("sessions").join(".learn").join("x").join("leak.md"), "L").unwrap();
+        fs::create_dir_all(topic_dir.join("sessions").join("node_modules").join("pkg")).unwrap();
+        fs::write(
+            topic_dir.join("sessions").join("node_modules").join("pkg").join("leak.md"),
+            "L",
+        )
+        .unwrap();
         write_state(&topic_dir, r#"{"topic":"JS"}"#);
+
         let data = build_topic_data("js", root.path()).unwrap();
-        assert!(data.sessions.contains_key("empty-domain"));
-        assert!(data.sessions.get("empty-domain").unwrap().is_empty());
+        assert_eq!(data.files.sessions, vec!["sessions/core/a.md"]);
     }
 
     #[test]
-    fn exercises_without_state_fall_back_to_slug_as_name() {
+    fn topic_data_excludes_symlinks() {
+        // Symlinked dirs/files are not followed (mirrors PR126 isSymbolicLink()).
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::symlink;
+            let root = tempdir().unwrap();
+            let topic_dir = root.path().join("js");
+            fs::create_dir_all(topic_dir.join("sessions").join("real")).unwrap();
+            fs::write(topic_dir.join("sessions").join("real").join("a.md"), "A").unwrap();
+            // A symlink pointing OUTSIDE the topic — must not be traversed.
+            let outside = root.path().join("outside.md");
+            fs::write(&outside, "evil").unwrap();
+            symlink(&outside, topic_dir.join("sessions").join("link.md")).unwrap();
+            write_state(&topic_dir, r#"{"topic":"JS"}"#);
+
+            let data = build_topic_data("js", root.path()).unwrap();
+            assert_eq!(data.files.sessions, vec!["sessions/real/a.md"]);
+        }
+        // No-op on non-unix (Windows symlink semantics differ in CI).
+    }
+
+    #[test]
+    fn topic_data_returns_empty_files_when_dirs_absent() {
         let root = tempdir().unwrap();
         let topic_dir = root.path().join("js");
-        fs::create_dir_all(topic_dir.join("exercises").join("orphan-concept")).unwrap();
-        fs::write(topic_dir.join("exercises").join("orphan-concept").join("e.md"), "???").unwrap();
+        fs::create_dir_all(&topic_dir).unwrap();
+        fs::write(topic_dir.join("knowledge-map.md"), "KM").unwrap();
         write_state(&topic_dir, r#"{"topic":"JS"}"#);
+
         let data = build_topic_data("js", root.path()).unwrap();
-        assert_eq!(data.exercises[0].concept_name, "orphan-concept");
+        assert!(data.files.sessions.is_empty());
+        assert!(data.files.exercises.is_empty());
+        assert!(data.files.quizzes.is_empty());
+        assert_eq!(data.knowledge_map, "KM");
     }
 
     #[test]

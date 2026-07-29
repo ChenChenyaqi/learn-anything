@@ -45,12 +45,13 @@ export const siteSetWatcherFolder = (workingFolder: string): Promise<void> =>
 //  Topic data (site_topic_data)
 //
 //  The full per-topic payload. Mirrors Rust `site_api::model::TopicData`:
-//  - `TopicData` + `ExerciseGroup` serialize camelCase (`rename_all`).
+//  - `TopicData` + `TopicFiles` serialize camelCase (`rename_all`).
 //  - `StateV1` / `Domain` / `Concept` have NO `rename_all` → field names
 //    match the on-disk `state.json` verbatim (snake_case).
-//  - `sessions` / `rootSessions` / `exercises` / `rootExercises` are
-//    `skip_serializing_if = empty` on the Rust side, so they are ABSENT from
-//    the JSON when empty — typed optional here.
+//  - `files` is always present: a recursive physical file tree collected as
+//    flat relative paths (`sessions/...`, `exercises/...`, `quizzes/...`),
+//    mirroring cli/site PR126's pure-mirror approach so arbitrary nesting
+//    depth renders correctly.
 // ------------------------------------------------------------------
 
 /** Canonical concept mastery values (Rust stores these as a plain `String`). */
@@ -85,40 +86,29 @@ export interface StateV1 {
   domains: Domain[];
 }
 
-/** A `.md` note under `sessions/`. No `rename_all` → `filename`, `path`. */
-export interface SessionFile {
-  filename: string;
-  /** API path `/topics/<slug>/sessions/<rel>` — usable with `siteFileContent`. */
-  path: string;
-}
-
-/** A code/asset file under `exercises/`. No `rename_all` → `name`, `path`. */
-export interface ExerciseFile {
-  name: string;
-  /** API path `/topics/<slug>/exercises/<rel>` — usable with `siteFileContent`. */
-  path: string;
-}
-
-/** Exercises grouped by concept (camelCase via `rename_all`). */
-export interface ExerciseGroup {
-  conceptSlug: string;
-  conceptName: string;
-  files: ExerciseFile[];
+/**
+ * Recursive flat relative paths under `<topic>/sessions|exercises|quizzes/`.
+ * Each entry is prefixed with its axis (`sessions/`, `exercises/`,
+ * `quizzes/`); the frontend tree builder drops the first segment. Sessions
+ * are `.md` files (binary included); exercises are all non-binary files;
+ * quizzes are `.json` files (binary included).
+ */
+export interface TopicFiles {
+  sessions: string[];
+  exercises: string[];
+  quizzes: string[];
 }
 
 /**
- * Full payload for one topic, returned by `site_topic_data`.
- * `sessions`/`rootSessions`/`exercises`/`rootExercises` are omitted by the
- * backend when empty, hence optional. `state` + `knowledgeMap` are always
- * present (`knowledgeMap` is `""` when `knowledge-map.md` is absent).
+ * Full payload for one topic, returned by `site_topic_data`. `state` +
+ * `knowledgeMap` are always present (`knowledgeMap` is `""` when
+ * `knowledge-map.md` is absent). `files` always carries the three recursive
+ * flat-path axes (possibly empty arrays).
  */
 export interface TopicData {
   state: StateV1;
   knowledgeMap: string;
-  sessions?: Record<string, SessionFile[]>;
-  rootSessions?: SessionFile[];
-  exercises?: ExerciseGroup[];
-  rootExercises?: ExerciseFile[];
+  files: TopicFiles;
 }
 
 /**

@@ -6,7 +6,6 @@
 //!   - `site_topic_summaries`      → JS `GET /api/topics`
 //!   - `site_topic_data`           → JS `GET /api/topics/:slug`
 //!   - `site_file_content`         → JS `GET /api/file?path=`
-//!   - `site_quiz_list`            → JS `GET /api/quizzes?topic=`
 //!   - `site_quiz_deck`            → JS `GET /api/quizzes/:topic/:rest`
 //!   - `site_search_index`         → JS `GET /api/search-index`
 //!   - event `site://reload`       → JS SSE (`/api/events`) reload broadcasts
@@ -110,20 +109,6 @@ pub fn site_file_content(
         Ok(v) => Ok(v),
         Err(()) => Err(err(403, "Forbidden")),
     }
-}
-
-/// List quiz decks for a topic grouped by concept. `Ok(None)` = topic dir
-/// doesn't exist (404); `Ok(Some(empty))` = topic exists but has no `quizzes/`.
-#[tauri::command]
-pub fn site_quiz_list(
-    app: AppHandle,
-    topic: String,
-    working_folder: Option<String>,
-) -> Result<Option<model::QuizList>, String> {
-    let Some(topics_dir) = resolve_topics_dir(&app, working_folder)? else {
-        return Ok(None);
-    };
-    Ok(quizzes::build_quiz_list(&topic, &topics_dir))
 }
 
 /// Fetch a single quiz deck JSON. `Err("403|Forbidden")` for traversal,

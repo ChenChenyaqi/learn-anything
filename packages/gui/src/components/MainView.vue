@@ -71,7 +71,7 @@ const { width: panelWidth, resizing, start: startResize } = useAgentPanelResize(
             v-if="route.name === 'overview'"
             :working-folder="config?.last_working_folder ?? null"
           />
-          <WorkspaceView v-else />
+          <WorkspaceView v-else :working-folder="config?.last_working_folder ?? null" />
         </div>
         <ResizeHandle :resizing="resizing" @start="startResize" />
         <AgentChat

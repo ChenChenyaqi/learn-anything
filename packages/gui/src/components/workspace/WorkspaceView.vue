@@ -7,8 +7,8 @@
 // via `buildFileTree` and handed to the sidebar.
 //
 // The editor pane switches on the route's `currentPanel`:
-//   - {kind:'map'}    → KnowledgeMap (the default landing view)
-//   - {kind:'note'|'code', fileId} → placeholder (content lands in Phase 2)
+//   - {kind:'map'}               → KnowledgeMap (the default landing view)
+//   - {kind:'note'|'code', fileId} → NoteViewer (.md) or CodeViewer (else)
 //
 // Four states: loading / error / no-data / normal — matching OverviewView's
 // shape so the experience stays consistent across the route switch.
@@ -19,6 +19,8 @@ import { buildFileTree, type TreeNode } from './buildFileTree';
 import { useTopicData } from './useTopicData';
 import WorkspaceSidebar, { type FileAxis } from './WorkspaceSidebar.vue';
 import KnowledgeMap from './KnowledgeMap.vue';
+import NoteViewer from './NoteViewer.vue';
+import CodeViewer from './CodeViewer.vue';
 import { btnSecondary } from '@/lib/ui';
 
 const props = defineProps<{ workingFolder: string | null }>();
@@ -44,11 +46,15 @@ const activePath = computed(() => {
   return p && p.kind !== 'map' ? p.fileId : null;
 });
 
-/** Last path segment of the open file, for the placeholder header. */
-const activeFileName = computed(() => {
+/** API path for `siteFileContent`: `/topics/<slug>/<axis-relative path>`. */
+const apiPath = computed(() => {
   const p = activePath.value;
-  return p ? p.split('/').pop() : '';
+  const slug = currentSlug.value;
+  return p && slug ? `/topics/${slug}/${p}` : null;
 });
+
+/** `.md` → markdown viewer, everything else → code viewer. */
+const isMarkdown = computed(() => activePath.value?.endsWith('.md') ?? false);
 
 function cleanError(msg: string): string {
   return msg.replace(/^\w+\|/, '');
@@ -82,12 +88,8 @@ function cleanError(msg: string): string {
         :overall="overall"
       />
 
-      <!-- note/code placeholder (Phase 2 fills real content) -->
-      <div v-else class="py-5">
-        <div class="mb-1 font-mono text-xs text-(--color-accent)">{{ currentPanel.kind }}</div>
-        <h1 class="m-0 text-xl font-semibold tracking-tight">{{ activeFileName }}</h1>
-        <p class="mt-2 text-sm text-(--color-pencil)">Content loads in Phase 2.</p>
-      </div>
+      <NoteViewer v-else-if="isMarkdown" :api-path="apiPath" :working-folder="workingFolder" />
+      <CodeViewer v-else :api-path="apiPath" :working-folder="workingFolder" />
     </div>
   </div>
 </template>

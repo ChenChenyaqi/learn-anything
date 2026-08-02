@@ -191,6 +191,139 @@ h1, h2, h3, h4, h5, h6 {
   background-color: var(--color-accent-soft);
 }
 
+/* ------------------------------------------------------------------ */
+/*  Note prose (rendered markdown in NoteViewer)                        */
+/* ------------------------------------------------------------------ */
+
+.prose {
+  color: var(--color-ink);
+  font-size: 0.95rem;
+  line-height: 1.75;
+}
+.prose > *:first-child { margin-top: 0; }
+.prose p { margin: 0 0 1rem; }
+.prose h1,
+.prose h2,
+.prose h3,
+.prose h4 { margin: 1.8rem 0 0.7rem; font-weight: var(--font-weight-semibold); }
+.prose h1 { font-size: 1.25rem; }
+.prose h2 {
+  font-size: 1.05rem;
+  padding-left: 0.6rem;
+  border-left: 2px solid var(--color-accent);
+}
+.prose h3 { font-size: 0.95rem; }
+.prose strong { color: var(--color-accent); font-weight: var(--font-weight-semibold); }
+.prose em { font-style: italic; }
+.prose a { color: var(--color-accent); text-decoration: underline; text-underline-offset: 2px; }
+.prose a:hover { opacity: 0.8; }
+.prose ul,
+.prose ol { margin: 0 0 1.1rem; padding-left: 1.4rem; }
+.prose li { margin: 0.3rem 0; }
+.prose ul { list-style: disc; }
+.prose ol { list-style: decimal; }
+.prose code {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  background: var(--color-bg-alt);
+  padding: 0.1rem 0.35rem;
+  border-radius: var(--radius-sm);
+}
+.prose pre {
+  margin: 0 0 1.2rem;
+  padding: 0.85rem 1rem;
+  background: var(--color-bg-alt);
+  border-radius: 8px;
+  overflow-x: auto;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  line-height: 1.65;
+}
+.prose pre code { background: none; padding: 0; font-size: inherit; }
+.prose blockquote {
+  margin: 0 0 1.2rem;
+  padding: 0.1rem 0 0.9rem 0.9rem;
+  border-left: 2px solid var(--color-rule);
+  color: var(--color-pencil);
+}
+.prose blockquote p:last-child { margin-bottom: 0; }
+.prose hr { border: 0; border-top: 1px solid var(--color-rule); margin: 1.8rem 0; }
+.prose img { max-width: 100%; border-radius: 8px; }
+.prose table { border-collapse: collapse; margin: 0 0 1.2rem; font-size: 0.85rem; }
+.prose th,
+.prose td { border: 1px solid var(--color-rule); padding: 0.4rem 0.7rem; text-align: left; }
+.prose th { background: var(--color-bg-alt); font-weight: var(--font-weight-semibold); }
+
+/* ------------------------------------------------------------------ */
+/*  highlight.js theme — mapped onto the design tokens                 */
+/* ------------------------------------------------------------------ */
+
+.hljs { color: var(--color-ink); background: none; }
+.hljs-comment,
+.hljs-quote { color: var(--color-text-3); font-style: italic; }
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-literal,
+.hljs-section,
+.hljs-name,
+.hljs-meta,
+.hljs-tag { color: var(--color-accent); }
+.hljs-string,
+.hljs-regexp,
+.hljs-addition,
+.hljs-attribute,
+.hljs-template-tag,
+.hljs-template-variable { color: var(--color-mastered); }
+.hljs-built_in,
+.hljs-type,
+.hljs-class,
+.hljs-number,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-link,
+.hljs-variable,
+.hljs-property { color: var(--color-progress); }
+.hljs-title,
+.hljs-title.function_,
+.hljs-title.class_,
+.hljs-selector-class,
+.hljs-selector-id { color: var(--color-ink); font-weight: var(--font-weight-medium); }
+.hljs-deletion { color: var(--color-accent); }
+.hljs-emphasis { font-style: italic; }
+.hljs-strong { font-weight: var(--font-weight-bold); }
+
+/* ------------------------------------------------------------------ */
+/*  Code viewer — line-numbered gutter (CodeViewer)                    */
+/* ------------------------------------------------------------------ */
+
+.code-wrap {
+  display: flex;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.65;
+  overflow: hidden;
+}
+.code-wrap .gutter {
+  flex: none;
+  padding: 0.6rem 0;
+  text-align: right;
+  color: var(--color-text-3);
+  background: var(--color-bg-alt);
+  user-select: none;
+  -webkit-user-select: none;
+}
+.code-wrap .gutter span { display: block; padding: 0 0.9rem; }
+.code-wrap pre.code {
+  flex: 1 1 0%;
+  min-width: 0;
+  margin: 0;
+  padding: 0.6rem 1.2rem 0.6rem 1rem;
+  overflow-x: auto;
+  white-space: pre;
+  background: none;
+}
+.code-wrap pre.code code { background: none; font-family: inherit; }
+
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

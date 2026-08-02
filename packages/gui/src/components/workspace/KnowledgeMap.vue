@@ -6,12 +6,12 @@
 // row (one cluster per domain, one square per concept), and a detailed concept
 // list grouped by domain with status dots + confidence/practice metadata.
 //
-// Concept rows are clickable: they navigate to the concept's note
-// (`openPanel({kind:'note', fileId: concept.slug})`). The note body itself is
-// filled in Phase 2 — for now a placeholder renders. Mirrors the design mockup
-// lines 713-857.
+// Concept rows are display-only for now: note files are named with a date
+// suffix (`sessions/<domain>/<concept>-YYYY-MM-DD.md`), so a concept slug can't
+// be resolved to a file path without listing the directory. Users open notes
+// via the file tree; concept→note linking lands in a later refinement.
+// Mirrors the design mockup lines 713-857.
 
-import { useWorkspaceNav } from '@/composables/useWorkspaceNav';
 import { statusDot, statusSquare, statusLabel, domainMastery } from '@/lib/status';
 import { masteryBar, masteryBarFill } from '@/lib/ui';
 import type { Concept, StateV1 } from '@/lib/commands';
@@ -28,8 +28,6 @@ defineProps<{
   };
 }>();
 
-const { openPanel } = useWorkspaceNav();
-
 /** Right-aligned mono metadata line for a concept row. */
 function conceptInfo(c: Concept): string {
   if (c.status === 'unexplored') return 'unexplored';
@@ -37,10 +35,6 @@ function conceptInfo(c: Concept): string {
   if (c.practice_count > 0) parts.push(`${c.practice_count}×practice`);
   if (c.explain_count > 0) parts.push(`${c.explain_count}×explain`);
   return parts.join(' · ');
-}
-
-function openConcept(slug: string) {
-  openPanel({ kind: 'note', fileId: slug });
 }
 </script>
 
@@ -102,8 +96,7 @@ function openConcept(slug: string) {
           <li
             v-for="c in domain.concepts"
             :key="c.slug"
-            class="row-margin cursor-pointer rounded-r-lg py-2.5 pl-4 pr-2 transition-colors hover:bg-(--color-surface-hover)"
-            @click="openConcept(c.slug)"
+            class="rounded-r-lg py-2.5 pl-4 pr-2"
           >
             <div class="flex items-center gap-3">
               <span :class="statusDot(c.status)" />

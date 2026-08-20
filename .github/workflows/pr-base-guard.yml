@@ -1,0 +1,29 @@
+name: PR Base Guard
+
+# CONTRIBUTING.md: only release/* and hotfix/* branches may target main.
+# Everything else (feature/fix/docs) must target develop.
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  check-base:
+    name: 'base=main requires release/* or hotfix/*'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify source branch
+        env:
+          HEAD_BRANCH: ${{ github.event.pull_request.head.ref }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: |
+          echo "PR targets 'main', source branch: '$HEAD_BRANCH'"
+          case "$HEAD_BRANCH" in
+            release/*|hotfix/*)
+              echo "✅ '$HEAD_BRANCH' is allowed to target 'main'"
+              exit 0
+              ;;
+            *)
+              echo "::error::PRs targeting 'main' must come from 'release/*' or 'hotfix/*' branches (see CONTRIBUTING.md). '$HEAD_BRANCH' should target 'develop' instead. If this is an urgent production fix, recreate the branch as 'hotfix/<name>' from 'main'. PR: $PR_URL"
+              exit 1
+              ;;
+          esac

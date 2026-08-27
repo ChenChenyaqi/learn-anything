@@ -1,4 +1,6 @@
 import { describe, expect, it } from 'vitest';
+import { createApp, defineComponent, h, nextTick } from 'vue';
+import { i18n } from '@/i18n';
 import { resolveLocale } from '@/i18n/resolve';
 import en from '@/i18n/locales/en';
 import zhCN from '@/i18n/locales/zh-CN';
@@ -30,6 +32,38 @@ describe('resolveLocale', () => {
   it('falls back to English for an empty or fully unsupported list', () => {
     expect(resolveLocale([])).toBe('en');
     expect(resolveLocale(['fr', 'ja'])).toBe('en');
+  });
+});
+
+describe('i18n instance reactivity', () => {
+  it("re-renders a component's t() output when the locale switches", async () => {
+    const previous = i18n.global.locale.value;
+    i18n.global.locale.value = 'en';
+
+    const Comp = defineComponent({
+      setup() {
+        return () => h('p', i18n.global.t('common.loading'));
+      },
+    });
+    const app = createApp(Comp).use(i18n);
+    const el = document.createElement('div');
+    app.mount(el);
+
+    expect(el.textContent).toBe('Loading…');
+
+    i18n.global.locale.value = 'zh-CN';
+    await nextTick();
+    expect(el.textContent).toBe('加载中…');
+
+    app.unmount();
+    i18n.global.locale.value = previous;
+  });
+
+  it('interpolates named params', () => {
+    i18n.global.locale.value = 'zh-CN';
+    expect(i18n.global.t('time.minAgo', { n: 5 })).toBe('5 分钟前');
+    i18n.global.locale.value = 'en';
+    expect(i18n.global.t('time.minAgo', { n: 5 })).toBe('5m ago');
   });
 });
 

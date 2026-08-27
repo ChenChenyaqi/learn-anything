@@ -41,7 +41,7 @@ const { provider, model, baseUrl, key, status, saving, hasExistingKey, onSave } 
   <section class="mx-auto flex max-w-md flex-col gap-7 px-6 py-10">
     <header>
       <h1 class="m-0 text-2xl font-semibold">Learn Anything</h1>
-      <p class="mt-1.5 text-sm opacity-65">Set up your provider to get started.</p>
+      <p class="mt-1.5 text-sm opacity-65">{{ t('setup.subtitle') }}</p>
     </header>
 
     <!-- Language: app-level preference, applied + persisted immediately via
@@ -62,25 +62,25 @@ const { provider, model, baseUrl, key, status, saving, hasExistingKey, onSave } 
     </FormField>
 
     <form class="flex flex-col gap-4" @submit.prevent="onSave">
-      <FormField label="Provider">
+      <FormField :label="t('setup.provider')">
         <select v-model="provider" :class="fieldControl">
-          <option value="openai">OpenAI-compatible</option>
-          <option value="anthropic">Anthropic</option>
+          <option value="openai">{{ t('setup.providerOpenai') }}</option>
+          <option value="anthropic">{{ t('setup.providerAnthropic') }}</option>
         </select>
       </FormField>
 
-      <FormField label="Model id">
+      <FormField :label="t('setup.modelId')">
         <input
           v-model="model"
           :class="fieldControl"
           type="text"
-          placeholder="e.g. gpt-4o"
+          :placeholder="t('setup.modelPlaceholder')"
           autocomplete="off"
           spellcheck="false"
         />
       </FormField>
 
-      <FormField label="Base URL" optional>
+      <FormField :label="t('setup.baseUrl')" optional>
         <input
           v-model="baseUrl"
           :class="fieldControl"
@@ -91,13 +91,15 @@ const { provider, model, baseUrl, key, status, saving, hasExistingKey, onSave } 
         />
       </FormField>
 
-      <FormField label="API key">
+      <FormField :label="t('setup.apiKey')">
         <input
           v-model="key"
           :class="fieldControl"
           type="password"
           :placeholder="
-            hasExistingKey ? `kept as ${existingKeyPreview} — leave blank to keep` : 'sk-…'
+            hasExistingKey
+              ? t('setup.keyKept', { preview: existingKeyPreview })
+              : 'sk-…'
           "
           autocomplete="off"
           spellcheck="false"
@@ -113,7 +115,7 @@ const { provider, model, baseUrl, key, status, saving, hasExistingKey, onSave } 
 
       <div class="mt-1 flex justify-end gap-3">
         <button type="submit" :class="[btnPrimary, 'px-4 py-2']" :disabled="saving">
-          {{ saving ? 'Saving…' : 'Save' }}
+          {{ saving ? t('common.saving') : t('common.save') }}
         </button>
       </div>
     </form>

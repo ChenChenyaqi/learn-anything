@@ -3,7 +3,10 @@
 // folder pick/change button, and the Settings entry. Stateless — all actions
 // bubble up as events; the parent owns the folder flow.
 import { type AppConfig, type ProjectInfo } from '../lib/commands';
+import { useI18n } from 'vue-i18n';
 import { btnSecondary, btnGhost } from '../lib/ui';
+
+const { t } = useI18n();
 
 defineProps<{
   config: AppConfig | null;
@@ -28,18 +31,18 @@ const emit = defineEmits<{
       >
         {{ config.last_working_folder }}
       </span>
-      <span v-else class="text-sm italic opacity-55">no folder selected</span>
+      <span v-else class="text-sm italic opacity-55">{{ t('header.noFolder') }}</span>
       <button
         type="button"
         :class="[btnSecondary, 'px-3 py-1.5 text-xs']"
         :disabled="folderBusy"
         @click="emit('choose')"
       >
-        {{ folderBusy ? '…' : project ? 'Change' : 'Choose folder' }}
+        {{ folderBusy ? '…' : project ? t('header.change') : t('header.chooseFolder') }}
       </button>
     </div>
     <button type="button" :class="[btnGhost, 'px-3 py-1.5 text-xs']" @click="emit('settings')">
-      Settings
+      {{ t('header.settings') }}
     </button>
   </header>
 </template>

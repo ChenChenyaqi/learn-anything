@@ -4,6 +4,7 @@
 // `useWorkspaceNav` and the agent-panel resize via `useAgentPanelResize`.
 // Folder/config concerns stay in App.vue; this component receives them as props.
 import { type AppConfig, type ProjectInfo } from '@/lib/commands';
+import { useI18n } from 'vue-i18n';
 import { btnPrimary, btnSecondary } from '@/lib/ui';
 import AppHeader from './AppHeader.vue';
 import OverviewView from './overview/OverviewView.vue';
@@ -27,6 +28,7 @@ const emit = defineEmits<{
 
 const { route } = useWorkspaceNav();
 const { width: panelWidth, resizing, start: startResize } = useAgentPanelResize();
+const { t } = useI18n();
 </script>
 
 <template>
@@ -44,9 +46,9 @@ const { width: panelWidth, resizing, start: startResize } = useAgentPanelResize(
         v-if="!config?.last_working_folder && !projectError"
         class="flex flex-col items-center gap-4 pt-12 opacity-85"
       >
-        <p>Pick a working folder to start creating topics.</p>
+        <p>{{ t('main.pickFolderHint') }}</p>
         <button type="button" :class="[btnPrimary, 'px-4 py-2']" @click="emit('choose')">
-          Choose folder
+          {{ t('header.chooseFolder') }}
         </button>
       </div>
 
@@ -54,14 +56,14 @@ const { width: panelWidth, resizing, start: startResize } = useAgentPanelResize(
         v-else-if="projectError"
         class="max-w-lg rounded-[10px] border border-(--color-accent) bg-(--color-accent-soft) p-4"
       >
-        <p>Couldn't open that folder:</p>
+        <p>{{ t('main.openFolderError') }}</p>
         <pre class="my-2 whitespace-pre-wrap font-sans text-sm">{{ projectError }}</pre>
         <button
           type="button"
           :class="[btnSecondary, 'px-3 py-1.5 text-xs']"
           @click="emit('choose')"
         >
-          Choose a different folder
+          {{ t('main.chooseDifferentFolder') }}
         </button>
       </div>
 

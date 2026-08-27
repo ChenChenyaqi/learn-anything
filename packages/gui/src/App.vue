@@ -7,6 +7,7 @@
 // The system light/dark theme is followed via `useDarkMode` (mirrors the site).
 
 import { onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 import SetupScreen from './components/SetupScreen.vue';
 import MainView from './components/MainView.vue';
 import { useDarkMode } from './composables/useDarkMode';
@@ -16,6 +17,8 @@ import { useAppSession } from './composables/useAppSession';
 import { btnGhost } from './lib/ui';
 
 useDarkMode();
+
+const { t } = useI18n();
 
 const folder = useWorkingFolder();
 const { project, projectError, folderBusy } = folder;
@@ -39,7 +42,7 @@ onMounted(session.boot);
   <main class="min-h-screen bg-(--color-page) text-(--color-ink)">
     <!-- Boot probe. -->
     <div v-if="view === 'loading'" class="grid min-h-screen place-items-center opacity-60">
-      Starting…
+      {{ t('app.starting') }}
     </div>
 
     <!-- Setup / Settings. -->
@@ -50,7 +53,7 @@ onMounted(session.boot);
         :class="[btnGhost, 'absolute top-4 left-4 text-sm']"
         @click="view = 'main'"
       >
-        ← Back
+        ← {{ t('common.back') }}
       </button>
       <SetupScreen
         :config="config"

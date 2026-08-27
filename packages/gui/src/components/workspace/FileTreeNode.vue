@@ -2,24 +2,31 @@
 // Recursive file-tree node. Renders a directory (collapsible, recursing into
 // its children) or a file leaf. A leaf reports a click up via `open`.
 //
-// Directories default to expanded so the whole structure is visible on first
-// render; the user may collapse any of them. The active leaf (matched by path)
-// gets the accent left-border + surface fill, mirroring the mockup's
-// `.tree-leaf.active`.
+// Directories default to expanded. The active leaf (matched by path) gets the
+// accent left-border + surface fill. On the `quizzes` axis, directory rows
+// expose a `batchActions` slot (▶/⇄) so the sidebar can run a sequential or
+// random batch over that subtree; the slot is forwarded through recursion.
 //
 // Self-references `<FileTreeNode>` for its children — Vue 3 `<script setup>`
 // resolves this by filename automatically.
 
 import { ref, computed } from 'vue';
-import type { TreeNode, FileLeaf } from './buildFileTree';
+import type { TreeNode, FileLeaf, DirNode } from './buildFileTree';
 
 const props = defineProps<{
   node: TreeNode;
   activePath: string | null;
+  axis: 'sessions' | 'exercises' | 'quizzes';
 }>();
 
 const emit = defineEmits<{
   open: [leaf: FileLeaf];
+}>();
+
+// Explicitly type the batch-actions slot so the recursive slot forwarding
+// doesn't form a self-referential (circular) type.
+defineSlots<{
+  batchActions(props: { node: DirNode }): unknown;
 }>();
 
 const open = ref(true);
@@ -35,24 +42,37 @@ const leafMono = computed(() => !props.node.name.endsWith('.md'));
 
 <template>
   <div v-if="node.type === 'dir'">
-    <button
-      type="button"
-      class="flex w-full items-center gap-1 rounded-r-lg px-1.5 py-1 text-left text-sm text-(--color-ink) transition-colors hover:bg-(--color-surface-hover)"
-      @click="activate"
+    <div
+      class="flex items-center rounded-r-lg px-1.5 py-1 transition-colors hover:bg-(--color-surface-hover)"
     >
-      <span class="inline-block w-3 text-text-3 transition-transform" :class="open && 'rotate-90'"
-        >▸</span
+      <button
+        type="button"
+        class="flex min-w-0 flex-1 items-center gap-1 text-left text-sm text-(--color-ink)"
+        @click="activate"
       >
-      <span>{{ node.name }}</span>
-    </button>
+        <span class="inline-block w-3 text-text-3 transition-transform" :class="open && 'rotate-90'"
+          >▸</span
+        >
+        <span class="truncate">{{ node.name }}</span>
+      </button>
+
+      <!-- batch actions (quiz axis only) -->
+      <slot v-if="axis === 'quizzes'" name="batchActions" :node="node" />
+    </div>
+
     <div v-show="open" class="ml-3 border-l border-(--color-rule) pl-2">
       <FileTreeNode
         v-for="child in node.children"
         :key="child.path"
         :node="child"
         :active-path="activePath"
+        :axis="axis"
         @open="emit('open', $event)"
-      />
+      >
+        <template v-if="$slots.batchActions" #batchActions="{ node: childNode }">
+          <slot name="batchActions" :node="childNode" />
+        </template>
+      </FileTreeNode>
     </div>
   </div>
 

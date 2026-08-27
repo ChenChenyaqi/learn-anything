@@ -5,18 +5,23 @@
 // `siteTopicData().files` via `buildFileTree`; this component only owns the
 // active-tab state + navigation.
 //
-// Axis → panel kind mapping: sessions (.md) open as `note`, exercises/quizzes
-// open as `code` (Phase 3 will add a dedicated `quiz` panel kind). Clicking a
-// leaf navigates via `openPanel`. Mirrors mockup lines 331-530.
+// Axis → panel kind mapping: sessions (.md) → note, exercises → code,
+// quizzes → quiz. On the quizzes tab, directory rows and an "All quizzes"
+// header expose ▶ (sequential) / ⇄ (random) batch actions that collect the
+// subtree's files into a queue panel.
 
 import { ref } from 'vue';
 import { useWorkspaceNav } from '@/composables/useWorkspaceNav';
-import type { TreeNode, FileLeaf } from './buildFileTree';
+import type { TreeNode, FileLeaf, DirNode } from './buildFileTree';
+import { collectFiles } from './buildFileTree';
 import FileTreeNode from './FileTreeNode.vue';
+import QuizIcons from './quiz/QuizIcons.vue';
+import { quizStrings } from './quiz/strings';
+import type { QueueItem } from './quiz/types';
 
 export type FileAxis = 'sessions' | 'exercises' | 'quizzes';
 
-defineProps<{
+const props = defineProps<{
   trees: Record<FileAxis, TreeNode[]>;
   topicName: string;
   activePath: string | null;
@@ -32,15 +37,46 @@ const TABS: { axis: FileAxis; label: string }[] = [
   { axis: 'quizzes', label: 'Review' },
 ];
 
-/** sessions → note, exercises/quizzes → code (Phase 3 adds a quiz kind). */
-const AXIS_KIND: Record<FileAxis, 'note' | 'code'> = {
+/** sessions → note, exercises → code, quizzes → quiz. */
+const AXIS_KIND: Record<FileAxis, 'note' | 'code' | 'quiz'> = {
   sessions: 'note',
   exercises: 'code',
-  quizzes: 'code',
+  quizzes: 'quiz',
 };
 
 function onOpen(leaf: FileLeaf) {
   openPanel({ kind: AXIS_KIND[activeTab.value], fileId: leaf.path });
+}
+
+/** Map a quiz file leaf to a queue item. Derives a concept label from the
+ *  directory under `quizzes/` (best-effort — the file tree carries no rich
+ *  concept metadata). Returns null for non-quiz files. */
+function leafToQueueItem(leaf: FileLeaf): QueueItem | null {
+  if (!leaf.path.endsWith('.json')) return null;
+  const segments = leaf.path.split('/');
+  segments.shift(); // drop "quizzes"
+  const filename = segments.pop() ?? leaf.name;
+  const conceptSlug = segments[0] ?? filename.replace(/\.json$/, '');
+  return {
+    concept_slug: conceptSlug,
+    concept_name: conceptSlug,
+    filename,
+    path: leaf.path,
+  };
+}
+
+function playLeaves(leaves: FileLeaf[], mode: 'sequential' | 'random') {
+  const items = leaves.map(leafToQueueItem).filter((x): x is QueueItem => x !== null);
+  if (items.length === 0) return;
+  openPanel({ kind: 'quiz', mode, items });
+}
+
+function playDir(dirNode: DirNode, mode: 'sequential' | 'random') {
+  playLeaves(collectFiles(dirNode.children), mode);
+}
+
+function playAll(mode: 'sequential' | 'random') {
+  playLeaves(collectFiles(props.trees.quizzes), mode);
 }
 </script>
 
@@ -86,14 +122,62 @@ function onOpen(leaf: FileLeaf) {
 
     <!-- active tree -->
     <div class="px-2">
+      <!-- "All quizzes" batch header (quizzes tab only) -->
+      <div
+        v-if="activeTab === 'quizzes' && trees.quizzes.length"
+        class="mb-1.5 flex items-center justify-between px-1.5 py-1"
+      >
+        <span class="font-mono text-[10px] uppercase tracking-wider text-text-3">{{
+          quizStrings.allQuizzes
+        }}</span>
+        <span class="flex items-center gap-0.5">
+          <button
+            type="button"
+            class="inline-flex h-5 w-5 items-center justify-center rounded text-text-3 transition-colors hover:bg-(--color-surface-hover) hover:text-(--color-accent)"
+            title="Play all sequentially"
+            @click="playAll('sequential')"
+          >
+            <QuizIcons icon="sequential" />
+          </button>
+          <button
+            type="button"
+            class="inline-flex h-5 w-5 items-center justify-center rounded text-text-3 transition-colors hover:bg-(--color-surface-hover) hover:text-(--color-accent)"
+            title="Play all shuffled"
+            @click="playAll('random')"
+          >
+            <QuizIcons icon="random" />
+          </button>
+        </span>
+      </div>
+
       <template v-if="trees[activeTab].length">
         <FileTreeNode
           v-for="node in trees[activeTab]"
           :key="node.path"
           :node="node"
           :active-path="activePath"
+          :axis="activeTab"
           @open="onOpen"
-        />
+        >
+          <template #batchActions="{ node: dirNode }">
+            <button
+              type="button"
+              class="inline-flex h-4 w-4 items-center justify-center rounded text-text-3 transition-colors hover:text-(--color-accent)"
+              title="Play sequentially"
+              @click.stop="playDir(dirNode, 'sequential')"
+            >
+              <QuizIcons icon="sequential" />
+            </button>
+            <button
+              type="button"
+              class="inline-flex h-4 w-4 items-center justify-center rounded text-text-3 transition-colors hover:text-(--color-accent)"
+              title="Play shuffled"
+              @click.stop="playDir(dirNode, 'random')"
+            >
+              <QuizIcons icon="random" />
+            </button>
+          </template>
+        </FileTreeNode>
       </template>
       <p v-else class="px-1.5 py-1 font-mono text-xs text-text-3">No files yet.</p>
     </div>

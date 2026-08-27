@@ -133,3 +133,21 @@ export const siteFileContent = (
   path: string,
   workingFolder?: string | null,
 ): Promise<string | null> => invoke('site_file_content', { path, workingFolder });
+
+/**
+ * Fetch a single quiz deck JSON for `<topic>/quizzes/<rest>`. `rest` is the
+ * path under the topic's `quizzes/` directory, e.g. `closures/quiz.json`.
+ * Resolves `null` when the working folder is unset or the deck file is
+ * missing; rejects `"403|Forbidden"` for traversal attempts.
+ *
+ * The raw deck JSON shape (`QuizDeck`) is pinned down in Phase 2; for now the
+ * payload is returned as `unknown` and the viewer casts.
+ *
+ * `workingFolder` overrides `AppConfig.last_working_folder`; omit/`null` to
+ * use the persisted default (matching the Rust `Option<String>` contract).
+ */
+export const siteQuizDeck = (
+  topic: string,
+  rest: string,
+  workingFolder?: string | null,
+): Promise<unknown | null> => invoke('site_quiz_deck', { topic, rest, workingFolder });

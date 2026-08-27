@@ -21,6 +21,7 @@ import WorkspaceSidebar, { type FileAxis } from './WorkspaceSidebar.vue';
 import KnowledgeMap from './KnowledgeMap.vue';
 import NoteViewer from './NoteViewer.vue';
 import CodeViewer from './CodeViewer.vue';
+import QuizViewer from './quiz/QuizViewer.vue';
 import { btnSecondary } from '@/lib/ui';
 
 const props = defineProps<{ workingFolder: string | null }>();
@@ -40,10 +41,11 @@ const trees = computed<Record<FileAxis, TreeNode[]>>(() => {
 
 const topicName = computed(() => data.value?.state.topic ?? currentSlug.value ?? '');
 
-/** The file path of the currently-open note/code, or null when on the map. */
+/** The file path of the currently-open note/code/quiz, or null when on the map. */
 const activePath = computed(() => {
   const p = currentPanel.value;
-  return p && p.kind !== 'map' ? p.fileId : null;
+  // quiz batch sessions have no single fileId; note/code/single-quiz do.
+  return p && p.kind !== 'map' ? (p.fileId ?? null) : null;
 });
 
 /** API path for `siteFileContent`: `/topics/<slug>/<axis-relative path>`. */
@@ -77,7 +79,7 @@ function cleanError(msg: string): string {
 
   <div v-else-if="!data" class="grid h-full place-items-center opacity-60">Topic not found.</div>
 
-  <div v-else class="flex h-full">
+  <div v-else class="workspace-view flex h-full">
     <WorkspaceSidebar :trees="trees" :topic-name="topicName" :active-path="activePath" />
 
     <!-- editor pane -->
@@ -86,6 +88,13 @@ function cleanError(msg: string): string {
         v-if="!currentPanel || currentPanel.kind === 'map'"
         :state="data.state"
         :overall="overall"
+      />
+
+      <QuizViewer
+        v-else-if="currentPanel.kind === 'quiz'"
+        :panel="currentPanel"
+        :slug="currentSlug"
+        :working-folder="workingFolder"
       />
 
       <NoteViewer v-else-if="isMarkdown" :api-path="apiPath" :working-folder="workingFolder" />

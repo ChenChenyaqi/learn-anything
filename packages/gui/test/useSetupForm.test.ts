@@ -17,6 +17,7 @@ function cfg(overrides: Partial<AppConfig> = {}): AppConfig {
     base_url: null,
     last_working_folder: null,
     api_key: null,
+    language: 'system',
     ...overrides,
   };
 }

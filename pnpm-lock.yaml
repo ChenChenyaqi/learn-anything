@@ -140,13 +140,16 @@ importers:
         version: 14.2.0
       markstream-vue:
         specifier: 1.0.6-beta.1
-        version: 1.0.6-beta.1(vue@3.5.38(typescript@5.6.3))
+        version: 1.0.6-beta.1(vue-i18n@11.4.10(vue@3.5.38(typescript@5.6.3)))(vue@3.5.38(typescript@5.6.3))
       tailwindcss:
         specifier: ^4.3.1
         version: 4.3.1
       vue:
         specifier: ^3.5.13
         version: 3.5.38(typescript@5.6.3)
+      vue-i18n:
+        specifier: ^11.4.10
+        version: 11.4.10(vue@3.5.38(typescript@5.6.3))
     devDependencies:
       '@tauri-apps/cli':
         specifier: ^2
@@ -1039,6 +1042,22 @@ packages:
     peerDependenciesMeta:
       '@types/node':
         optional: true
+
+  '@intlify/core-base@11.4.10':
+    resolution: {integrity: sha512-+yJ74JRWVJokdgG9zYNMyTSzeNV3O9T4vVxk8PvLFHmI+R/BYA//cITh7vhRK37hWLZ4/kTcKcUz1dlWOpypIg==}
+    engines: {node: '>= 22'}
+
+  '@intlify/devtools-types@11.4.10':
+    resolution: {integrity: sha512-xZxzZsAuu6/0zoLRVQWdpXWe5Kjl0LnWpjlQA3r9u9FbLYMhapqt7IwkgQyn0Tm2GUNAqhj9eZiUmYOrB024BQ==}
+    engines: {node: '>= 22'}
+
+  '@intlify/message-compiler@11.4.10':
+    resolution: {integrity: sha512-oUB/scz2EJENXDiUJ7JjZffOrH8UIZ1BuZeHvonbi5fWLavLt04aivuk2OIByOZA0tsci1bkeeQRmwhb5M8Imw==}
+    engines: {node: '>= 22'}
+
+  '@intlify/shared@11.4.10':
+    resolution: {integrity: sha512-FeImVdPeoSHTm3NBFFZHv0eRP9gQ3F4lj2puDBX5Kw7iiM1uJW6JTf39ian0K/17pbXCI3ef5i9RVsRrALqI6Q==}
+    engines: {node: '>= 22'}
 
   '@jridgewell/gen-mapping@0.3.13':
     resolution: {integrity: sha512-2kkt/7niJ6MgEPxF0bYdQ6etZaA+fQvDcLKckhy1yIQOzaoKjBBjSj63/aLVjYE3qhRt5dvM+uUyfCg6UKCBbA==}
@@ -3200,6 +3219,12 @@ packages:
     peerDependencies:
       eslint: ^8.57.0 || ^9.0.0 || ^10.0.0
 
+  vue-i18n@11.4.10:
+    resolution: {integrity: sha512-Lp+BjOxqzOY87DS6Z8KrQrpiTr9IN/Lt4kZEilwyXG2Wrx+AcU6IVsAW92HNXtVcn1HFFPV6ty41p9e/qDpyvg==}
+    engines: {node: '>= 22'}
+    peerDependencies:
+      vue: ^3.0.0
+
   vue-router@4.6.4:
     resolution: {integrity: sha512-Hz9q5sa33Yhduglwz6g9skT8OBPii+4bFn88w6J+J4MfEo4KRRpmiNG/hHHkdbRFlLBOqxN8y8gf2Fb0MTUgVg==}
     peerDependencies:
@@ -4177,6 +4202,24 @@ snapshots:
   '@inquirer/type@3.0.10(@types/node@24.12.3)':
     optionalDependencies:
       '@types/node': 24.12.3
+
+  '@intlify/core-base@11.4.10':
+    dependencies:
+      '@intlify/devtools-types': 11.4.10
+      '@intlify/message-compiler': 11.4.10
+      '@intlify/shared': 11.4.10
+
+  '@intlify/devtools-types@11.4.10':
+    dependencies:
+      '@intlify/core-base': 11.4.10
+      '@intlify/shared': 11.4.10
+
+  '@intlify/message-compiler@11.4.10':
+    dependencies:
+      '@intlify/shared': 11.4.10
+      source-map-js: 1.2.1
+
+  '@intlify/shared@11.4.10': {}
 
   '@jridgewell/gen-mapping@0.3.13':
     dependencies:
@@ -5687,13 +5730,15 @@ snapshots:
 
   markstream-core@1.0.3: {}
 
-  markstream-vue@1.0.6-beta.1(vue@3.5.38(typescript@5.6.3)):
+  markstream-vue@1.0.6-beta.1(vue-i18n@11.4.10(vue@3.5.38(typescript@5.6.3)))(vue@3.5.38(typescript@5.6.3)):
     dependencies:
       '@chenglou/pretext': 0.0.8
       '@floating-ui/dom': 1.8.0
       markstream-core: 1.0.3
       stream-markdown-parser: 1.1.0
       vue: 3.5.38(typescript@5.6.3)
+    optionalDependencies:
+      vue-i18n: 11.4.10(vue@3.5.38(typescript@5.6.3))
 
   mdast-util-from-markdown@2.0.3:
     dependencies:
@@ -6444,6 +6489,14 @@ snapshots:
       semver: 7.8.0
     transitivePeerDependencies:
       - supports-color
+
+  vue-i18n@11.4.10(vue@3.5.38(typescript@5.6.3)):
+    dependencies:
+      '@intlify/core-base': 11.4.10
+      '@intlify/devtools-types': 11.4.10
+      '@intlify/shared': 11.4.10
+      '@vue/devtools-api': 6.6.4
+      vue: 3.5.38(typescript@5.6.3)
 
   vue-router@4.6.4(vue@3.5.38(typescript@5.9.3)):
     dependencies:

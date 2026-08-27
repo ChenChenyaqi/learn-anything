@@ -46,13 +46,16 @@ export function useSetupForm(opts: {
     saving.value = true;
     status.value = { kind: 'idle', text: 'Saving…' };
     try {
-      // Preserve the existing key + working folder when editing settings later.
+      // Preserve the existing key + working folder + language when editing
+      // settings later (language is also settable independently via
+      // `setLanguagePref` from the Language field).
       const config: AppConfig = {
         provider: provider.value,
         model: modelTrim,
         base_url: normalizedBaseUrl(),
         last_working_folder: opts.config()?.last_working_folder ?? null,
         api_key: newKey !== '' ? newKey : (opts.config()?.api_key ?? null),
+        language: opts.config()?.language ?? 'system',
       };
       await setConfig(config);
       opts.onSaved();

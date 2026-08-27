@@ -3,7 +3,7 @@ mod project;
 pub mod sidecar;
 mod site_api;
 
-use config::{get_config, set_config};
+use config::{get_config, set_config, set_language};
 use project::{create_project, open_project, pick_project_dir};
 use sidecar::{
     agent_cancel, agent_list_sessions, agent_load_session, agent_new_session,
@@ -29,9 +29,11 @@ pub fn run() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
-            // appData config (provider, model, base_url, working folder, api_key)
+            // appData config (provider, model, base_url, working folder, api_key,
+            // language)
             get_config,
             set_config,
+            set_language,
             // working-folder selection / validation / creation
             pick_project_dir,
             open_project,

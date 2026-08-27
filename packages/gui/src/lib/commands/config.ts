@@ -1,4 +1,5 @@
-// appData config commands: provider, model, base_url, working folder, api_key.
+// appData config commands: provider, model, base_url, working folder, api_key,
+// language.
 //
 // Typed wrappers around the config-related Tauri commands registered in
 // src-tauri. Field names match the Rust serde field names exactly (snake_case),
@@ -9,6 +10,9 @@ import { invoke } from '@tauri-apps/api/core';
 /** LLM provider. Serialized lowercase by the Rust `Provider` enum. */
 export type Provider = 'openai' | 'anthropic';
 
+/** UI language preference. Serialized by the Rust `LanguagePreference` enum. */
+export type LanguagePreference = 'system' | 'en' | 'zh-CN';
+
 /** Non-secret app config, mirrored from `config::AppConfig`. */
 export interface AppConfig {
   provider: Provider;
@@ -17,10 +21,22 @@ export interface AppConfig {
   last_working_folder: string | null;
   /** Plaintext LLM API key, stored alongside the rest of the config. */
   api_key: string | null;
+  /** UI language preference (`'system'` follows the OS language live). */
+  language: LanguagePreference;
 }
 
 export const getConfig = (): Promise<AppConfig> => invoke('get_config');
 export const setConfig = (config: AppConfig): Promise<void> => invoke('set_config', { config });
+
+/**
+ * Change ONLY the UI language preference (read-modify-write on the Rust side).
+ *
+ * Deliberately not `setConfig`: that command validates the whole config (e.g.
+ * model must be non-empty), but language must be settable on a fresh install
+ * before any provider config exists.
+ */
+export const setLanguagePref = (language: LanguagePreference): Promise<void> =>
+  invoke('set_language', { language });
 
 /* ── key display helper ────────────────────────────────────────────── */
 

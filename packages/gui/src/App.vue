@@ -10,6 +10,7 @@ import { onMounted } from 'vue';
 import SetupScreen from './components/SetupScreen.vue';
 import MainView from './components/MainView.vue';
 import { useDarkMode } from './composables/useDarkMode';
+import { useLanguage } from './composables/useLanguage';
 import { useWorkingFolder } from './composables/useWorkingFolder';
 import { useAppSession } from './composables/useAppSession';
 import { btnGhost } from './lib/ui';
@@ -20,6 +21,10 @@ const folder = useWorkingFolder();
 const { project, projectError, folderBusy } = folder;
 const session = useAppSession({ openFolder: folder.openFolder });
 const { view, config, keyPreview } = session;
+
+// Language: follow the stored preference once config loads, or the system
+// languages live (see `useLanguage` for the full pipeline).
+const { setLanguage } = useLanguage(config);
 
 /** Pick + validate a folder, then refresh config so the header reflects it. */
 async function chooseFolder() {
@@ -51,6 +56,7 @@ onMounted(session.boot);
         :config="config"
         :existing-key-preview="keyPreview"
         @saved="session.refreshAfterSave"
+        @language="setLanguage"
       />
     </div>
 

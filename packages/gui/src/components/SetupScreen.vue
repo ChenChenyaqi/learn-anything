@@ -6,10 +6,13 @@
 // stored in plaintext alongside the rest of the config (`set_config`); the
 // masked `existingKeyPreview` is display-only.
 
-import { type AppConfig } from '../lib/commands';
+import { useI18n } from 'vue-i18n';
+import { type AppConfig, type LanguagePreference } from '../lib/commands';
 import { useSetupForm } from '../composables/useSetupForm';
 import FormField from './FormField.vue';
 import { btnPrimary, fieldControl } from '../lib/ui';
+
+const { t } = useI18n();
 
 const props = defineProps<{
   /** Current non-secret config, used to pre-fill provider/model/base_url. */
@@ -21,6 +24,9 @@ const props = defineProps<{
 const emit = defineEmits<{
   /** Fired after a successful save so the parent can re-evaluate routing. */
   saved: [];
+  /** Fired immediately when the language preference changes (saved via
+   *  `set_language`, independent of the provider form's Save button). */
+  language: [pref: LanguagePreference];
 }>();
 
 const { provider, model, baseUrl, key, status, saving, hasExistingKey, onSave } =
@@ -37,6 +43,23 @@ const { provider, model, baseUrl, key, status, saving, hasExistingKey, onSave } 
       <h1 class="m-0 text-2xl font-semibold">Learn Anything</h1>
       <p class="mt-1.5 text-sm opacity-65">Set up your provider to get started.</p>
     </header>
+
+    <!-- Language: app-level preference, applied + persisted immediately via
+         `set_language` — deliberately NOT part of the provider form below,
+         whose Save validates model/key and would reject fresh installs. -->
+    <FormField :label="t('setup.language')">
+      <select
+        :class="fieldControl"
+        :value="config?.language ?? 'system'"
+        @change="
+          emit('language', ($event.target as HTMLSelectElement).value as LanguagePreference)
+        "
+      >
+        <option value="system">{{ t('setup.languageSystem') }}</option>
+        <option value="en">English</option>
+        <option value="zh-CN">简体中文</option>
+      </select>
+    </FormField>
 
     <form class="flex flex-col gap-4" @submit.prevent="onSave">
       <FormField label="Provider">

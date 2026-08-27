@@ -1,9 +1,9 @@
 //! Application config, persisted as JSON in the OS app-data dir.
 //!
 //! Holds the provider, model id, optional `base_url`, the last chosen working
-//! folder, and the LLM API key. The key is stored in plaintext here (the same
-//! convention as opencode / claude code): it is read by the agent sidecar on
-//! session boot.
+//! folder, the LLM API key, and the UI language preference. The key is stored
+//! in plaintext here (the same convention as opencode / claude code): it is
+//! read by the agent sidecar on session boot.
 
 use std::path::PathBuf;
 
@@ -23,6 +23,24 @@ pub enum Provider {
     OpenAi,
     /// Anthropic (Claude).
     Anthropic,
+}
+
+/// UI language preference.
+///
+/// `System` means "follow the OS language live" (the default); the other two
+/// are explicit overrides. Serializes to `"system"` / `"en"` / `"zh-CN"` —
+/// the same locale codes the CLI package uses. Deserializing an unknown
+/// string is an error (mirrors `Provider`), and unknown values can only enter
+/// through a hand-edited config file: `set_language` takes this enum directly.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+pub enum LanguagePreference {
+    #[default]
+    #[serde(rename = "system")]
+    System,
+    #[serde(rename = "en")]
+    En,
+    #[serde(rename = "zh-CN")]
+    ZhCn,
 }
 
 /// Filename (relative to the app-data dir) holding the config.
@@ -48,6 +66,8 @@ pub struct AppConfig {
     /// `None` means "not yet configured" — the frontend routes to the setup
     /// screen in that case.
     pub api_key: Option<String>,
+    /// UI language preference (follow system by default).
+    pub language: LanguagePreference,
 }
 
 impl AppConfig {
@@ -176,6 +196,21 @@ pub fn set_config(app: AppHandle, config: AppConfig) -> Result<(), String> {
     save_config(&app, &config).map_err(|e| e.to_string())
 }
 
+/// Change ONLY the UI language preference, read-modify-write style.
+///
+/// Deliberately separate from `set_config`: that command runs full validation
+/// (e.g. model must be non-empty), but language must be settable on a fresh
+/// install before any provider config exists. This command deliberately skips
+/// `validate()` — it loads the stored config, swaps one field, saves atomically,
+/// and leaves every other field (including an incomplete provider setup)
+/// untouched.
+#[tauri::command]
+pub fn set_language(app: AppHandle, language: LanguagePreference) -> Result<(), String> {
+    let mut cfg = load_config(&app).map_err(|e| e.to_string())?;
+    cfg.language = language;
+    save_config(&app, &cfg).map_err(|e| e.to_string())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -188,6 +223,7 @@ mod tests {
         assert!(cfg.base_url.is_none());
         assert!(cfg.last_working_folder.is_none());
         assert!(cfg.api_key.is_none());
+        assert_eq!(cfg.language, LanguagePreference::System);
     }
 
     #[test]
@@ -198,16 +234,20 @@ mod tests {
             base_url: Some("https://proxy.example.com".into()),
             last_working_folder: Some("/home/me/learn".into()),
             api_key: Some("sk-secret".into()),
+            language: LanguagePreference::ZhCn,
         };
         let json = serde_json::to_string(&cfg).unwrap();
-        // Provider serializes to lowercase per its serde rename.
+        // Provider serializes to lowercase per its serde rename; language
+        // serializes to the exact locale code strings.
         assert!(json.contains(r#""provider":"anthropic""#));
+        assert!(json.contains(r#""language":"zh-CN""#));
         let back: AppConfig = serde_json::from_str(&json).unwrap();
         assert_eq!(back.provider, Provider::Anthropic);
         assert_eq!(back.model, "claude-sonnet-4-20250514");
         assert_eq!(back.base_url.as_deref(), Some("https://proxy.example.com"));
         assert_eq!(back.last_working_folder.as_deref(), Some("/home/me/learn"));
         assert_eq!(back.api_key.as_deref(), Some("sk-secret"));
+        assert_eq!(back.language, LanguagePreference::ZhCn);
     }
 
     #[test]
@@ -216,11 +256,37 @@ mod tests {
         let cfg: AppConfig = serde_json::from_str("{}").unwrap();
         assert_eq!(cfg.provider, Provider::OpenAi);
         assert!(cfg.model.is_empty());
+        assert_eq!(cfg.language, LanguagePreference::System);
     }
 
     #[test]
     fn unknown_provider_string_errors() {
         let res: Result<AppConfig, _> = serde_json::from_str(r#"{"provider":"grok"}"#);
+        assert!(res.is_err());
+    }
+
+    #[test]
+    fn language_preference_serializes_to_locale_codes() {
+        assert_eq!(
+            serde_json::to_string(&LanguagePreference::System).unwrap(),
+            "\"system\""
+        );
+        assert_eq!(
+            serde_json::to_string(&LanguagePreference::En).unwrap(),
+            "\"en\""
+        );
+        assert_eq!(
+            serde_json::to_string(&LanguagePreference::ZhCn).unwrap(),
+            "\"zh-CN\""
+        );
+        // The same strings parse back.
+        let zh: LanguagePreference = serde_json::from_str("\"zh-CN\"").unwrap();
+        assert_eq!(zh, LanguagePreference::ZhCn);
+    }
+
+    #[test]
+    fn unknown_language_string_errors() {
+        let res: Result<AppConfig, _> = serde_json::from_str(r#"{"language":"de"}"#);
         assert!(res.is_err());
     }
 

@@ -32,7 +32,8 @@
     "markdown-it": "^14.2.0",
     "markstream-vue": "1.0.6-beta.1",
     "tailwindcss": "^4.3.1",
-    "vue": "^3.5.13"
+    "vue": "^3.5.13",
+    "vue-i18n": "^11.4.10"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2",

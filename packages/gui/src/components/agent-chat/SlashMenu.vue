@@ -5,7 +5,10 @@
 // the keyboard (↑↓ Enter Esc on the textarea) and passes the current highlight
 // `index` + filtered `commands`. Row clicks emit `select`.
 
+import { useI18n } from 'vue-i18n';
 import type { SlashCommand } from './slash-commands';
+
+const { t } = useI18n();
 
 defineProps<{
   commands: SlashCommand[];
@@ -37,7 +40,7 @@ const emit = defineEmits<{
     >
       <span class="font-mono text-(--color-ink)">/{{ cmd.name }}</span>
       <span v-if="cmd.argumentHint" class="font-mono text-xs text-(--color-pencil)">{{ cmd.argumentHint }}</span>
-      <span class="text-(--color-pencil)">{{ cmd.description }}</span>
+      <span class="text-(--color-pencil)">{{ t(`chat.cmd.${cmd.description}`) }}</span>
     </button>
   </div>
 </template>

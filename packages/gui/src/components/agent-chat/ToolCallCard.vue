@@ -9,9 +9,12 @@
 // <details>.  No inner scrollbars; the page is the only scroll container.
 
 import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { toolCard } from '@/lib/ui';
 import { summarizeToolCall } from './tool-display';
 import ExpandableCode from './ExpandableCode.vue';
+
+const { t } = useI18n();
 
 const props = defineProps<{
   status: string;
@@ -52,7 +55,7 @@ const resultOpen = ref(false);
         class="result-toggle flex w-fit cursor-pointer list-none items-center gap-1 rounded-md px-1.5 py-0.5 font-mono text-xs text-(--color-pencil) transition-colors hover:bg-(--color-surface-hover) hover:text-(--color-ink) [&::-webkit-details-marker]:hidden"
       >
         <span class="disclosure-tri" aria-hidden="true">▸</span>
-        <span>result</span>
+        <span>{{ t('chat.result') }}</span>
       </summary>
       <ExpandableCode v-if="resultOpen" class="mt-2" :content="result" />
     </details>

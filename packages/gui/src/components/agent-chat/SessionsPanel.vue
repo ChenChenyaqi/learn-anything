@@ -6,9 +6,12 @@
 // case-insensitive title substring.
 
 import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import type { SessionMeta } from '@/lib/commands';
 import { relativeTime } from '@/components/agent-chat/time';
 import { btnGhost, fieldControl } from '@/lib/ui';
+
+const { t } = useI18n();
 
 const props = defineProps<{
   sessions: SessionMeta[];
@@ -30,7 +33,9 @@ const filtered = computed(() => {
 function timeAgo(iso: string): string {
   const secs = Math.floor(Date.parse(iso) / 1000);
   if (Number.isNaN(secs)) return '';
-  return relativeTime(secs);
+  // Called from the template, so the `t` dependency re-renders the rows on a
+  // locale switch.
+  return relativeTime(secs, t);
 }
 </script>
 
@@ -39,9 +44,9 @@ function timeAgo(iso: string): string {
     <!-- Header: back + label -->
     <div class="flex items-center gap-3 pb-3">
       <button type="button" :class="[btnGhost, 'px-2 py-1 text-sm']" @click="emit('back')">
-        ← back
+        ← {{ t('chat.back') }}
       </button>
-      <span class="text-sm font-medium text-(--color-ink)">Sessions</span>
+      <span class="text-sm font-medium text-(--color-ink)">{{ t('chat.sessions') }}</span>
     </div>
 
     <!-- Search -->
@@ -49,7 +54,7 @@ function timeAgo(iso: string): string {
       v-model="search"
       :class="[fieldControl, 'mb-3']"
       type="text"
-      placeholder="Search sessions…"
+      :placeholder="t('chat.searchPlaceholder')"
       autocomplete="off"
       spellcheck="false"
     />
@@ -57,7 +62,9 @@ function timeAgo(iso: string): string {
     <!-- List -->
     <div class="flex-1 overflow-y-auto overflow-x-hidden">
       <p v-if="filtered.length === 0" class="py-8 text-center text-sm text-(--color-pencil)">
-        No sessions yet — back and type <span class="font-mono">/new</span> to start.
+        <i18n-t keypath="chat.emptySessions">
+          <template #cmd><span class="font-mono">/new</span></template>
+        </i18n-t>
       </p>
       <ul v-else class="flex flex-col">
         <li
@@ -70,7 +77,7 @@ function timeAgo(iso: string): string {
         >
           <div class="text-sm font-medium text-(--color-ink)">{{ s.title }}</div>
           <div class="text-xs text-(--color-pencil)">
-            {{ s.message_count }} msgs · {{ timeAgo(s.updated_at) }}
+            {{ t('chat.msgCount', { count: s.message_count }) }} · {{ timeAgo(s.updated_at) }}
           </div>
         </li>
       </ul>

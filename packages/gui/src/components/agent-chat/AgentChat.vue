@@ -7,6 +7,7 @@
 // everything flows through the composable.
 
 import { computed, nextTick, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useAgentSession } from '@/components/agent-chat/useAgentSession.ts';
 import { matchInput, type SlashCommand } from '@/components/agent-chat/slash-commands.ts';
 import { slashPill, btnPrimary, btnSecondary, fieldControl } from '@/lib/ui.ts';
@@ -20,6 +21,7 @@ const props = defineProps<{
 }>();
 
 const session = useAgentSession();
+const { t } = useI18n();
 
 const input = ref('');
 const slashIndex = ref(0);
@@ -148,12 +150,14 @@ watch(
 
       <!-- Transcript -->
       <template v-else>
-        <div
-          v-if="session.messages.value.length === 0"
-          class="flex h-full items-center justify-center px-4 text-center text-sm text-(--color-pencil)"
-        >
-          Type <span class="font-mono">&nbsp;/&nbsp;</span> for commands, or just ask.
-        </div>
+          <i18n-t
+            v-if="session.messages.value.length === 0"
+            keypath="chat.inputHint"
+            tag="div"
+            class="flex h-full items-center justify-center px-4 text-center text-sm text-(--color-pencil)"
+          >
+            <template #slash><span class="font-mono">&nbsp;/&nbsp;</span></template>
+          </i18n-t>
 
         <div v-else ref="transcriptEl" class="flex h-full flex-col gap-3 overflow-y-auto py-3">
           <template v-for="(msg, i) in session.messages.value" :key="i">
@@ -205,7 +209,7 @@ watch(
           v-model="input"
           :class="[fieldControl, 'resize-none']"
           rows="2"
-          placeholder="Ask anything…"
+          :placeholder="t('chat.placeholder')"
           @keydown="onKeydown"
         />
         <button
@@ -214,7 +218,7 @@ watch(
           :class="[btnSecondary, 'px-4 py-2']"
           @click="session.cancel()"
         >
-          Stop
+          {{ t('chat.stop') }}
         </button>
         <button
           v-else
@@ -223,7 +227,7 @@ watch(
           :disabled="!input.trim()"
           @click="onSend"
         >
-          Send
+          {{ t('chat.send') }}
         </button>
       </div>
     </div>

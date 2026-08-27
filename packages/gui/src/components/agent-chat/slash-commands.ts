@@ -1,4 +1,5 @@
 import type { ChatMessage } from '@/lib/commands';
+import type { MessageSchema } from '@/i18n/locales/en';
 
 /**
  * Context passed to `SlashCommand.run`. Built fresh at call time by the
@@ -16,7 +17,9 @@ export interface SlashCommandContext {
 
 export interface SlashCommand {
   name: string;
-  description: string;
+  /** Description locale key (leaf under `chat.cmd.*`), resolved at render
+   *  time so descriptions follow the UI language. */
+  description: keyof MessageSchema['chat']['cmd'];
   /** Hint shown in the menu, e.g. "<topic-name>". */
   argumentHint?: string;
   /** If true, selecting the command inserts it into the input for the
@@ -30,7 +33,7 @@ export interface SlashCommand {
 export const SLASH_COMMANDS: SlashCommand[] = [
   {
     name: 'new',
-    description: 'Start a fresh session',
+    description: 'new',
     run: (ctx) => {
       if (ctx.messages.length === 0) return;
       return ctx.newSession();
@@ -38,42 +41,42 @@ export const SLASH_COMMANDS: SlashCommand[] = [
   },
   {
     name: 'sessions',
-    description: 'Browse past sessions',
+    description: 'sessions',
     run: (ctx) => ctx.setSessionsOpen(true),
   },
   {
     name: 'learn-topic',
-    description: 'Initialize or load a learning topic',
+    description: 'learn-topic',
     argumentHint: '<topic-name>',
     takesArgs: true,
   },
   {
     name: 'learn-explain',
-    description: 'Deep-dive into a concept',
+    description: 'learn-explain',
     argumentHint: '<concept-name>',
     takesArgs: true,
   },
   {
     name: 'learn-practice',
-    description: 'Hands-on coding practice',
+    description: 'learn-practice',
     argumentHint: '<concept-name>',
     takesArgs: true,
   },
   {
     name: 'learn-quiz',
-    description: 'Quick text Q&A quiz',
+    description: 'learn-quiz',
     argumentHint: '<concept-or-domain>',
     takesArgs: true,
   },
   {
     name: 'learn-review',
-    description: 'Review learning progress',
+    description: 'learn-review',
     argumentHint: '[topic-name]',
     takesArgs: true,
   },
   {
     name: 'learn-status',
-    description: 'Visualize learning state',
+    description: 'learn-status',
     argumentHint: '[topic-name]',
     takesArgs: true,
   },

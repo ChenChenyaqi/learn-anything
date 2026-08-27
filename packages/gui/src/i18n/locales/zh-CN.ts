@@ -17,6 +17,43 @@ const zhCN: MessageSchema = {
   app: {
     starting: '启动中…',
   },
+  overview: {
+    title: '你的学习',
+    newTopic: '新建主题',
+    subtitle: '{topics} 个主题 · {concepts} 个概念 · 已掌握 {mastered} · 总进度 {percentage}%',
+    loadError: '无法加载主题列表：',
+    emptyHint: '还没有主题。让 Agent 执行 {cmd} 创建新主题。',
+    pickHint: '选择一个主题打开工作区，或让 Agent 执行 {cmd} 创建新主题。',
+    statMastered: '已掌握 {mastered}/{total} · {percentage}%',
+    statNotStarted: '已掌握 {mastered}/{total} · 尚未开始',
+  },
+  workspace: {
+    knowledgeMap: '知识地图',
+    overallSummary:
+      '已掌握 {mastered} · 学习中 {inProgress} · 需练习 {needsPractice} · 未探索 {unexplored}',
+    status: {
+      mastered: '已掌握',
+      inProgress: '学习中',
+      needsPractice: '需练习',
+      unexplored: '未探索',
+    },
+    confidence: '置信 {value}',
+    practiceCount: '练习 {count} 次',
+    explainCount: '讲解 {count} 次',
+    loadError: '无法加载该主题：',
+    backToTopics: '返回主题列表',
+    topicNotFound: '未找到该主题。',
+    tab: {
+      learn: '学习',
+      practice: '练习',
+      review: '复习',
+    },
+    playAllSequential: '顺序练习全部',
+    playAllShuffled: '随机练习全部',
+    playSequential: '顺序练习',
+    playShuffled: '随机练习',
+    noFiles: '暂无文件。',
+  },
   header: {
     settings: '设置',
     chooseFolder: '选择文件夹',

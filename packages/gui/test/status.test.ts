@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { statusDot, statusSquare, statusLabel, domainMastery } from '@/lib/status';
+import { statusDot, statusSquare, statusLabelKey, domainMastery } from '@/lib/status';
 import type { Concept, ConceptStatus, Domain } from '@/lib/commands';
 
 function concept(status: ConceptStatus): Concept {
@@ -44,11 +44,11 @@ describe('status visual mapping', () => {
     expect(statusSquare('mastered')).toContain('rounded-[3px]');
   });
 
-  it('statusLabel returns the human-readable phrase', () => {
-    expect(statusLabel('mastered')).toBe('mastered');
-    expect(statusLabel('in_progress')).toBe('in progress');
-    expect(statusLabel('needs_practice')).toBe('needs practice');
-    expect(statusLabel('unexplored')).toBe('unexplored');
+  it('statusLabelKey returns the locale message key per status', () => {
+    expect(statusLabelKey('mastered')).toBe('workspace.status.mastered');
+    expect(statusLabelKey('in_progress')).toBe('workspace.status.inProgress');
+    expect(statusLabelKey('needs_practice')).toBe('workspace.status.needsPractice');
+    expect(statusLabelKey('unexplored')).toBe('workspace.status.unexplored');
   });
 });
 

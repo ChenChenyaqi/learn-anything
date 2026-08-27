@@ -14,6 +14,7 @@
 // shape so the experience stays consistent across the route switch.
 
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useWorkspaceNav } from '@/composables/useWorkspaceNav';
 import { buildFileTree, type TreeNode } from './buildFileTree';
 import { useTopicData } from './useTopicData';
@@ -27,6 +28,7 @@ import { btnSecondary } from '@/lib/ui';
 const props = defineProps<{ workingFolder: string | null }>();
 
 const { currentSlug, currentPanel, openOverview } = useWorkspaceNav();
+const { t } = useI18n();
 const { data, loading, error, overall } = useTopicData(currentSlug, () => props.workingFolder);
 
 /** The three recursive trees, rebuilt only when the file payload changes. */
@@ -64,20 +66,22 @@ function cleanError(msg: string): string {
 </script>
 
 <template>
-  <div v-if="loading" class="grid h-full place-items-center opacity-60">Loading…</div>
+  <div v-if="loading" class="grid h-full place-items-center opacity-60">{{ t('common.loading') }}</div>
 
   <div
     v-else-if="error"
     class="max-w-lg rounded-[10px] border border-(--color-accent) bg-(--color-accent-soft) p-4"
   >
-    <p>Couldn't load this topic:</p>
+    <p>{{ t('workspace.loadError') }}</p>
     <pre class="my-2 whitespace-pre-wrap font-sans text-sm">{{ cleanError(error) }}</pre>
     <button type="button" :class="[btnSecondary, 'px-3 py-1.5 text-xs']" @click="openOverview">
-      Back to topics
+      {{ t('workspace.backToTopics') }}
     </button>
   </div>
 
-  <div v-else-if="!data" class="grid h-full place-items-center opacity-60">Topic not found.</div>
+  <div v-else-if="!data" class="grid h-full place-items-center opacity-60">{{
+    t('workspace.topicNotFound')
+  }}</div>
 
   <div v-else class="workspace-view flex h-full">
     <WorkspaceSidebar :trees="trees" :topic-name="topicName" :active-path="activePath" />

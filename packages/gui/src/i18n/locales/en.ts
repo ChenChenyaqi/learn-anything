@@ -24,6 +24,43 @@ const en = {
   app: {
     starting: 'Starting…',
   },
+  overview: {
+    title: 'Your learning',
+    newTopic: 'New topic',
+    subtitle: '{topics} topics · {concepts} concepts · {mastered} mastered · overall {percentage}%',
+    loadError: "Couldn't load topics:",
+    emptyHint: 'No topics yet. Ask the agent to {cmd} something new.',
+    pickHint: 'Pick a topic to open its workspace, or ask the agent to {cmd} something new.',
+    statMastered: '{mastered}/{total} mastered · {percentage}%',
+    statNotStarted: '{mastered}/{total} mastered · not started',
+  },
+  workspace: {
+    knowledgeMap: 'knowledge map',
+    overallSummary:
+      '{mastered} mastered · {inProgress} in progress · {needsPractice} needs practice · {unexplored} unexplored',
+    status: {
+      mastered: 'mastered',
+      inProgress: 'in progress',
+      needsPractice: 'needs practice',
+      unexplored: 'unexplored',
+    },
+    confidence: 'conf {value}',
+    practiceCount: '{count}×practice',
+    explainCount: '{count}×explain',
+    loadError: "Couldn't load this topic:",
+    backToTopics: 'Back to topics',
+    topicNotFound: 'Topic not found.',
+    tab: {
+      learn: 'Learn',
+      practice: 'Practice',
+      review: 'Review',
+    },
+    playAllSequential: 'Play all sequentially',
+    playAllShuffled: 'Play all shuffled',
+    playSequential: 'Play sequentially',
+    playShuffled: 'Play shuffled',
+    noFiles: 'No files yet.',
+  },
   header: {
     settings: 'Settings',
     chooseFolder: 'Choose folder',

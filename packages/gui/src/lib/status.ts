@@ -21,11 +21,11 @@ const STATUS_BG: Record<ConceptStatus, string> = {
   unexplored: 'bg-(--color-border)',
 };
 
-const STATUS_LABEL: Record<ConceptStatus, string> = {
-  mastered: 'mastered',
-  in_progress: 'in progress',
-  needs_practice: 'needs practice',
-  unexplored: 'unexplored',
+const STATUS_LABEL_KEY: Record<ConceptStatus, string> = {
+  mastered: 'workspace.status.mastered',
+  in_progress: 'workspace.status.inProgress',
+  needs_practice: 'workspace.status.needsPractice',
+  unexplored: 'workspace.status.unexplored',
 };
 
 /** Shared base for a 7px status dot (mockup `.dot`). */
@@ -44,9 +44,11 @@ export function statusSquare(status: ConceptStatus): string {
   return `${SQUARE_SHAPE} ${STATUS_BG[status]}`;
 }
 
-/** Human-readable status label, e.g. "in progress". */
-export function statusLabel(status: ConceptStatus): string {
-  return STATUS_LABEL[status];
+/** Locale message key for a concept status; translate at render time via
+ *  `t(statusLabelKey(status))`. Returning the key (not the copy) keeps this
+ *  module locale-agnostic and lets callers resolve it reactively. */
+export function statusLabelKey(status: ConceptStatus): string {
+  return STATUS_LABEL_KEY[status];
 }
 
 /** Mastered count / total + percentage for one domain's concepts. */

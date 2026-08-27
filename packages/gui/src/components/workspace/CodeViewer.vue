@@ -7,8 +7,11 @@
 // wrap (`white-space: pre` + `overflow-x: auto` on the code pane).
 
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { highlightCode, langForFile } from '@/lib/highlight';
 import { useFileContent } from './useFileContent';
+
+const { t } = useI18n();
 
 const props = defineProps<{
   apiPath: string | null;
@@ -37,7 +40,9 @@ const lineCount = computed(() => {
 
 <template>
   <div class="h-full overflow-auto">
-    <div v-if="loading" class="grid h-full place-items-center opacity-60">Loading…</div>
+    <div v-if="loading" class="grid h-full place-items-center opacity-60">{{
+      t('common.loading')
+    }}</div>
 
     <div
       v-else-if="error"
@@ -47,7 +52,7 @@ const lineCount = computed(() => {
     </div>
 
     <div v-else-if="content === null" class="grid h-full place-items-center opacity-60">
-      File not found.
+      {{ t('common.fileNotFound') }}
     </div>
 
     <div v-else class="py-3">

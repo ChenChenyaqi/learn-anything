@@ -9,8 +9,11 @@
 // is strictly read-only for Phase 2.
 
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { renderMarkdown } from '@/lib/markdown';
 import { useFileContent } from './useFileContent';
+
+const { t } = useI18n();
 
 const props = defineProps<{
   apiPath: string | null;
@@ -28,7 +31,9 @@ const html = computed(() => (content.value ? renderMarkdown(content.value) : '')
 
 <template>
   <div class="h-full overflow-y-auto">
-    <div v-if="loading" class="grid h-full place-items-center opacity-60">Loading…</div>
+    <div v-if="loading" class="grid h-full place-items-center opacity-60">{{
+      t('common.loading')
+    }}</div>
 
     <div
       v-else-if="error"
@@ -38,7 +43,7 @@ const html = computed(() => (content.value ? renderMarkdown(content.value) : '')
     </div>
 
     <div v-else-if="content === null" class="grid h-full place-items-center opacity-60">
-      File not found.
+      {{ t('common.fileNotFound') }}
     </div>
 
     <div v-else class="py-5">

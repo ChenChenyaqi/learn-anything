@@ -12,9 +12,12 @@
 // via the file tree; concept→note linking lands in a later refinement.
 // Mirrors the design mockup lines 713-857.
 
-import { statusDot, statusSquare, statusLabel, domainMastery } from '@/lib/status';
+import { useI18n } from 'vue-i18n';
+import { statusDot, statusSquare, statusLabelKey, domainMastery } from '@/lib/status';
 import { masteryBar, masteryBarFill } from '@/lib/ui';
 import type { Concept, StateV1 } from '@/lib/commands';
+
+const { t } = useI18n();
 
 defineProps<{
   state: StateV1;
@@ -30,10 +33,13 @@ defineProps<{
 
 /** Right-aligned mono metadata line for a concept row. */
 function conceptInfo(c: Concept): string {
-  if (c.status === 'unexplored') return 'unexplored';
-  const parts = [statusLabel(c.status), `conf ${c.confidence.toFixed(2)}`];
-  if (c.practice_count > 0) parts.push(`${c.practice_count}×practice`);
-  if (c.explain_count > 0) parts.push(`${c.explain_count}×explain`);
+  if (c.status === 'unexplored') return t('workspace.status.unexplored');
+  const parts = [
+    t(statusLabelKey(c.status)),
+    t('workspace.confidence', { value: c.confidence.toFixed(2) }),
+  ];
+  if (c.practice_count > 0) parts.push(t('workspace.practiceCount', { count: c.practice_count }));
+  if (c.explain_count > 0) parts.push(t('workspace.explainCount', { count: c.explain_count }));
   return parts.join(' · ');
 }
 </script>
@@ -41,11 +47,17 @@ function conceptInfo(c: Concept): string {
 <template>
   <div class="h-full overflow-y-auto py-5 pr-5">
     <!-- header -->
-    <div class="mb-1 font-mono text-xs text-(--color-accent)">knowledge map</div>
+    <div class="mb-1 font-mono text-xs text-(--color-accent)">{{ t('workspace.knowledgeMap') }}</div>
     <h1 class="m-0 text-2xl font-semibold tracking-tight">{{ state.topic }}</h1>
     <p class="mt-1.5 text-sm text-(--color-pencil)">
-      {{ overall.mastered }} mastered · {{ overall.inProgress }} in progress ·
-      {{ overall.needsPractice }} needs practice · {{ overall.unexplored }} unexplored
+      {{
+        t('workspace.overallSummary', {
+          mastered: overall.mastered,
+          inProgress: overall.inProgress,
+          needsPractice: overall.needsPractice,
+          unexplored: overall.unexplored,
+        })
+      }}
     </p>
     <div :class="masteryBar" class="mt-4">
       <i :class="masteryBarFill" :style="{ width: overall.percentage + '%' }" />
@@ -56,16 +68,16 @@ function conceptInfo(c: Concept): string {
       class="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1.5 font-mono text-[11px] text-(--color-pencil)"
     >
       <span class="flex items-center gap-1.5"
-        ><span :class="statusSquare('mastered')" />mastered</span
+        ><span :class="statusSquare('mastered')" />{{ t('workspace.status.mastered') }}</span
       >
       <span class="flex items-center gap-1.5"
-        ><span :class="statusSquare('in_progress')" />in progress</span
+        ><span :class="statusSquare('in_progress')" />{{ t('workspace.status.inProgress') }}</span
       >
       <span class="flex items-center gap-1.5"
-        ><span :class="statusSquare('needs_practice')" />needs practice</span
+        ><span :class="statusSquare('needs_practice')" />{{ t('workspace.status.needsPractice') }}</span
       >
       <span class="flex items-center gap-1.5"
-        ><span :class="statusSquare('unexplored')" />unexplored</span
+        ><span :class="statusSquare('unexplored')" />{{ t('workspace.status.unexplored') }}</span
       >
     </div>
 

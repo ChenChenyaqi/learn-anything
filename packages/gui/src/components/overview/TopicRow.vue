@@ -10,6 +10,7 @@
 // `<h3>` is kept for document outline; because `<button>` only accepts phrasing
 // content, the row is an `<li role="button">` instead of a literal `<button>`.
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { type SiteTopicSummary } from '@/lib/commands';
 import { rowMargin, masteryBar, masteryBarFill } from '@/lib/ui';
 import { useWorkspaceNav } from '@/composables/useWorkspaceNav';
@@ -24,10 +25,17 @@ const { openTopic } = useWorkspaceNav();
 
 const ordinal = computed(() => String(props.index + 1).padStart(2, '0'));
 
+const { t } = useI18n();
+
 const statLabel = computed(() => {
   const { masteredCount, totalConcepts, percentage } = props.summary;
-  if (masteredCount === 0) return `${masteredCount}/${totalConcepts} mastered · not started`;
-  return `${masteredCount}/${totalConcepts} mastered · ${percentage}%`;
+  if (masteredCount === 0)
+    return t('overview.statNotStarted', { mastered: masteredCount, total: totalConcepts });
+  return t('overview.statMastered', {
+    mastered: masteredCount,
+    total: totalConcepts,
+    percentage,
+  });
 });
 
 const description = computed(() => props.summary.domainNames.join(', '));

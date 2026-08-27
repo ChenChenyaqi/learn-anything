@@ -10,7 +10,7 @@
 // header expose ▶ (sequential) / ⇄ (random) batch actions that collect the
 // subtree's files into a queue panel.
 
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useWorkspaceNav } from '@/composables/useWorkspaceNav';
 import type { TreeNode, FileLeaf, DirNode } from './buildFileTree';
@@ -33,11 +33,13 @@ const { openOverview, openPanel } = useWorkspaceNav();
 
 const activeTab = ref<FileAxis>('sessions');
 
-const TABS: { axis: FileAxis; label: string }[] = [
-  { axis: 'sessions', label: 'Learn' },
-  { axis: 'exercises', label: 'Practice' },
-  { axis: 'quizzes', label: 'Review' },
-];
+// Labels resolve through i18n (computed) so the tab bar re-renders on a
+// language switch.
+const TABS = computed(() => [
+  { axis: 'sessions' as const, label: t('workspace.tab.learn') },
+  { axis: 'exercises' as const, label: t('workspace.tab.practice') },
+  { axis: 'quizzes' as const, label: t('workspace.tab.review') },
+]);
 
 /** sessions → note, exercises → code, quizzes → quiz. */
 const AXIS_KIND: Record<FileAxis, 'note' | 'code' | 'quiz'> = {
@@ -107,18 +109,18 @@ function playAll(mode: 'sequential' | 'random') {
     <!-- tab bar -->
     <div class="mb-2 flex gap-5 border-b border-(--color-rule) px-2">
       <button
-        v-for="t in TABS"
-        :key="t.axis"
+        v-for="tab in TABS"
+        :key="tab.axis"
         type="button"
         class="-mb-px border-b-2 pb-2 text-xs font-medium transition-colors"
         :class="
-          activeTab === t.axis
+          activeTab === tab.axis
             ? 'border-b-(--color-accent) text-(--color-ink)'
             : 'border-b-transparent text-text-2 hover:text-(--color-ink)'
         "
-        @click="activeTab = t.axis"
+        @click="activeTab = tab.axis"
       >
-        {{ t.label }}
+        {{ tab.label }}
       </button>
     </div>
 
@@ -136,7 +138,7 @@ function playAll(mode: 'sequential' | 'random') {
           <button
             type="button"
             class="inline-flex h-5 w-5 items-center justify-center rounded text-text-3 transition-colors hover:bg-(--color-surface-hover) hover:text-(--color-accent)"
-            title="Play all sequentially"
+            :title="t('workspace.playAllSequential')"
             @click="playAll('sequential')"
           >
             <QuizIcons icon="sequential" />
@@ -144,7 +146,7 @@ function playAll(mode: 'sequential' | 'random') {
           <button
             type="button"
             class="inline-flex h-5 w-5 items-center justify-center rounded text-text-3 transition-colors hover:bg-(--color-surface-hover) hover:text-(--color-accent)"
-            title="Play all shuffled"
+            :title="t('workspace.playAllShuffled')"
             @click="playAll('random')"
           >
             <QuizIcons icon="random" />
@@ -165,7 +167,7 @@ function playAll(mode: 'sequential' | 'random') {
             <button
               type="button"
               class="inline-flex h-4 w-4 items-center justify-center rounded text-text-3 transition-colors hover:text-(--color-accent)"
-              title="Play sequentially"
+              :title="t('workspace.playSequential')"
               @click.stop="playDir(dirNode, 'sequential')"
             >
               <QuizIcons icon="sequential" />
@@ -173,7 +175,7 @@ function playAll(mode: 'sequential' | 'random') {
             <button
               type="button"
               class="inline-flex h-4 w-4 items-center justify-center rounded text-text-3 transition-colors hover:text-(--color-accent)"
-              title="Play shuffled"
+              :title="t('workspace.playShuffled')"
               @click.stop="playDir(dirNode, 'random')"
             >
               <QuizIcons icon="random" />
@@ -181,7 +183,7 @@ function playAll(mode: 'sequential' | 'random') {
           </template>
         </FileTreeNode>
       </template>
-      <p v-else class="px-1.5 py-1 font-mono text-xs text-text-3">No files yet.</p>
+      <p v-else class="px-1.5 py-1 font-mono text-xs text-text-3">{{ t('workspace.noFiles') }}</p>
     </div>
   </aside>
 </template>

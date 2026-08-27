@@ -15,7 +15,7 @@ import { useQuizQueue } from './useQuizQueue';
 import { useQuizProgress, type ProgressSession, type ProgressQueue } from './useQuizProgress';
 import { resolveQuizKey } from './useQuizKeyboard';
 import { toggleMultiSelect } from './utils';
-import { quizStrings } from './strings';
+import { useI18n } from 'vue-i18n';
 import { btnPrimary } from '@/lib/ui';
 import type { QuizDeck, QuizResults as QuizResultsData } from './types';
 import QuizCard from './QuizCard.vue';
@@ -30,19 +30,23 @@ const props = defineProps<{
   workingFolder: string | null;
 }>();
 
+const { t } = useI18n();
+
 const { openPanel } = useWorkspaceNav();
 
 const queue = shallowRef<ReturnType<typeof useQuizQueue> | null>(null);
 const session = shallowRef<ReturnType<typeof useQuizSession> | null>(null);
 const rootEl = ref<HTMLElement | null>(null);
 
-// single-mode fetch state
+// single-mode fetch state. `loadFailed` is a flag, not a message: the error
+// copy is resolved at render time (`t('quiz.loadError')`) so it follows the
+// UI language even if the locale is switched while the error is on screen.
 const singleLoading = ref(false);
-const errorMsg = ref<string | null>(null);
+const loadFailed = ref(false);
 
 async function loadSingleDeck() {
   singleLoading.value = true;
-  errorMsg.value = null;
+  loadFailed.value = false;
   session.value = null;
   if (!props.slug || !props.panel.fileId) {
     singleLoading.value = false;
@@ -51,10 +55,10 @@ async function loadSingleDeck() {
   try {
     const rest = props.panel.fileId.replace(/^quizzes\//, '');
     const raw = await siteQuizDeck(props.slug, rest, props.workingFolder);
-    if (!raw) errorMsg.value = quizStrings.loadError;
+    if (!raw) loadFailed.value = true;
     else session.value = useQuizSession(raw as QuizDeck);
   } catch {
-    errorMsg.value = quizStrings.loadError;
+    loadFailed.value = true;
   } finally {
     singleLoading.value = false;
   }
@@ -66,7 +70,7 @@ watch(
   (p) => {
     queue.value = null;
     session.value = null;
-    errorMsg.value = null;
+    loadFailed.value = false;
     singleLoading.value = false;
     if (p.items && p.mode && props.slug) {
       queue.value = useQuizQueue(props.slug, p.items, p.mode, props.workingFolder);
@@ -110,7 +114,7 @@ const isLoading = computed(() => {
 
 const isError = computed(() => {
   if (queue.value) return queue.value.phase.value === 'error';
-  return !!errorMsg.value;
+  return loadFailed.value;
 });
 
 // Results to show: single mode → live session results; queue mode → last
@@ -238,13 +242,13 @@ function onKeydown(e: KeyboardEvent) {
       <div
         class="max-w-md rounded-[10px] border border-(--color-accent) bg-(--color-accent-soft) p-4 text-center text-sm"
       >
-        <p class="text-(--color-ink)">{{ quizStrings.loadError }}</p>
+        <p class="text-(--color-ink)">{{ t('quiz.loadError') }}</p>
         <button
           type="button"
           :class="[btnPrimary, 'mt-3 px-4 py-1.5 text-xs']"
           @click="retryLoad"
         >
-          {{ quizStrings.retry }}
+          {{ t('quiz.retry') }}
         </button>
       </div>
     </div>

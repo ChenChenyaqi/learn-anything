@@ -5,10 +5,12 @@
  *   - groupProgressText  "Group 1 / 3"  (queue mode, > 1 group)
  *   - currentGroupLabel  current group's concept name
  *
- * Uses the hardcoded English copy in strings.ts (no i18n). */
+ * Copy comes from the app locales (quiz.*) via the global i18n instance:
+ * `t` is called inside `computed`, and it tracks the reactive locale, so the
+ * labels re-resolve if the UI language is switched mid-session. */
 
 import { computed, type ComputedRef, type Ref } from 'vue';
-import { quizStrings, interpolate } from './strings';
+import { i18n } from '@/i18n';
 
 /* Minimal structural input types — only the fields the progress logic reads,
  * keeping the composable decoupled from the full session/queue contracts. */
@@ -35,7 +37,7 @@ export function useQuizProgress(
   const progressText = computed(() => {
     const s = session.value;
     if (!s) return '';
-    return interpolate(quizStrings.questionProgress, {
+    return i18n.global.t('quiz.questionProgress', {
       current: s.currentIndex.value + 1,
       total: s.total,
     });
@@ -44,7 +46,7 @@ export function useQuizProgress(
   const groupProgressText = computed(() => {
     const q = queue.value;
     if (!q || q.totalGroups <= 1) return '';
-    return interpolate(quizStrings.groupProgress, {
+    return i18n.global.t('quiz.groupProgress', {
       current: q.currentIndex.value + 1,
       total: q.totalGroups,
     });

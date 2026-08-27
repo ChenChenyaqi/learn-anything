@@ -2,8 +2,10 @@
 // Quiz viewer bottom bar: previous / next / submit with keyboard hints.
 // The parent hides it once the session is complete.
 
-import { quizStrings } from './strings';
+import { useI18n } from 'vue-i18n';
 import { btnPrimary, btnSecondary } from '@/lib/ui';
+
+const { t } = useI18n();
 
 defineProps<{
   isFirst: boolean;
@@ -31,7 +33,7 @@ const isMac =
       <kbd class="rounded border border-(--color-rule) px-1.5 py-0.5 font-mono text-xs text-text-3"
         >←</kbd
       >
-      {{ quizStrings.previous }}
+      {{ t('quiz.previous') }}
     </button>
 
     <button
@@ -40,7 +42,7 @@ const isMac =
       :class="[btnPrimary, 'gap-1.5 px-6 py-2 text-sm font-medium']"
       @click="$emit('submit')"
     >
-      {{ quizStrings.submit }}
+      {{ t('quiz.submit') }}
       <kbd class="rounded border border-white/30 px-1.5 py-0.5 font-mono text-xs text-white/80"
         >{{ isMac ? '⌘' : 'Ctrl' }} ↵</kbd
       >
@@ -52,7 +54,7 @@ const isMac =
       :class="[btnPrimary, 'gap-1.5 px-6 py-2 text-sm font-medium']"
       @click="$emit('next')"
     >
-      {{ quizStrings.next }}
+      {{ t('quiz.next') }}
       <kbd class="rounded border border-white/30 px-1.5 py-0.5 font-mono text-xs text-white/80"
         >→</kbd
       >

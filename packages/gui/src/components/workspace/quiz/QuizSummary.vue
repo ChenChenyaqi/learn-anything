@@ -2,9 +2,11 @@
 // Quiz queue summary: aggregate score + per-deck progress bars, with a
 // "Back to list" footer. Shown when the queue reaches its summary phase.
 
-import { quizStrings } from './strings';
+import { useI18n } from 'vue-i18n';
 import { btnPrimary } from '@/lib/ui';
 import type { QuizSummary as QuizSummaryData } from './types';
+
+const { t } = useI18n();
 
 defineProps<{
   summary: QuizSummaryData;
@@ -20,7 +22,7 @@ defineEmits<{
     <!-- Score header -->
     <div class="border-b border-(--color-rule) px-6 py-6 text-center">
       <p class="mb-1 text-xs font-medium uppercase tracking-wide text-(--color-accent)">
-        {{ quizStrings.allComplete }}
+        {{ t('quiz.allComplete') }}
       </p>
       <p class="text-4xl font-bold text-(--color-ink)">
         {{ summary.totalScore }} / {{ summary.totalQuestions }}
@@ -66,7 +68,7 @@ defineEmits<{
         :class="[btnPrimary, 'px-6 py-2 text-sm font-medium']"
         @click="$emit('close')"
       >
-        {{ quizStrings.backToList }}
+        {{ t('quiz.backToList') }}
       </button>
     </div>
   </div>

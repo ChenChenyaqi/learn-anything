@@ -9,9 +9,11 @@
 //   error_correction → <textarea> → string
 
 import { computed } from 'vue';
-import { quizStrings } from './strings';
+import { useI18n } from 'vue-i18n';
 import { toggleMultiSelect } from './utils';
 import type { QuizAnswer, QuizQuestion } from './types';
+
+const { t } = useI18n();
 
 const props = defineProps<{
   question: QuizQuestion;
@@ -26,15 +28,15 @@ const emit = defineEmits<{
 const typeLabel = computed(() => {
   switch (props.question.type) {
     case 'multiple_choice':
-      return quizStrings.typeMultipleChoice;
+      return t('quiz.typeMultipleChoice');
     case 'multi_select':
-      return quizStrings.typeMultiSelect;
+      return t('quiz.typeMultiSelect');
     case 'true_false':
-      return quizStrings.typeTrueFalse;
+      return t('quiz.typeTrueFalse');
     case 'fill_in_blank':
-      return quizStrings.typeFillBlank;
+      return t('quiz.typeFillBlank');
     case 'error_correction':
-      return quizStrings.typeErrorCorrection;
+      return t('quiz.typeErrorCorrection');
     default:
       return '';
   }
@@ -166,7 +168,7 @@ function onTextInput(e: Event) {
         "
         @click="selectBool(true)"
       >
-        {{ quizStrings.true }}
+        {{ t('quiz.true') }}
       </button>
       <button
         class="flex-1 cursor-pointer rounded-lg border-2 px-6 py-5 text-base font-medium transition-all"
@@ -177,7 +179,7 @@ function onTextInput(e: Event) {
         "
         @click="selectBool(false)"
       >
-        {{ quizStrings.false }}
+        {{ t('quiz.false') }}
       </button>
     </div>
 
@@ -187,7 +189,7 @@ function onTextInput(e: Event) {
       :value="modelValue as string"
       type="text"
       class="w-full rounded-lg border border-(--color-rule) bg-(--color-surface) px-4 py-3 text-sm text-(--color-ink) outline-none transition-colors placeholder:text-text-3 focus:border-(--color-accent)"
-      :placeholder="quizStrings.typeAnswer"
+      :placeholder="t('quiz.typeAnswer')"
       @input="onTextInput"
     />
 
@@ -197,7 +199,7 @@ function onTextInput(e: Event) {
       :value="modelValue as string"
       rows="5"
       class="w-full resize-y rounded-lg border border-(--color-rule) bg-(--color-surface) px-4 py-3 text-sm text-(--color-ink) outline-none transition-colors placeholder:text-text-3 focus:border-(--color-accent)"
-      :placeholder="quizStrings.fixError"
+      :placeholder="t('quiz.fixError')"
       @input="onTextInput"
     />
   </div>

@@ -24,6 +24,64 @@ const en = {
     language: 'Language',
     languageSystem: 'Follow system',
   },
+  quiz: {
+    // footer navigation
+    previous: 'Previous',
+    next: 'Next',
+    submit: 'Submit',
+
+    // results
+    retry: 'Retry Quiz',
+    complete: 'Quiz Complete',
+    correct: 'Correct',
+    referenceAnswer: 'Reference Answer',
+    backToList: 'Back to list',
+
+    // header progress (named-interpolation templates)
+    questionProgress: 'Question {current} / {total}',
+    groupProgress: 'Group {current} / {total}',
+
+    // true/false
+    true: 'True',
+    false: 'False',
+
+    // input placeholders
+    typeAnswer: 'Type your answer…',
+    fixError: 'Identify and fix the error…',
+
+    // question type labels
+    typeMultipleChoice: 'Multiple Choice',
+    typeMultiSelect: 'Multi Select',
+    typeTrueFalse: 'True / False',
+    typeFillBlank: 'Fill in the Blank',
+    typeErrorCorrection: 'Error Correction',
+
+    // per-question review
+    yourAnswer: 'Your answer',
+    correctAnswer: 'Correct answer',
+    manualEvaluation: 'Requires manual evaluation',
+
+    // help / shortcuts popover
+    helpTitle: 'Keyboard Shortcuts',
+    helpShortcuts: 'Keyboard shortcuts',
+    hintChoice: 'Press A-D or 1-4 to select',
+    hintMultiSelect: 'Multi-select: A-D or 1-4 to toggle',
+    hintTrueFalse: 'Press 1 / 2 for True / False',
+    hintNav: '← / → to switch questions',
+    hintSubmit: 'Press {key} + Enter to submit',
+
+    // batch / queue
+    allQuizzes: 'All Quizzes',
+    retryGroup: 'Retry this group',
+    nextGroup: 'Next group',
+    viewSummary: 'View all results',
+
+    // summary
+    allComplete: 'All Complete',
+
+    // errors
+    loadError: 'Failed to load quiz. Please try again.',
+  },
 };
 
 /** The master shape every locale file must match (widened to `string`). */

@@ -11,13 +11,15 @@
 // subtree's files into a queue panel.
 
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useWorkspaceNav } from '@/composables/useWorkspaceNav';
 import type { TreeNode, FileLeaf, DirNode } from './buildFileTree';
 import { collectFiles } from './buildFileTree';
 import FileTreeNode from './FileTreeNode.vue';
 import QuizIcons from './quiz/QuizIcons.vue';
-import { quizStrings } from './quiz/strings';
 import type { QueueItem } from './quiz/types';
+
+const { t } = useI18n();
 
 export type FileAxis = 'sessions' | 'exercises' | 'quizzes';
 
@@ -128,7 +130,7 @@ function playAll(mode: 'sequential' | 'random') {
         class="mb-1.5 flex items-center justify-between px-1.5 py-1"
       >
         <span class="font-mono text-[10px] uppercase tracking-wider text-text-3">{{
-          quizStrings.allQuizzes
+          t('quiz.allQuizzes')
         }}</span>
         <span class="flex items-center gap-0.5">
           <button

@@ -4,9 +4,11 @@
 // single mode (Retry / Back to list) and queue mode (Retry Group / Next Group
 // → or View Summary on the last group).
 
-import { quizStrings } from './strings';
+import { useI18n } from 'vue-i18n';
 import { btnPrimary, btnSecondary } from '@/lib/ui';
 import type { QuizAnswer, QuizResults } from './types';
+
+const { t } = useI18n();
 
 const props = defineProps<{
   results: QuizResults;
@@ -25,8 +27,8 @@ const emit = defineEmits<{
 }>();
 
 function formatAnswer(answer: QuizAnswer): string {
-  if (answer === true) return quizStrings.true;
-  if (answer === false) return quizStrings.false;
+  if (answer === true) return t('quiz.true');
+  if (answer === false) return t('quiz.false');
   if (answer === null || answer === '') return '—';
   if (Array.isArray(answer)) return answer.join(', ');
   return String(answer);
@@ -38,7 +40,7 @@ function formatAnswer(answer: QuizAnswer): string {
     <!-- Score header -->
     <div class="border-b border-(--color-rule) px-6 py-6 text-center">
       <p class="mb-1 text-xs font-medium uppercase tracking-wide text-text-3">
-        {{ quizStrings.complete }}
+        {{ t('quiz.complete') }}
       </p>
       <p class="text-4xl font-bold text-(--color-accent)">
         {{ results.score }} / {{ results.total }}
@@ -78,17 +80,17 @@ function formatAnswer(answer: QuizAnswer): string {
         <div class="ml-6 space-y-1.5 text-xs">
           <!-- Correct -->
           <div v-if="result.correct === true" class="text-mastered">
-            {{ quizStrings.correct }}
+            {{ t('quiz.correct') }}
           </div>
 
           <!-- Incorrect: your answer + correct answer -->
           <template v-else-if="result.correct === false">
             <div class="whitespace-pre-wrap wrap-break-word text-(--color-pencil)">
-              <span class="text-text-3">{{ quizStrings.yourAnswer }}:</span>
+              <span class="text-text-3">{{ t('quiz.yourAnswer') }}:</span>
               {{ formatAnswer(result.userAnswer) }}
             </div>
             <div class="whitespace-pre-wrap wrap-break-word text-(--color-pencil)">
-              <span class="text-text-3">{{ quizStrings.correctAnswer }}:</span>
+              <span class="text-text-3">{{ t('quiz.correctAnswer') }}:</span>
               {{ formatAnswer(result.question.answer) }}
             </div>
           </template>
@@ -99,14 +101,14 @@ function formatAnswer(answer: QuizAnswer): string {
               v-if="result.userAnswer !== null && result.userAnswer !== ''"
               class="whitespace-pre-wrap wrap-break-word text-(--color-pencil)"
             >
-              <span class="text-text-3">{{ quizStrings.yourAnswer }}:</span>
+              <span class="text-text-3">{{ t('quiz.yourAnswer') }}:</span>
               {{ formatAnswer(result.userAnswer) }}
             </div>
             <div class="whitespace-pre-wrap wrap-break-word text-(--color-pencil)">
-              <span class="text-text-3">{{ quizStrings.referenceAnswer }}:</span>
+              <span class="text-text-3">{{ t('quiz.referenceAnswer') }}:</span>
               {{ formatAnswer(result.question.answer) }}
             </div>
-            <p class="italic text-text-3">{{ quizStrings.manualEvaluation }}</p>
+            <p class="italic text-text-3">{{ t('quiz.manualEvaluation') }}</p>
           </template>
 
           <!-- Explanation (all types) -->
@@ -124,26 +126,26 @@ function formatAnswer(answer: QuizAnswer): string {
     <div class="flex items-center justify-between border-t border-(--color-rule) px-6 py-3">
       <template v-if="props.queueContext">
         <button type="button" :class="[btnSecondary, 'px-4 py-2 text-sm']" @click="emit('retry')">
-          {{ quizStrings.retryGroup }}
+          {{ t('quiz.retryGroup') }}
         </button>
         <button
           type="button"
           :class="[btnPrimary, 'px-6 py-2 text-sm font-medium']"
           @click="emit('next-group')"
         >
-          {{ props.queueContext.isLast ? quizStrings.viewSummary : quizStrings.nextGroup }} →
+          {{ props.queueContext.isLast ? t('quiz.viewSummary') : t('quiz.nextGroup') }} →
         </button>
       </template>
       <template v-else>
         <button type="button" :class="[btnSecondary, 'px-4 py-2 text-sm']" @click="emit('close')">
-          {{ quizStrings.backToList }}
+          {{ t('quiz.backToList') }}
         </button>
         <button
           type="button"
           :class="[btnPrimary, 'px-6 py-2 text-sm font-medium']"
           @click="emit('retry')"
         >
-          {{ quizStrings.retry }}
+          {{ t('quiz.retry') }}
         </button>
       </template>
     </div>

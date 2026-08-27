@@ -126,6 +126,8 @@
 /* ------------------------------------------------------------------ */
 
 :root {
+  color-scheme: light;
+
   --color-page: var(--color-bg);
   --color-ink: var(--color-text-1);
   --color-pencil: var(--color-text-2);
@@ -134,6 +136,14 @@
   --color-surface-hover: var(--color-bg-alt);
   --color-accent: var(--color-brand-2);
   --color-accent-soft: var(--color-brand-soft);
+}
+
+/* Native UI (scrollbars, form controls) light/dark. macOS WKWebView ignores
+   ::-webkit-scrollbar / scrollbar-color, so it draws the overlay scrollbar
+   natively and only `color-scheme` picks its variant. `:root.dark` (0,2,0)
+   must beat `:root` (0,1,0) so dark wins when both match <html class="dark">. */
+:root.dark {
+  color-scheme: dark;
 }
 
 /* ------------------------------------------------------------------ */

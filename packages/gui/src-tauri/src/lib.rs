@@ -11,7 +11,7 @@ use sidecar::{
 };
 use site_api::{
     site_file_content, site_quiz_deck, site_search_index, site_set_watcher_folder,
-    site_topic_data, site_topic_summaries,
+    site_topic_data, site_topic_summaries, site_write_file,
 };
 use tauri::Manager;
 
@@ -49,6 +49,7 @@ pub fn run() {
             site_topic_summaries,
             site_topic_data,
             site_file_content,
+            site_write_file,
             site_quiz_deck,
             site_search_index,
             site_set_watcher_folder,

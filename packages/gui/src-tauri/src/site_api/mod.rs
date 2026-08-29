@@ -111,6 +111,28 @@ pub fn site_file_content(
     }
 }
 
+/// Overwrite an existing markdown note at an API path like `/topics/...`
+/// (atomic write). Only existing `.md` files are writable; creating files,
+/// editing code/quiz/state files, or path traversal → `403`/`404`. Saving
+/// fires the `site://reload` watcher event like any other filesystem change.
+#[tauri::command]
+pub fn site_write_file(
+    app: AppHandle,
+    path: String,
+    contents: String,
+    working_folder: Option<String>,
+) -> Result<(), String> {
+    let Some(topics_dir) = resolve_topics_dir(&app, working_folder)? else {
+        return Err(err(404, "No working folder"));
+    };
+    match content::write_file_content(&path, &contents, &topics_dir) {
+        Ok(content::WriteOutcome::Written) => Ok(()),
+        Ok(content::WriteOutcome::NotFound) => Err(err(404, "Not found")),
+        Ok(content::WriteOutcome::Forbidden) => Err(err(403, "Forbidden")),
+        Err(e) => Err(err(500, e.to_string())),
+    }
+}
+
 /// Fetch a single quiz deck JSON. `Err("403|Forbidden")` for traversal,
 /// `Ok(None)` for "not found"/"unreadable", `Ok(Some(value))` on hit.
 #[tauri::command]

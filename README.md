@@ -68,6 +68,32 @@ During `init` or `update`, you'll be prompted to enable **Context7** for documen
 
 ### Visual Learning Dashboard
 
+`learn-anything serve` opens a **global dashboard** from any directory. New and
+existing topics are registered automatically when the updated topic skill runs
+`init-sessions.mjs`. Learning files stay in their original projects; only their
+absolute paths are indexed under `~/.learn-anything/topics/` (override with
+`LEARN_ANYTHING_HOME` for an isolated profile).
+
+After upgrading, run `learn-anything update <project-path>` to refresh installed
+skills. Existing topics can be imported without reopening a learning session:
+
+```bash
+learn-anything register "/absolute/path/to/project"
+learn-anything serve
+```
+
+The dashboard's **Manage registered topics** section also accepts an absolute
+project path, `.learn/topics` path, or individual topic path. It shows unavailable
+or invalid topics and lets you remove their registration without deleting any
+learning files. Reopening a topic with the updated skill registers it again.
+If a project moves, import its new location and remove the old registration.
+Same-name topics in different projects remain separate and show their source paths.
+
+For a single-project view, use `learn-anything serve <project-path>` (or `serve .`).
+Without an explicit path, existing topics in the current project are also imported
+on startup. The dashboard listens on loopback only; the registry is local to this
+user and does not synchronize data between machines.
+
 Start a zero-config web dashboard to browse your learning data:
 
 ```bash

@@ -1,4 +1,21 @@
 const en = {
+  'registry.manage': 'Manage registered topics',
+  'registry.hint':
+    'Import existing topics by path. Removing a registration keeps all learning files. Opening the topic with the updated skill registers it again.',
+  'registry.path': 'Absolute project or topic path',
+  'registry.placeholder': 'Paste a project folder or a topic folder',
+  'registry.import': 'Import',
+  'registry.imported': 'Topics registered',
+  'registry.remove': 'Remove registration',
+  'registry.removed': 'Registration removed. Learning files are unchanged.',
+  'registry.confirm': 'Remove this topic from the global dashboard? Its files will be kept.',
+  'registry.cancel': 'Cancel',
+  'registry.unavailable':
+    'Path unavailable or state.json invalid. Restore the path or import its new location.',
+  'registry.failed': 'Unable to update the topic registry. Please retry.',
+  'registry.projectMode':
+    'Project view. Run learn-anything serve without a path to manage all registered topics.',
+  'dashboard.back': '← Back to dashboard',
   'dashboard.title': 'Learning Dashboard',
   'dashboard.noTopics': 'No topics yet',
   'dashboard.startLearning': 'Run `learn-anything init` to start your first topic',

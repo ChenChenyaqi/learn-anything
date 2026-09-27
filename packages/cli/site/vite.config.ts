@@ -9,7 +9,8 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig(() => {
   // In dev, points to test fixtures by default. Override via TOPICS_DIR env var for real data.
-  const topicsDir = process.env.TOPICS_DIR || resolve(__dirname, '../test/fixtures/topics');
+  // An explicitly empty TOPICS_DIR selects the global registry.
+  const topicsDir = process.env.TOPICS_DIR ?? resolve(__dirname, '../test/fixtures/topics');
 
   let apiProcess: ChildProcess | null = null;
 
@@ -47,6 +48,7 @@ export default defineConfig(() => {
                 ...process.env,
                 PORT: '24277',
                 TOPICS_DIR: topicsDir,
+                DASHBOARD_ORIGIN: 'http://localhost:24278',
               },
             });
 
@@ -89,7 +91,7 @@ export default defineConfig(() => {
       port: 24278,
       proxy: {
         '/api': {
-          target: 'http://localhost:24277',
+          target: 'http://127.0.0.1:24277',
           changeOrigin: true,
         },
       },

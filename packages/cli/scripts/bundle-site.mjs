@@ -47,6 +47,7 @@ if (isMain) {
   if (existsSync(serveSrc)) {
     cpSync(serveSrc, serveDest);
   }
+  cpSync(join(siteDir, 'topic-catalog.mjs'), join(outputDir, 'topic-catalog.mjs'));
 
   // Write .gitignore
   writeFileSync(join(outputDir, '.gitignore'), 'node_modules\ndist\n', 'utf-8');

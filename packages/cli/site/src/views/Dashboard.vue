@@ -2,16 +2,20 @@
 import { computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useI18n } from '@/composables/useI18n';
-import { listAllTopics } from '@/composables/useTopicData';
+import { listAllTopics, getDataVersion } from '@/composables/useTopicData';
 import { useDashboardStats } from '@/components/stats/useDashboardStats';
 import StatsHero from '@/components/stats/StatsHero.vue';
 import StatsSummary from '@/components/stats/StatsSummary.vue';
 import ReviewPanel from '@/components/review/ReviewPanel.vue';
+import TopicRegistry from '@/components/TopicRegistry.vue';
 import { useReviewItems } from '@/components/review/useReview';
 
 const router = useRouter();
 const { t } = useI18n();
-const topics = computed(() => listAllTopics());
+const topics = computed(() => {
+  void getDataVersion();
+  return listAllTopics();
+});
 const reviewItems = useReviewItems(8);
 const stats = useDashboardStats();
 
@@ -32,6 +36,8 @@ function goToTopic(slug: string) {
     <p v-if="topics.length > 0" class="text-sm text-text-3 mb-10">
       {{ topics.length }} {{ topics.length === 1 ? 'topic' : 'topics' }}
     </p>
+
+    <TopicRegistry />
 
     <!-- Empty state -->
     <div
@@ -61,6 +67,9 @@ function goToTopic(slug: string) {
             <h3 class="text-base font-semibold text-text-1 leading-snug mb-3">
               {{ topic.name }}
             </h3>
+            <p v-if="topic.sourcePath" class="text-xs text-text-3 break-all mb-3">
+              {{ topic.sourcePath }}
+            </p>
 
             <!-- Stats -->
             <p class="text-[13px] text-text-2 leading-relaxed">

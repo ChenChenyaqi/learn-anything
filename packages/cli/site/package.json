@@ -4,8 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "dev:test": "vite --mode test",
+    "dev": "tsc -p ../tsconfig.json && vite",
+    "dev:test": "tsc -p ../tsconfig.json && vite --mode test",
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest"

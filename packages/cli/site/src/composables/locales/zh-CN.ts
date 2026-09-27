@@ -1,6 +1,22 @@
 import type { I18nKey } from './en';
 
 const zhCN: Record<I18nKey, string> = {
+  'registry.manage': '管理已登记主题',
+  'registry.hint':
+    '输入路径可导入已有主题。移除登记会保留全部学习文件；使用更新后的技能打开该主题时会重新登记。',
+  'registry.path': '项目或主题的绝对路径',
+  'registry.placeholder': '粘贴项目文件夹或主题文件夹路径',
+  'registry.import': '导入',
+  'registry.imported': '已登记主题数',
+  'registry.remove': '移除登记',
+  'registry.removed': '已移除登记，学习文件保持不变。',
+  'registry.confirm': '从全局仪表盘移除此主题？主题文件将保留。',
+  'registry.cancel': '取消',
+  'registry.unavailable': '路径不可用或 state.json 无效。请恢复原路径或导入新位置。',
+  'registry.failed': '无法更新主题索引，请重试。',
+  'registry.projectMode':
+    '当前为单项目视图。不指定路径运行 learn-anything serve 可管理全部已登记主题。',
+  'dashboard.back': '← 返回仪表盘',
   'dashboard.title': '学习仪表盘',
   'dashboard.noTopics': '暂无学习主题',
   'dashboard.startLearning': '运行 `learn-anything init` 开始你的第一个学习主题',

@@ -250,6 +250,10 @@ export class InitCommand {
       // topic -> init-sessions.mjs
       if (entry.dirName === 'learn-anything-topic') {
         await FileSystemUtils.writeFile(
+          path.join(scriptsDir, 'topic-registry.mjs'),
+          this.readCompiledScript('topic-registry.mjs'),
+        );
+        await FileSystemUtils.writeFile(
           path.join(scriptsDir, 'init-sessions.mjs'),
           this.readCompiledScript('init-sessions.mjs'),
         );

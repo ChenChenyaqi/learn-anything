@@ -1,22 +1,30 @@
 #!/usr/bin/env node
-/* global process, setInterval, clearInterval, setTimeout, clearTimeout, URL, Buffer */
+/* global process, setInterval, clearInterval, URL, Buffer */
 import { createServer } from 'node:http';
 import {
   readFileSync,
   existsSync,
   readdirSync,
   statSync,
-  watch,
   openSync,
   readSync,
   closeSync,
 } from 'node:fs';
 import { join, extname, resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import {
+  topicSources,
+  resolveTopic,
+  topicState,
+  containedFile,
+  withinDirectory,
+  startTopicWatcher,
+  stopTopicWatcher,
+  handleDashboardRequest,
+} from './topic-catalog.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const STATIC_DIR = __dirname;
-const TOPICS_DIR = process.env.TOPICS_DIR || join(__dirname, '..', '..', '.learn', 'topics');
 const PORT = parseInt(process.env.PORT || '24278', 10);
 
 const MIME = {
@@ -84,21 +92,27 @@ function walkDir(dirPath, relativePrefix, includeBinary, filterFn, results) {
 
 function scanTopicFiles(topicDir) {
   const files = { sessions: [], exercises: [], quizzes: [] };
-  walkDir(
-    join(topicDir, 'sessions'),
-    'sessions',
-    true,
-    (name) => name.toLowerCase().endsWith('.md'),
-    files.sessions,
-  );
-  walkDir(join(topicDir, 'exercises'), 'exercises', false, () => true, files.exercises);
-  walkDir(
-    join(topicDir, 'quizzes'),
-    'quizzes',
-    true,
-    (name) => name.toLowerCase().endsWith('.json'),
-    files.quizzes,
-  );
+  if (containedFile(topicDir, join(topicDir, 'sessions'))) {
+    walkDir(
+      join(topicDir, 'sessions'),
+      'sessions',
+      true,
+      (name) => name.toLowerCase().endsWith('.md'),
+      files.sessions,
+    );
+  }
+  if (containedFile(topicDir, join(topicDir, 'exercises'))) {
+    walkDir(join(topicDir, 'exercises'), 'exercises', false, () => true, files.exercises);
+  }
+  if (containedFile(topicDir, join(topicDir, 'quizzes'))) {
+    walkDir(
+      join(topicDir, 'quizzes'),
+      'quizzes',
+      true,
+      (name) => name.toLowerCase().endsWith('.json'),
+      files.quizzes,
+    );
+  }
   return files;
 }
 
@@ -193,20 +207,8 @@ function startHeartbeat() {
   }, 15000);
 }
 
-let watcherReady = false;
-
 function startWatcher() {
-  if (watcherReady) return;
-  watcherReady = true;
-  try {
-    let timer;
-    watch(TOPICS_DIR, { recursive: true }, (_event, _filename) => {
-      clearTimeout(timer);
-      timer = setTimeout(broadcastReload, 200);
-    });
-  } catch {
-    // topics dir may not exist yet
-  }
+  startTopicWatcher(broadcastReload);
 }
 
 /* ------------------------------------------------------------------ */
@@ -215,12 +217,9 @@ function startWatcher() {
 
 function buildTopicSummaries() {
   const summaries = [];
-  if (!existsSync(TOPICS_DIR)) return summaries;
-  const entries = readdirSync(TOPICS_DIR, { withFileTypes: true });
-  for (const entry of entries) {
-    if (!entry.isDirectory()) continue;
-    const slug = entry.name;
-    const state = safeReadJson(join(TOPICS_DIR, slug, 'state.json'));
+  for (const entry of topicSources()) {
+    const slug = entry.id;
+    const state = topicState(entry.path);
     if (!state) continue;
     const allConcepts = (state.domains || []).flatMap((d) => d.concepts || []);
     const total = allConcepts.length;
@@ -228,6 +227,7 @@ function buildTopicSummaries() {
     summaries.push({
       slug,
       name: state.topic || slug,
+      sourcePath: entry.sourcePath,
       domainCount: (state.domains || []).length,
       totalConcepts: total,
       masteredCount: mastered,
@@ -243,11 +243,11 @@ function buildTopicSummaries() {
 /* ------------------------------------------------------------------ */
 
 function buildTopicData(slug) {
-  const topicDir = join(TOPICS_DIR, slug);
-  if (!existsSync(topicDir)) return null;
-
-  const state = safeReadJson(join(topicDir, 'state.json'));
-  const knowledgeMap = safeReadText(join(topicDir, 'knowledge-map.md')) || '';
+  const topicDir = resolveTopic(slug);
+  const state = topicDir ? topicState(topicDir) : null;
+  if (!state) return null;
+  const mapPath = join(topicDir, 'knowledge-map.md');
+  const knowledgeMap = containedFile(topicDir, mapPath) ? safeReadText(mapPath) || '' : '';
   const files = scanTopicFiles(topicDir);
 
   return { state, knowledgeMap, files };
@@ -255,8 +255,8 @@ function buildTopicData(slug) {
 
 /** Read and return a single quiz deck JSON file with path traversal protection. */
 function serveQuizDeck(res, topic, restPath) {
-  const topicDir = join(TOPICS_DIR, topic);
-  if (!existsSync(topicDir)) {
+  const topicDir = resolveTopic(topic);
+  if (!topicDir || !existsSync(topicDir)) {
     return json(res, { error: 'Topic not found' }, 404);
   }
   if (restPath.includes('..')) {
@@ -264,11 +264,14 @@ function serveQuizDeck(res, topic, restPath) {
   }
   const quizzesRoot = resolve(join(topicDir, 'quizzes'));
   const filePath = resolve(join(quizzesRoot, restPath));
-  if (!filePath.startsWith(quizzesRoot)) {
+  if (!withinDirectory(quizzesRoot, filePath)) {
     return json(res, { error: 'Forbidden' }, 403);
   }
   if (!existsSync(filePath)) {
     return json(res, { error: 'Quiz not found' }, 404);
+  }
+  if (!containedFile(topicDir, filePath) || !containedFile(quizzesRoot, filePath)) {
+    return json(res, { error: 'Forbidden' }, 403);
   }
   const data = safeReadJson(filePath);
   if (!data) {
@@ -351,18 +354,19 @@ function buildFileEntries({ filePath, apiPath, topicSlug, topicName, section, ki
 /** Build the full flat search index across all topics. */
 function buildSearchIndex() {
   const index = [];
-  if (!existsSync(TOPICS_DIR)) return index;
-  for (const entry of readdirSync(TOPICS_DIR, { withFileTypes: true })) {
-    if (!entry.isDirectory()) continue;
-    const slug = entry.name;
-    const topicDir = join(TOPICS_DIR, slug);
-    const state = safeReadJson(join(topicDir, 'state.json'));
+  for (const entry of topicSources()) {
+    const slug = entry.id;
+    const topicDir = entry.path;
+    const state = topicState(topicDir);
+    if (!state) continue;
     const topicName = (state && state.topic) || slug;
     const slugName = buildSlugNameMap(state);
 
     // Session notes: sessions/**/*.md
     const sessionsDir = join(topicDir, 'sessions');
-    for (const rel of collectMarkdownFiles(sessionsDir)) {
+    for (const rel of containedFile(topicDir, sessionsDir)
+      ? collectMarkdownFiles(sessionsDir)
+      : []) {
       const dirName = rel.includes('/') ? rel.slice(0, rel.indexOf('/')) : '';
       const section = dirName ? slugName.get(dirName) || dirName : topicName;
       index.push(
@@ -379,7 +383,7 @@ function buildSearchIndex() {
 
     // Knowledge map: knowledge-map.md
     const kmPath = join(topicDir, 'knowledge-map.md');
-    if (existsSync(kmPath)) {
+    if (containedFile(topicDir, kmPath)) {
       index.push(
         ...buildFileEntries({
           filePath: kmPath,
@@ -394,7 +398,9 @@ function buildSearchIndex() {
 
     // Exercise docs: exercises/**/*.md
     const exercisesDir = join(topicDir, 'exercises');
-    for (const rel of collectMarkdownFiles(exercisesDir)) {
+    for (const rel of containedFile(topicDir, exercisesDir)
+      ? collectMarkdownFiles(exercisesDir)
+      : []) {
       const dirName = rel.includes('/') ? rel.slice(0, rel.indexOf('/')) : '';
       const section = dirName ? slugName.get(dirName) || dirName : topicName;
       index.push(
@@ -431,22 +437,24 @@ function serveFileContent(res, url) {
   }
   // Convert API path to filesystem path
   // API paths like: /topics/javascript/sessions/language-basics/2026-06-14.md
-  // Map to filesystem: TOPICS_DIR/javascript/sessions/language-basics/2026-06-14.md
-  const match = relPath.match(/^\/topics\/(.+)/);
+  // Resolve the topic ID through the active project or global registry.
+  const match = relPath.match(/^\/topics\/([^/]+)\/(.+)/);
   if (!match) {
     res.writeHead(404);
     res.end('Not Found');
     return;
   }
-  const relativePart = match[1];
+  const topicDir = resolveTopic(match[1]);
+  if (!topicDir) return json(res, { error: 'Topic not found' }, 404);
+  const relativePart = match[2];
   if (relativePart.includes('..')) {
     res.writeHead(403);
     res.end('Forbidden');
     return;
   }
-  let filePath = join(TOPICS_DIR, relativePart);
+  let filePath = join(topicDir, relativePart);
   filePath = resolve(filePath);
-  if (!filePath.startsWith(resolve(TOPICS_DIR))) {
+  if (!withinDirectory(topicDir, filePath)) {
     res.writeHead(403);
     res.end('Forbidden');
     return;
@@ -454,6 +462,11 @@ function serveFileContent(res, url) {
   if (!existsSync(filePath)) {
     res.writeHead(404);
     res.end('Not Found');
+    return;
+  }
+  if (!containedFile(topicDir, filePath)) {
+    res.writeHead(403);
+    res.end('Forbidden');
     return;
   }
   try {
@@ -472,9 +485,11 @@ function serveFileContent(res, url) {
 /*  HTTP Server                                                        */
 /* ------------------------------------------------------------------ */
 
-function handler(req, res) {
+async function handler(req, res) {
   const url = new URL(req.url, `http://localhost:${PORT}`);
   const pathname = url.pathname;
+
+  if (await handleDashboardRequest(req, res)) return;
 
   // API routes
   if (pathname === '/api/topics') {
@@ -514,7 +529,6 @@ function handler(req, res) {
       'Content-Type': 'text/event-stream',
       'Cache-Control': 'no-cache',
       Connection: 'keep-alive',
-      'Access-Control-Allow-Origin': '*',
     });
     res.write('data: connected\n\n');
     sseClients.add(res);
@@ -541,13 +555,24 @@ function handler(req, res) {
   serveStatic(res, cleanPath);
 }
 
-const server = createServer(handler);
-server.listen(PORT, () => {
-  process.stdout.write(`SITE_READY|http://localhost:${PORT}\n`);
+const server = createServer((req, res) => {
+  handler(req, res).catch((error) => {
+    if (!res.headersSent)
+      json(
+        res,
+        { error: error instanceof URIError ? 'Invalid URL' : 'Request failed' },
+        error instanceof URIError ? 400 : 500,
+      );
+    else res.end();
+  });
+});
+server.listen(PORT, '127.0.0.1', () => {
+  process.stdout.write(`SITE_READY|http://127.0.0.1:${PORT}\n`);
   startWatcher();
 });
 
 server.on('close', () => {
+  stopTopicWatcher();
   if (heartbeatTimer) {
     clearInterval(heartbeatTimer);
     heartbeatTimer = null;

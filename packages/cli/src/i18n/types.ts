@@ -28,6 +28,8 @@ export interface CLIMessages {
   noOpenOption: string;
   serveCommandDescription: string;
   serveHint: string;
+  registerCommandDescription: string;
+  topicsRegistered: (count: number) => string;
 }
 
 export interface InitMessages {

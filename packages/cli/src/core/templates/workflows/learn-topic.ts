@@ -84,19 +84,21 @@ Based on your expert understanding of "<topic-name>", generate a hierarchical kn
 
 ### Step 4: Run render.mjs and init-sessions.mjs
 
+Resolve \`<skill-directory>\` to the absolute directory containing this loaded SKILL.md. Keep the working directory at the learning project so relative topic paths still resolve there.
+
 \`\`\`bash
-SCRIPT=$(find . -path '*/learn-anything-topic/scripts/render.mjs' -print -quit 2>/dev/null)
-node "$SCRIPT" ./.learn/topics/<topic-name>
+node "<skill-directory>/scripts/render.mjs" "./.learn/topics/<topic-name>"
 \`\`\`
 
 render.mjs validates state.json against the v1 schema and generates knowledge-map.md. If validation fails, fix state.json and re-run render.mjs. Do NOT manually write knowledge-map.md.
 
 \`\`\`bash
-SCRIPT=$(find . -path '*/learn-anything-topic/scripts/init-sessions.mjs' -print -quit 2>/dev/null)
-node "$SCRIPT" ./.learn/topics/<topic-name>
+node "<skill-directory>/scripts/init-sessions.mjs" "./.learn/topics/<topic-name>"
 \`\`\`
 
 init-sessions.mjs reads state.json and creates domain subdirectories under \`sessions/\` (based on each domain's \`slug\`). This organizes future learning session files by domain. Safe to re-run — existing directories are skipped.
+
+It also registers this topic's absolute path in the user-wide dashboard index. Confirm registration produced no warning before reporting dashboard availability. If registration fails, explain the warning; the learning files remain saved and the script can be retried. The user can then run \`learn-anything serve\` from any directory to see all registered topics.
 
 ### Step 5: Present the knowledge map
 
@@ -138,12 +140,15 @@ Read \`./.learn/topics/<topic-name>/state.json\` — state.json is the single so
 
 ### Step 2.5: Run init-sessions.mjs to ensure domain directories exist
 
+Resolve \`<skill-directory>\` to the absolute directory containing this loaded SKILL.md. Keep the working directory at the learning project.
+
 \`\`\`bash
-SCRIPT=$(find . -path '*/learn-anything-topic/scripts/init-sessions.mjs' -print -quit 2>/dev/null)
-node "$SCRIPT" ./.learn/topics/<topic-name>
+node "<skill-directory>/scripts/init-sessions.mjs" "./.learn/topics/<topic-name>"
 \`\`\`
 
 This ensures domain subdirectories under \`sessions/\` are created (in case they were not created before or new domains were added). Safe to re-run.
+
+This also registers existing topics in the user-wide dashboard. Report any registration warning without claiming the topic is visible in the dashboard.
 
 ### Step 3: Calculate and display progress
 

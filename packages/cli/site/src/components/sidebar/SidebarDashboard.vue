@@ -31,6 +31,12 @@ const topics = computed(() => {
         @click="$emit('topic-selected', topic.slug)"
       >
         <span class="block">{{ topic.name }}</span>
+        <span
+          v-if="topic.sourcePath"
+          class="block text-xs font-normal text-text-3 truncate"
+          :title="topic.sourcePath"
+          >{{ topic.sourcePath }}</span
+        >
         <span class="block text-xs mt-0.5 font-normal text-text-3">
           {{ topic.masteredCount }}/{{ topic.totalConcepts }} mastered
         </span>

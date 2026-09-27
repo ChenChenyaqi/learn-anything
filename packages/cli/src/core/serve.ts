@@ -7,6 +7,7 @@ import { LEARN_DIR } from '../core/config.js';
 import { getMessages } from '../i18n/index.js';
 import type { SupportedLocale } from '../i18n/types.js';
 import { DEFAULT_PORT, findFreePort, isPortFree } from '../utils/port.js';
+import { listRegisteredTopics, registerPath } from '../scripts/topic-registry.mjs';
 
 export interface ServeOptions {
   targetPath?: string;
@@ -25,17 +26,21 @@ export async function executeServe(options: ServeOptions): Promise<void> {
   const resolvedPath = path.resolve(options.targetPath ?? '.');
   const topicsDir = path.join(resolvedPath, LEARN_DIR, 'topics');
 
-  if (!fs.existsSync(topicsDir)) {
+  if (options.targetPath && !fs.existsSync(topicsDir)) {
     fs.mkdirSync(topicsDir, { recursive: true });
   }
 
   try {
-    const entries = fs.readdirSync(topicsDir);
+    if (!options.targetPath && fs.existsSync(topicsDir)) {
+      const result = registerPath(resolvedPath);
+      for (const warning of result.skipped) console.warn(chalk.yellow(warning));
+    }
+    const entries = options.targetPath ? fs.readdirSync(topicsDir) : listRegisteredTopics();
     if (entries.length === 0) {
       console.log(chalk.yellow(m.emptyTopics));
     }
   } catch {
-    // topicsDir already ensured
+    // Missing or inaccessible local data must not prevent opening the dashboard.
   }
 
   console.log(chalk.cyan(m.startingServer));
@@ -76,7 +81,7 @@ export async function executeServe(options: ServeOptions): Promise<void> {
     env: {
       ...process.env,
       PORT: String(port),
-      TOPICS_DIR: topicsDir,
+      TOPICS_DIR: options.targetPath ? topicsDir : '',
     },
   });
 

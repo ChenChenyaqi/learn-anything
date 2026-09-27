@@ -29,6 +29,7 @@ export interface StateV1 {
 export interface TopicSummary {
   slug: string;
   name: string;
+  sourcePath?: string;
   domainCount: number;
   totalConcepts: number;
   masteredCount: number;

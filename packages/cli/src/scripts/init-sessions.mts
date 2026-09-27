@@ -15,6 +15,7 @@ import { fileURLToPath } from 'node:url';
 
 import type { StateV1 } from './utils.mjs';
 import { validateStateV1 } from './utils.mjs';
+import { registerTopic } from './topic-registry.mjs';
 
 /* ------------------------------------------------------------------ */
 /*  Init Sessions                                                     */
@@ -93,6 +94,17 @@ function main(): void {
 
   // 4. Create domain subdirectories
   const created = initSessions(topicDir, state);
+
+  try {
+    registerTopic(topicDir);
+  } catch (error) {
+    console.error(
+      `Warning: Could not register topic in the global dashboard: ${(error as Error).message}`,
+    );
+    console.error(
+      'Your learning files are saved. Retry init-sessions.mjs after fixing registry access.',
+    );
+  }
 
   // Summary to stdout
   console.log(

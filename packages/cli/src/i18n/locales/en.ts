@@ -19,7 +19,9 @@ export const en: LocaleMessages = {
     portOption: 'Port for the dev server (default: 24278)',
     strictPortOption: 'Use the exact port from --port; do not auto-pick a free one when busy',
     noOpenOption: 'Do not open browser automatically',
-    serveCommandDescription: 'Start a local site to visualize learning progress',
+    serveCommandDescription: 'Open all registered topics, or limit the dashboard to a project path',
+    registerCommandDescription: 'Register an existing project or topic in the global dashboard',
+    topicsRegistered: (count: number) => `Registered ${count} topic(s).`,
     serveHint: 'Run npx learn-anything-cli serve to view your learning progress in browser',
   },
 
@@ -54,7 +56,8 @@ export const en: LocaleMessages = {
       `Port ${from} is already in use — switching to port ${to}.`,
     portRangeExhausted: (start: number, end: number) =>
       `No free port found in range ${start}-${end}. Specify one manually with --port.`,
-    emptyTopics: 'No learning topics found in .learn/topics/. Start learning with /learn:topic.',
+    emptyTopics:
+      'No learning topics found. Use /learn:topic or import an existing project in the dashboard.',
     serverStopped: 'Server stopped.',
     siteNotBuilt: 'Site files not found. Please reinstall the package or run the build step.',
   },

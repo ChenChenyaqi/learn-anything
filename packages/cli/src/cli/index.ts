@@ -115,7 +115,7 @@ program
   .option('--lang <locale>', m.cli.langOption)
   .action(
     async (
-      targetPath = '.',
+      targetPath: string | undefined,
       options?: { port?: number; strictPort?: boolean; open?: boolean; lang?: string },
     ) => {
       const cliLocale = resolveLocale(options?.lang);
@@ -136,5 +136,22 @@ program
       }
     },
   );
+
+program
+  .command('register <path>')
+  .description(m.cli.registerCommandDescription)
+  .option('--lang <locale>', m.cli.langOption)
+  .action(async (targetPath: string) => {
+    try {
+      const { registerPath } = await import('../scripts/topic-registry.mjs');
+      const result = registerPath(targetPath);
+      console.log(m.cli.topicsRegistered(result.topics.length));
+      for (const warning of result.skipped) console.warn(warning);
+      if (result.skipped.length) process.exitCode = 1;
+    } catch (error) {
+      console.error((error as Error).message);
+      process.exitCode = 1;
+    }
+  });
 
 program.parse();

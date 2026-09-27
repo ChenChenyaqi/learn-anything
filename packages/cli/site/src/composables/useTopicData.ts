@@ -165,6 +165,12 @@ export function listenForChanges(callback: () => void): () => void {
   });
 }
 
+export async function refreshTopicData(): Promise<void> {
+  clearIndexes();
+  await initTopicData();
+  dataVersion.value++;
+}
+
 /* ------------------------------------------------------------------ */
 /*  Public API                                                        */
 /* ------------------------------------------------------------------ */

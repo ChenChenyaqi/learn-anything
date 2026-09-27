@@ -10,9 +10,11 @@ import { useFileNavigation } from './composables/useFileNavigation';
 import { useViewMode } from './composables/useViewMode';
 import { useSearchLauncher } from './composables/useSearchLauncher';
 import { useQuizLauncher } from './composables/useQuizLauncher';
+import { useI18n } from './composables/useI18n';
 import { useDarkMode } from './composables/useDarkMode';
 
 const route = useRoute();
+const { t } = useI18n();
 
 useDarkMode();
 
@@ -93,6 +95,13 @@ onUnmounted(() => {
 
     <main class="flex-1 min-w-0 lg:pl-68">
       <div class="px-6 py-10 lg:px-10">
+        <button
+          v-if="sidebarContext === 'topic'"
+          class="block mb-6 mt-6 lg:mt-0 text-sm text-text-2 hover:text-brand-2 cursor-pointer"
+          @click="onBackToDashboard"
+        >
+          {{ t('dashboard.back') }}
+        </button>
         <router-view />
       </div>
     </main>

@@ -18,7 +18,9 @@ export const zhCN: LocaleMessages = {
     portOption: '开发服务器端口（默认：24278）',
     strictPortOption: '严格使用 --port 指定的端口，被占用时不自动寻找空闲端口',
     noOpenOption: '不自动打开浏览器',
-    serveCommandDescription: '启动本地站点以可视化学习进度',
+    serveCommandDescription: '打开全部已登记主题，或指定路径只查看一个项目',
+    registerCommandDescription: '将已有项目或主题登记到全局仪表盘',
+    topicsRegistered: (count: number) => `已登记 ${count} 个主题。`,
     serveHint: '运行 npx learn-anything-cli serve 在浏览器中查看学习进度',
   },
 
@@ -47,7 +49,7 @@ export const zhCN: LocaleMessages = {
     portSwitched: (from: number, to: number) => `端口 ${from} 已被占用 —— 自动切换到端口 ${to}。`,
     portRangeExhausted: (start: number, end: number) =>
       `在 ${start}-${end} 范围内未找到可用端口。请使用 --port 手动指定。`,
-    emptyTopics: '.learn/topics/ 中未找到学习主题。使用 /learn:topic 开始学习。',
+    emptyTopics: '未找到学习主题。使用 /learn:topic 开始学习，或在仪表盘导入已有项目。',
     serverStopped: '服务器已停止。',
     siteNotBuilt: '未找到站点文件。请重新安装包或运行构建步骤。',
   },

@@ -208,6 +208,24 @@ describe('Skill Template Content Quality', () => {
       const t = getters[workflow]();
       expect(t.instructions).toContain('hidden directory');
       expect(t.instructions).toContain('ls -d .learn/topics/*/');
+      expect(t.instructions).toContain('Get-ChildItem .learn/topics');
+    },
+  );
+
+  it.each(['topic', 'explain', 'practice', 'quiz', 'status'])(
+    '%s template should run bundled scripts via the skill base directory (PowerShell-safe)',
+    (workflow) => {
+      const getters = {
+        topic: getLearnTopicSkillTemplate,
+        explain: getLearnExplainSkillTemplate,
+        practice: getLearnPracticeSkillTemplate,
+        quiz: getLearnQuizSkillTemplate,
+        status: getLearnStatusSkillTemplate,
+      } as const;
+      const t = getters[workflow]();
+      expect(t.instructions).toContain('<skill-base>/scripts/');
+      expect(t.instructions).not.toContain('find . -path');
+      expect(t.instructions).not.toContain('2>/dev/null');
     },
   );
 

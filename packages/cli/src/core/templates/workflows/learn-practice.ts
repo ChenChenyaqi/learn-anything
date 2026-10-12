@@ -1,5 +1,5 @@
 import type { SkillTemplate, CommandTemplate } from '../types.js';
-import { STATE_UPDATE_TABLE, HIDDEN_DIR_WARNING } from './_shared.js';
+import { STATE_UPDATE_TABLE, HIDDEN_DIR_WARNING, SKILL_BASE_NOTE } from './_shared.js';
 
 const SKILL_NAME = 'learn-anything-practice';
 const SKILL_DESCRIPTION =
@@ -32,7 +32,7 @@ If unsure, ask the user which they prefer.
 
 ### Step 1: Load Context
 
-1. **Match topic and concept**: same logic as \`/learn-explain\` — use the Bash tool (\`ls -d .learn/topics/*/\`), never the glob tool.
+1. **Match topic and concept**: same logic as \`/learn-explain\` — use the shell tool (bash: \`ls -d .learn/topics/*/\`; PowerShell: \`Get-ChildItem .learn/topics -Directory -Name\`), never the glob tool.
    Read \`./.learn/topics/<topic-name>/state.json\` — state.json is the single source of truth, do NOT read knowledge-map.md or state.yaml.
 
 2. **Check prerequisites**: if prerequisite concepts are \`unexplored\`, suggest learning them first. If \`needs_practice\`, remind to solidify basics.
@@ -157,9 +157,11 @@ Use concept name as-is from state.json, match the user's language, don't force-t
 \`\`\`
 
 After updating state.json, run render.mjs:
+
+${SKILL_BASE_NOTE}
+
 \`\`\`bash
-SCRIPT=$(find . -path '*/learn-anything-practice/scripts/render.mjs' -print -quit 2>/dev/null)
-node "$SCRIPT" ./.learn/topics/<topic-name>
+node "<skill-base>/scripts/render.mjs" ./.learn/topics/<topic-name>
 \`\`\`
 render.mjs validates state.json against the v1 schema — fix errors and re-run render.mjs if validation fails.
 

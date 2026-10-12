@@ -15,7 +15,7 @@ ${HIDDEN_DIR_WARNING}
 
 ### Step 1: Select Topic
 
-If no topic specified: use the Bash tool to list all topics (\`ls -d .learn/topics/*/\` — never the glob tool, it skips hidden dot-directories), read each state.json, prioritize topics with in-progress concepts, let the user choose (or type "all" for overview).
+If no topic specified: use the shell tool to list all topics (bash: \`ls -d .learn/topics/*/\`; PowerShell: \`Get-ChildItem .learn/topics -Directory -Name\` — never the glob tool, it skips hidden dot-directories), read each state.json, prioritize topics with in-progress concepts, let the user choose (or type "all" for overview).
 
 > 📚 Your learning topics:
 > 1. **JavaScript** — 3/18 mastered, last studied 2 days ago

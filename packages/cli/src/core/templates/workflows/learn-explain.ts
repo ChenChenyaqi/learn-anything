@@ -1,5 +1,5 @@
 import type { SkillTemplate, CommandTemplate } from '../types.js';
-import { HIDDEN_DIR_WARNING } from './_shared.js';
+import { HIDDEN_DIR_WARNING, SKILL_BASE_NOTE } from './_shared.js';
 
 const SKILL_NAME = 'learn-anything-explain';
 const SKILL_DESCRIPTION =
@@ -24,7 +24,7 @@ ${HIDDEN_DIR_WARNING}
 
 ### Step 1: Load Context
 
-1. **Match topic**: Use the Bash tool to list directories under \`./.learn/topics/\`: \`ls -d .learn/topics/*/\`. Do NOT use the glob tool — it skips hidden dot-directories.
+1. **Match topic**: Use the shell tool to list directories under \`./.learn/topics/\` (bash: \`ls -d .learn/topics/*/\`; PowerShell: \`Get-ChildItem .learn/topics -Directory -Name\`). Do NOT use the glob tool — it skips hidden dot-directories.
    - Only one topic → use it directly.
    - Multiple topics → search each state.json for the concept name.
    - No match → ask the user which topic to use.
@@ -134,9 +134,11 @@ Session file format:
 - If user showed understanding: \`confidence\` += 0.05~0.1 (cap 1.0)
 
 **E) Run render.mjs**:
+
+${SKILL_BASE_NOTE}
+
 \`\`\`bash
-SCRIPT=$(find . -path '*/learn-anything-explain/scripts/render.mjs' -print -quit 2>/dev/null)
-node "$SCRIPT" ./.learn/topics/<topic-name>
+node "<skill-base>/scripts/render.mjs" ./.learn/topics/<topic-name>
 \`\`\`
 render.mjs validates state.json against the v1 schema — fix errors and re-run render.mjs if validation fails.
 

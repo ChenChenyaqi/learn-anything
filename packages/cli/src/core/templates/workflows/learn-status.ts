@@ -1,4 +1,5 @@
 import type { SkillTemplate, CommandTemplate } from '../types.js';
+import { SKILL_BASE_NOTE } from './_shared.js';
 
 const SKILL_NAME = 'learn-anything-status';
 const SKILL_DESCRIPTION =
@@ -21,18 +22,18 @@ const INSTRUCTIONS = `You are Learn Anything's Status Visualizer. Your sole task
 
 ### Step 3: Run Status Script
 
-Use the Bash tool to run the status script (located in the scripts/ directory next to this SKILL.md file):
+Use the shell tool to run the status script (located in the \`scripts/\` directory next to this SKILL.md file):
+
+${SKILL_BASE_NOTE}
 
 **Single topic (detailed heatmap):**
 \`\`\`bash
-SCRIPT=$(find . -path '*/learn-anything-status/scripts/status.mjs' -print -quit 2>/dev/null)
-node "$SCRIPT" --locale <locale> ./.learn/topics/<topic-name>
+node "<skill-base>/scripts/status.mjs" --locale <locale> ./.learn/topics/<topic-name>
 \`\`\`
 
 **All topics (summary by topic):**
 \`\`\`bash
-SCRIPT=$(find . -path '*/learn-anything-status/scripts/status.mjs' -print -quit 2>/dev/null)
-node "$SCRIPT" --all --locale <locale> ./.learn/topics
+node "<skill-base>/scripts/status.mjs" --all --locale <locale> ./.learn/topics
 \`\`\`
 
 The script reads state.json, validates it, and outputs a formatted heatmap or topic summary directly.

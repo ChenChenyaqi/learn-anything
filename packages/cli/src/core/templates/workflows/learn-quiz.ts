@@ -1,5 +1,5 @@
 import type { SkillTemplate, CommandTemplate } from '../types.js';
-import { STATE_UPDATE_TABLE, HIDDEN_DIR_WARNING } from './_shared.js';
+import { STATE_UPDATE_TABLE, HIDDEN_DIR_WARNING, SKILL_BASE_NOTE } from './_shared.js';
 
 const SKILL_NAME = 'learn-anything-quiz';
 const SKILL_DESCRIPTION =
@@ -28,7 +28,7 @@ ${HIDDEN_DIR_WARNING}
 
 ### Step 1: Load Context
 
-Find topics under \`./.learn/topics/\` using the Bash tool (\`ls -d .learn/topics/*/\` — never the glob tool, it skips hidden dot-directories). Read \`./.learn/topics/<topic-name>/state.json\` — state.json is the single source of truth; do NOT read knowledge-map.md.
+Find topics under \`./.learn/topics/\` using the shell tool (bash: \`ls -d .learn/topics/*/\`; PowerShell: \`Get-ChildItem .learn/topics -Directory -Name\` — never the glob tool, it skips hidden dot-directories). Read \`./.learn/topics/<topic-name>/state.json\` — state.json is the single source of truth; do NOT read knowledge-map.md.
 
 Resolve scope:
 - **Default (a concept name)**: quiz only that concept.
@@ -41,7 +41,7 @@ Resolve scope:
 **Load session notes:**
 For each concept to quiz, find and read its explain session notes:
 1. From state.json, get the concept's domain \`slug\`.
-2. List session files: \`ls .learn/topics/<topic>/sessions/<domain-slug>/*.md\` (Bash tool — never glob, it skips dot-directories).
+2. List session files: list \`.learn/topics/<topic>/sessions/<domain-slug>/*.md\` with the shell tool (bash: \`ls .learn/topics/<topic>/sessions/<domain-slug>/*.md\`; PowerShell: \`Get-ChildItem .learn/topics/<topic>/sessions/<domain-slug> -Filter *.md\` — never glob, it skips dot-directories).
 3. Read the session file(s) matching this concept — match by concept name in the filename, or the \`# [Concept Name]\` heading inside the file.
 
 ### Step 2: Assess Difficulty
@@ -106,9 +106,10 @@ This file is the single persisted artifact — answers and explanations live onl
 
 After writing each deck, validate it:
 
+${SKILL_BASE_NOTE}
+
 \`\`\`bash
-VSCRIPT=$(find . -path '*/learn-anything-quiz/scripts/validate-quiz.mjs' -print -quit 2>/dev/null)
-node "$VSCRIPT" <the deck path you just wrote>
+node "<skill-base>/scripts/validate-quiz.mjs" <the deck path you just wrote>
 \`\`\`
 
 validate-quiz.mjs checks the deck against the v1 schema (field types, type↔gradeable consistency, required sub-fields). Fix errors in the deck and re-run until it passes, before presenting questions.
@@ -140,8 +141,7 @@ ${STATE_UPDATE_TABLE}
 After updating state.json, run render.mjs:
 
 \`\`\`bash
-SCRIPT=$(find . -path '*/learn-anything-quiz/scripts/render.mjs' -print -quit 2>/dev/null)
-node "$SCRIPT" ./.learn/topics/<topic-name>
+node "<skill-base>/scripts/render.mjs" ./.learn/topics/<topic-name>
 \`\`\`
 
 render.mjs validates state.json against the v1 schema — fix errors and re-run render.mjs if validation fails.
